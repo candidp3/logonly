@@ -2300,6 +2300,31 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
 #viewAll_v2 .rr-sleep-row .rr-range b{display:inline-block;width:.62em;text-align:center;font-weight:inherit}
 #viewAll_v2 .rr-sleep-row .rr-range u{display:inline-block;width:.32em;text-align:center;text-decoration:none}
 .bookSearchBox{display:none!important} /* 판매용 v1: 책 검색 숨김 */
+
+.projectList{grid-template-columns:minmax(0,1fr)!important}
+.projectBlock,.pjRow,.pjTop{min-width:0}
+.pjBarRow{display:flex;align-items:center;gap:10px;margin:9px 0 6px}
+.pjBarRow .pjBar{flex:1 1 auto;margin:0}
+.pjBarRow .pjCount{flex:none;font-variant-numeric:tabular-nums}
+.pjNext{align-items:flex-start!important;margin-top:6px!important}
+.pjNextText{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.pjNext .pjChk{margin-top:0}
+.pjMore{margin:4px 0 0 31px;font-size:var(--fs-1);color:var(--rc-mu)}
+.pjDupBtn{margin-left:auto;margin-right:8px;border:0;background:var(--rc-soft);color:var(--rc-mu);border-radius:999px;padding:6px 12px;font-size:var(--fs-1)}
+.pjDupBtn.hide{display:none}
+.lifeSheetHead:has(.pjDupBtn){display:flex;align-items:center}
+.pjTools{display:flex;gap:14px;margin-top:8px}
+.pjTools button{border:0;background:transparent;color:var(--rc-mu);font-size:var(--fs-1);padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+.pjBulk{display:flex;gap:8px;align-items:flex-end;margin-top:8px}
+.pjBulk.hide{display:none}
+.pjBulk textarea{flex:1 1 auto;min-width:0;border:1px solid var(--rc-line);border-radius:12px;background:var(--rc-soft);padding:10px 12px;font-size:var(--fs-2);color:var(--rc-tx);resize:none}
+.pjBulkOk{flex:none;height:40px;border:0;border-radius:12px;background:var(--rc-g);color:#fff;padding:0 16px;font-size:var(--fs-2)}
+.pjDoneTgl{border:0;background:transparent;color:var(--rc-mu);font-size:var(--fs-1);text-align:left;padding:6px 2px}
+
+.tdChip{align-items:center!important}
+.tdChip .tdToday{height:34px!important;min-height:0!important;box-sizing:border-box;padding:0 14px!important;display:inline-flex;align-items:center;line-height:1}
+.tdChip .tdPick{width:34px!important;height:34px!important;min-width:34px!important;min-height:0!important;flex:none!important;aspect-ratio:1/1;padding:0!important;margin:0!important;box-sizing:border-box;border-radius:50%!important}
+.abRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--rc-line);font-size:var(--fs-1);color:var(--rc-tx)}.abRow:first-of-type{margin-top:6px}.abRow button{flex:none;border:0;border-radius:999px;background:var(--rc-soft);color:var(--rc-tx);padding:6px 14px;font-size:var(--fs-1)}
 </style>
 </head>
 
@@ -2666,7 +2691,7 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
     <div class="backupCardText">기록과 직접 올린 책 표지를 파일 하나로 저장해요.</div>
     <button class="backupPrimary uiWideAction" onclick="downloadBackup()">백업 파일 저장</button>
     <div class="backupHint">저장한 파일은 <b>내 파일 → 다운로드</b>에서 찾을 수 있어요.</div>
-    <div id="backupSaveStatus" class="backupStatusBox">아직 이번 접속에서 저장한 백업 파일이 없어요.</div></div>
+    <div id="backupSaveStatus" class="backupStatusBox"><span id="backupLastInfo">아직 이번 접속에서 저장한 백업 파일이 없어요.</span></div></div>
     <div class="backupPart"><div class="backupSubTitle">불러오기</div>
     <div class="backupCardText">저장해 둔 백업 파일을 골라 복원해요. 현재 데이터는 백업 내용으로 바뀌어요.</div>
     <input id="backupFile" class="backupFilePicker" type="file" accept="application/json,.json" onchange="loadBackupFile()">
@@ -2676,7 +2701,6 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
     <details class="backupPart backupAutoDetails"><summary>자동 백업</summary>
     <div class="backupCardText">앱 안에 임시로 보관하는 비상용 백업이에요. 파일로는 저장되지 않아요.</div>
     <div id="autoBackupStatus" class="backupStatusBox">최근 자동 백업을 확인하는 중이에요.</div>
-    <button class="backupSecondary" onclick="restoreLatestAutoBackup()">최근 자동 백업으로 복원</button>
     <div class="backupHint">최근 7개만 남고, 초기화해도 유지돼요. 직접 올린 책 표지는 포함되지 않아요.</div>
     <button class="backupDangerText" onclick="deleteAllAutoBackups()">자동 백업 모두 삭제</button></details>
   </section>
@@ -2703,12 +2727,14 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
 </div>
 <div id="projectModal" class="lifeModal hide" onclick="if(event.target===this)closeProject()">
   <div class="lifeSheet">
-    <div class="lifeSheetHead"><b id="pjTitle">프로젝트</b><button class="lifeClose" type="button" onclick="closeProject()">×</button></div>
+    <div class="lifeSheetHead"><b id="pjTitle">프로젝트</b><button type="button" id="pjDupBtn" class="pjDupBtn hide" onclick="pjDuplicate()">복제</button><button class="lifeClose" type="button" onclick="closeProject()">×</button></div>
     <div class="lifeField"><label>이름</label><input id="pjName" maxlength="40" placeholder="예: 릴스 만들기"></div>
     <div class="lifeField"><label>상태</label><div class="pjSeg" id="pjSeg"></div></div>
     <div class="pjDates"><label class="pjBox pjDateBtn" id="pjStartBox"><span class="pjBoxIc">⟪calendar⟫</span><span class="pjBoxTx" id="pjStartTx">시작일</span><input id="pjStart" type="date" onchange="pjDateSync()"><button type="button" class="pjBoxX hide" aria-label="시작일 지우기" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pjStart').value='';pjDateSync()">×</button></label><label class="pjBox pjDateBtn" id="pjDueBox"><span class="pjBoxIc">⟪calendar⟫</span><span class="pjBoxTx" id="pjDueTx">마감일</span><input id="pjDue" type="date" onchange="pjDateSync()"><button type="button" class="pjBoxX hide" aria-label="마감일 지우기" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pjDue').value='';pjDateSync()">×</button></label></div>
     <div class="lifeField"><label>할 일</label><div id="pjTasks" class="pjTasks"></div>
-      <div class="pjAddRow"><input id="pjNewTask" maxlength="80" placeholder="할 일 추가" onkeydown="if(event.key==='Enter'){event.preventDefault();pjAddTask();}"><button type="button" class="pjAddBtn" aria-label="추가" onclick="pjAddTask()">＋</button></div></div>
+      <div class="pjAddRow"><input id="pjNewTask" maxlength="80" placeholder="할 일 추가" onkeydown="if(event.key==='Enter'){event.preventDefault();pjAddTask();}"><button type="button" class="pjAddBtn" aria-label="추가" onclick="pjAddTask()">＋</button></div>
+      <div class="pjTools"><button type="button" onclick="pjToggleBulk()">여러 개 붙여넣기</button><button type="button" id="pjImportBtn" onclick="pjImportMenu()">다른 프로젝트에서 가져오기</button></div>
+      <div id="pjBulkBox" class="pjBulk hide"><textarea id="pjBulk" rows="5" placeholder="11.10 포스터 제작&#10;11.12 공문 발송&#10;자료 정리"></textarea><button type="button" class="pjBulkOk" onclick="pjBulkAdd()">추가</button></div></div>
     <div class="lifeField"><label>메모</label><textarea id="pjNote" rows="2" maxlength="500" class="olMemoSm"></textarea></div>
     <div class="lifeActions"><button id="pjDel" class="lifeDelete hide" type="button" onclick="pjDelete()">삭제</button><button class="lifeDelete" type="button" onclick="closeProject()">취소</button><button class="lifeSave" type="button" onclick="pjSave()">저장</button></div>
   </div>
@@ -3751,6 +3777,8 @@ function renderCustomDailyCare(){
       const val=raw&&typeof raw==='object'?raw:null;
       const sess=getDailyCareDurationSession(d.id);
       let meta=durationRecordSummary(d,val),mainLabel=d.durationStartLabel||'시작';
+      if(meta==='기록 없음'&&d.durationGoalMinutes>0)meta=`목표 ${formatDailyCareDuration(d.durationGoalMinutes)}`;
+      else if(val&&d.durationTrackMinutes&&Number.isFinite(Number(val.minutes)))meta=`기록 ${formatDailyCareDuration(Number(val.minutes))}`;
       if(sess?.startAt){
         const start=new Date(sess.startAt);
         const mins=Math.max(0,Math.floor((Date.now()-start.getTime())/60000));
@@ -4032,7 +4060,7 @@ function updateDailyCareEditorFields(){
   const hint=document.getElementById('dailyCareTypeHint');
 
   if(unitField)unitField.hidden=type==='duration';
-  if(targetField)targetField.hidden=type==='duration'; /* 판매용: 숫자형도 목표 입력 */
+  if(targetField){targetField.hidden=type==='duration';if(targetField.firstChild)targetField.firstChild.textContent=type==='numeric'?'목표':'하루 목표';}
   if(quickField)quickField.hidden=type!=='cumulative';
   if(durationFields)durationFields.hidden=type!=='duration';
 
@@ -4577,9 +4605,34 @@ function makeAutoBackup(){
   renderBackupStatus();
 }
 
+function autoBackupInfo(key){
+  try{const d=JSON.parse(localStorage.getItem(key)||'{}')||{};let days=0,n=0;
+    Object.keys(d).forEach(k=>{n++;if(/^\d{4}-\d{2}-\d{2}$/.test(k))days++;});
+    return {days,keys:n};}catch(e){return {days:0,keys:0};}
+}
+function autoBackupBestKey(keys){let best=null,bd=0;keys.forEach(k=>{const i=autoBackupInfo(k);if(i.days>bd||(i.days===bd&&i.days>0&&best===null)){bd=i.days;best=k;}});return best;}
 function cleanupOldAutoBackups(){
-  const keys=getAutoBackupKeys();
-  while(keys.length>AUTO_BACKUP_LIMIT)localStorage.removeItem(keys.shift());
+  const keys=getAutoBackupKeys();const best=autoBackupBestKey(keys);
+  while(keys.length>AUTO_BACKUP_LIMIT){
+    const i=keys.findIndex(k=>k!==best);if(i<0)break;
+    localStorage.removeItem(keys.splice(i,1)[0]);
+  }
+}
+function autoBackupLocalLabel(key){
+  const m=String(key).replace(AUTO_BACKUP_PREFIX,'').match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})$/);
+  if(!m)return key;const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4]));
+  return `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}시`;
+}
+async function restoreAutoBackup(key){
+  const dataStr=localStorage.getItem(key);let data;
+  try{data=JSON.parse(dataStr);}catch(e){return appAlert('이 백업은 손상됐어요.');}
+  if(validateBackupPayload(data)!=='legacy')return appAlert('이 자동 백업은 사용할 수 없어요.');
+  const info=autoBackupInfo(key);
+  if(!await appConfirm(`${autoBackupLocalLabel(key)} 백업(기록 ${info.days}일)으로 되돌릴까요? 현재 데이터는 교체돼요.`))return;
+  const kept={};getAutoBackupKeys().forEach(k=>{kept[k]=localStorage.getItem(k);});
+  applyLocalStorageSnapshot(data);
+  Object.entries(kept).forEach(([k,v])=>{if(v!==null)localStorage.setItem(k,v);});
+  appAlert('복원했어요. 앱을 새로고침해 주세요.');
 }
 
 function formatAutoBackupKey(key){
@@ -4594,7 +4647,8 @@ function renderBackupStatus(){
   const keys=getAutoBackupKeys();
   if(!keys.length){root.textContent='아직 자동 백업이 없어요.';return;}
   const latest=keys[keys.length-1];
-  root.innerHTML=`<span class="backupStatusStrong">최근 자동 백업: ${escapeLife(formatAutoBackupKey(latest))}</span><br>현재 ${keys.length}개 보관 중 · 최대 ${AUTO_BACKUP_LIMIT}개`;
+  const best=autoBackupBestKey(keys);
+  root.innerHTML=`<span class="backupStatusStrong">자동 백업 ${keys.length}개</span>`+keys.slice().reverse().map(k=>{const i=autoBackupInfo(k);return `<div class="abRow"><span>${escapeLife(autoBackupLocalLabel(k))} · 기록 ${i.days}일${k===best&&i.days>0?' · 가장 많음':''}</span><button type="button" onclick="restoreAutoBackup('${k}')">복원</button></div>`;}).join('');
 }
 
 async function restoreLatestAutoBackup(){
@@ -5299,8 +5353,8 @@ function renderDailyCareItemDashboard(def,start,end){
   }
   const latest=summary.latest?formatRecordDailyCareValue(d,summary.latest.value):'-';
   const avg=formatRecordDailyCareValue(d,summary.avg);
-  const third=d.type==='cumulative'&&Number(d.target)>0
-    ?`<div class="dashMetric"><div class="dashMetricValue">${formatRecordDailyCareValue(d,d.target)}</div><div class="dashMetricLabel">하루 목표</div></div>`
+  const third=d.type!=='duration'&&Number(d.target)>0
+    ?`<div class="dashMetric"><div class="dashMetricValue">${formatRecordDailyCareValue(d,d.target)}</div><div class="dashMetricLabel">${d.type==='numeric'?'목표':'하루 목표'}</div></div>`
     :`<div class="dashMetric"><div class="dashMetricValue">${summary.count}일</div><div class="dashMetricLabel">기록한 날</div></div>`;
   const periodLabel=recordPeriodBounds().label;
   root.innerHTML=`<div class="dashMetrics"><div class="dashMetric"><div class="dashMetricValue">${latest}</div><div class="dashMetricLabel">최근 기록</div></div><div class="dashMetric"><div class="dashMetricValue">${avg}</div><div class="dashMetricLabel">기간 평균</div></div>${third}</div><div class="recordInterpretation">${escapeLife(dailyCareInterpretationText(d,summary,periodLabel))}</div>${renderDailyCareTrendChart(d,summary)}`;
@@ -6544,14 +6598,14 @@ function stopActivityTimer(){
   const t=loadActivityTimer();if(!t||!t.startedAt)return;
   const end=new Date(),start=new Date(t.startedAt);
   const elapsedMs=Math.max(0,end.getTime()-start.getTime());
-  const minutes=elapsedMs/60000;
+  const minutes=Math.round(elapsedMs/6000)/10;
   if(minutes<=0){saveActivityTimer(null);renderActivityTimerBanner();renderLifeGuide();return;}
   const key=t.dateKey||lifeLogKey();
   const all=loadLifeLogs();const logs=Array.isArray(all[key])?all[key]:[];
   const idx=logs.findIndex(x=>x.routineId===t.routineId);
   if(idx>=0){
     logs[idx].completed=true;
-    logs[idx].duration=(Number(logs[idx].duration)||0)+minutes;
+    logs[idx].duration=Math.round(((Number(logs[idx].duration)||0)+minutes)*10)/10;
     logs[idx].loggedAt=end.toISOString();
   }else{
     logs.push({routineId:t.routineId,completed:true,value:null,duration:minutes,memo:'',loggedAt:end.toISOString()});
@@ -7531,9 +7585,8 @@ function getPreviousFreeRecords(routineId,limit=1000){
   Object.keys(all).sort().reverse().forEach(k=>{
     (Array.isArray(all[k])?all[k]:[]).forEach(log=>{
       if(log.routineId!==routineId)return;
-      const text=String(log.memo||'').trim();
-      if(!text||seen.has(text))return;
-      seen.add(text);rows.push(text);
+      const ents=[String(log.memo||'')].concat(Array.isArray(log.extra)?log.extra.map(x=>String(x||'')):[]);
+      ents.forEach(raw=>{const text=raw.trim();if(!text||seen.has(text))return;seen.add(text);rows.push(text);});
     });
   });
   return rows.slice(0,limit);
@@ -7580,6 +7633,7 @@ function choosePreviousRecord(i){
   closeHistoryPicker();input.focus();
 }
 function openRoutineInputSheet(ctx){
+  if(ctx&&ctx.mode==='time'&&ctx.value!==''&&ctx.value!=null&&Number.isFinite(Number(ctx.value)))ctx.value=Math.round(Number(ctx.value)*10)/10;
   routineInputContext=ctx;
   const sheet=document.getElementById('routineInputSheet');
   const title=document.getElementById('routineInputTitle');
@@ -8268,7 +8322,7 @@ function renderBackupNudge(){
     guide.parentNode.insertBefore(el,guide);
   }
   const d=backupNudgeDays();
-  if(d>=14){document.getElementById('backupNudgeText').textContent=`마지막 백업 후 ${d}일이 지났어요`;el.classList.remove('hide');}
+  if(d>=7){document.getElementById('backupNudgeText').textContent=localStorage.getItem('lastFileBackup_v1')?`마지막 파일 백업 후 ${d}일이 지났어요`:'아직 파일로 백업한 적이 없어요';el.classList.remove('hide');}
   else el.classList.add('hide');
 }
 function snoozeBackupNudge(){
@@ -10651,21 +10705,31 @@ function appIconSvg(name){const x=APP_ICON_MAP[name];if(!x)return '';return `<sv
     });
   }
   const NAME=/^(⟪[a-z0-9_]+⟫|\p{Regional_Indicator}{2}|(?:\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*))\s*([\s\S]*)$/u;
+  const SEG=(typeof Intl!=='undefined'&&Intl.Segmenter)?new Intl.Segmenter(undefined,{granularity:'grapheme'}):null;
+  function splitIcon(text){
+    const t=String(text||'');
+    const tok=/^(⟪[a-z0-9_]+⟫)\s*([\s\S]*)$/.exec(t);if(tok)return [tok[1],tok[2]];
+    let first='';
+    if(SEG){const it=SEG.segment(t)[Symbol.iterator]().next();first=it.done?'':it.value.segment;}
+    else{const m=NAME.exec(t);return m?[m[1],m[2]]:null;}
+    if(!first||!/(\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3)/u.test(first))return null;
+    return [first,t.slice(first.length).replace(/^\s+/,'')];
+  }
   function wrapNames(){
     document.querySelectorAll('.lifeRoutineName').forEach(el=>{
       if(el.querySelector(':scope>.rIco')||el.children.length)return;
-      const m=el.textContent.match(NAME);if(!m)return;
+      const m=splitIcon(el.textContent);if(!m)return;
       el.textContent='';el.classList.add('hasIco');
-      const i=document.createElement('span');i.className='rIco';i.textContent=m[1];
-      const n=document.createElement('span');n.className='rTxt';n.textContent=m[2];
+      const i=document.createElement('span');i.className='rIco';i.textContent=m[0];
+      const n=document.createElement('span');n.className='rTxt';n.textContent=m[1];
       el.append(i,n);
     });
     document.querySelectorAll('.dailyCareName').forEach(el=>{
       if(el.querySelector(':scope>.dcIco')||el.children.length)return;
-      const m=el.textContent.match(NAME);if(!m)return;
+      const m=splitIcon(el.textContent);if(!m)return;
       el.textContent='';
-      const i=document.createElement('span');i.className='dcIco';i.textContent=m[1];
-      const n=document.createElement('span');n.className='dcTxt';n.textContent=m[2];
+      const i=document.createElement('span');i.className='dcIco';i.textContent=m[0];
+      const n=document.createElement('span');n.className='dcTxt';n.textContent=m[1];
       el.append(i,n);
     });
   }
@@ -10703,6 +10767,7 @@ function appIconSvg(name){const x=APP_ICON_MAP[name];if(!x)return '';return `<sv
   }
   function sync(id){
     const inp=document.getElementById(id);if(!inp||!inp._icRow)return;
+    {const raw=inp.value.trim().replace(/\uFE0F/g,''),ic=EMO2IC[inp.value.trim()]||EMO2IC[raw];if(ic&&APP_ICON_MAP[ic]&&document.activeElement!==inp)inp.value=`⟪${ic}⟫`;}
     const m=/^⟪([a-z0-9_]+)⟫$/.exec(inp.value.trim());const name=m&&APP_ICON_MAP[m[1]]?m[1]:'';
     inp.classList.toggle('icTok',!!name);
     const ci=inp._icRow.querySelector('.icCurIco');ci.hidden=!name;ci.innerHTML=name?`<span class="appIco">${appIconSvg(name)}</span>`:'';
@@ -11188,13 +11253,20 @@ function pjDays(due){
 function pjDueLabel(due){const n=pjDays(due);if(n===null)return '';return n===0?'오늘 마감':n>0?`D-${n}`:'기한 지남';}
 function pjNext(p){return (p.tasks||[]).find(t=>!t.done);}
 function pjSorted(list){return list.slice().sort((a,b)=>{const da=pjDays(a.due),db=pjDays(b.due);if(da===null&&db!==null)return 1;if(db===null&&da!==null)return -1;if(da!==db&&da!==null)return da-db;return (a.createdAt||0)-(b.createdAt||0);});}
+function pjNextGroup(p){
+  const und=(p.tasks||[]).filter(t=>!t.done);if(!und.length)return [];
+  const f=und[0];return f.due?und.filter(t=>t.due===f.due):[f];
+}
 function pjRowHTML(p){
-  const ts=p.tasks||[],done=ts.filter(t=>t.done).length,nx=pjNext(p),pct=ts.length?Math.round(done/ts.length*100):0;
-  const dl=pjDueLabel(p.due),over=false;
+  const ts=p.tasks||[],done=ts.filter(t=>t.done).length,pct=ts.length?Math.round(done/ts.length*100):0;
+  const dl=pjDueLabel(p.due),grp=pjNextGroup(p),show=grp.slice(0,3),more=grp.length-show.length;
+  const dd=grp[0]&&grp[0].due?grp[0].due.slice(5).replace('-','.'):'';
+  const rows=show.map((t,i)=>`<div class="pjNext"><button type="button" class="pjChk" aria-label="완료" onclick="event.stopPropagation();pjToggle('${p.id}','${t.id}')"></button><span class="pjNextText">${escapeLife(t.text)}</span>${i===0&&dd?`<span class="pjCount">${dd}</span>`:''}</div>`).join('')
+    +(more>0?`<div class="pjMore">외 ${more}개</div>`:'');
   return `<div class="pjRow" role="button" tabindex="0" onclick="openProject('${p.id}')">
-    <div class="pjTop"><span class="pjName">${escapeLife(p.name)}</span>${dl?`<span class="pjDue${over?' over':''}">${dl}</span>`:''}</div>
-    ${ts.length?`<div class="pjBar"><i style="width:${pct}%"></i></div>`:''}
-    <div class="pjNext">${nx?`<button type="button" class="pjChk" aria-label="완료" onclick="event.stopPropagation();pjToggle('${p.id}','${nx.id}')"></button><span class="pjNextText">${escapeLife(nx.text)}${nx.due?` <span class="mu">· ${nx.due.slice(5).replace('-','.')}</span>`:''}</span>`:`<span class="pjNextText mu">${ts.length?'할 일을 모두 마쳤어요':'할 일을 추가해 보세요'}</span>`}${ts.length?`<span class="pjCount">${done}/${ts.length}</span>`:''}</div>
+    <div class="pjTop"><span class="pjName">${escapeLife(p.name)}</span>${dl?`<span class="pjDue">${dl}</span>`:''}</div>
+    ${ts.length?`<div class="pjBarRow"><div class="pjBar"><i style="width:${pct}%"></i></div><span class="pjCount">${done}/${ts.length}</span></div>`:''}
+    ${rows||`<div class="pjNext"><span class="pjNextText mu">${ts.length?'할 일을 모두 마쳤어요':'할 일을 추가해 보세요'}</span></div>`}
   </div>`;
 }
 function renderProjects(){
@@ -11215,18 +11287,20 @@ function openProject(id){
   pjDraft=p?JSON.parse(JSON.stringify(p)):{id:pjId(),name:'',status:'active',due:'',tasks:[],note:'',createdAt:Date.now(),isNew:true};
   document.getElementById('pjTitle').textContent=p?'프로젝트 수정':'새 프로젝트';
   document.getElementById('pjName').value=pjDraft.name;document.getElementById('pjDue').value=pjDraft.due||'';document.getElementById('pjStart').value=pjDraft.start||'';pjDateSync();document.getElementById('pjNote').value=pjDraft.note||'';
-  document.getElementById('pjNewTask').value='';document.getElementById('pjDel').classList.toggle('hide',!p);
+  document.getElementById('pjNewTask').value='';document.getElementById('pjDel').classList.toggle('hide',!p);document.getElementById('pjDupBtn').classList.toggle('hide',!p);document.getElementById('pjBulkBox').classList.add('hide');
   pjRenderSeg();pjRenderTasks();
   document.getElementById('projectManageModal')?.classList.add('hide');
   document.getElementById('projectModal').classList.remove('hide');
 }
 function closeProject(){document.getElementById('projectModal')?.classList.add('hide');pjDraft=null;}
 function pjRenderSeg(){document.getElementById('pjSeg').innerHTML=PJ_STATUS.map(([k,l])=>`<button type="button" class="${pjDraft.status===k?'on':''}" onclick="pjDraft.status='${k}';delete pjDraft._auto;pjRenderSeg()">${l}</button>`).join('');}
+function pjVisibleTasks(){const ts=pjDraft.tasks||[];return ts.map((t,i)=>[t,i]).filter(([t])=>ts.length<=6||pjDraft._showDone||!t.done);}
+function pjDoneToggleHTML(){const ts=pjDraft.tasks||[],n=ts.filter(t=>t.done).length;if(ts.length<=6||!n)return '';return `<button type="button" class="pjDoneTgl" onclick="pjDraft._showDone=!pjDraft._showDone;pjRenderTasks()">완료한 ${n}개 ${pjDraft._showDone?'접기':'보기'}</button>`;}
 function pjRenderTasks(){
-  document.getElementById('pjTasks').innerHTML=(pjDraft.tasks||[]).map((t,i)=>`<div class="pjTaskRow" data-i="${i}"><button type="button" class="pjDrag" aria-label="순서 바꾸기" onpointerdown="pjDragStart(event)">☰</button><button type="button" class="pjChk${t.done?' on':''}" aria-label="완료" onclick="pjDraft.tasks[${i}].done=!pjDraft.tasks[${i}].done;pjAutoState();pjRenderTasks();pjRenderSeg()"></button><input class="pjTaskInput${t.done?' done':''}" value="${escapeLife(t.text).replace(/"/g,'&quot;')}" maxlength="80" oninput="pjDraft.tasks[${i}].text=this.value"><label class="pjTD${t.due?' set':''}" aria-label="날짜">${t.due?`<span>${t.due.slice(5).replace('-','.')}</span>`:'<span class="pjTDic">⟪calendar⟫</span>'}<input type="date" value="${t.due||''}" onchange="pjDraft.tasks[${i}].due=this.value;pjRenderTasks()">${t.due?`<button type="button" class="pjTDx" aria-label="날짜 지우기" onclick="event.preventDefault();event.stopPropagation();pjDraft.tasks[${i}].due='';pjRenderTasks()">×</button>`:''}</label><button type="button" class="pjX" aria-label="삭제" onclick="pjDraft.tasks.splice(${i},1);pjAutoState();pjRenderTasks();pjRenderSeg()">×</button></div>`).join('');
+  document.getElementById('pjTasks').innerHTML=pjVisibleTasks().map(([t,i])=>`<div class="pjTaskRow" data-i="${i}"><button type="button" class="pjDrag" aria-label="순서 바꾸기" onpointerdown="pjDragStart(event)">☰</button><button type="button" class="pjChk${t.done?' on':''}" aria-label="완료" onclick="pjDraft.tasks[${i}].done=!pjDraft.tasks[${i}].done;pjAutoState();pjRenderTasks();pjRenderSeg()"></button><input class="pjTaskInput${t.done?' done':''}" value="${escapeLife(t.text).replace(/"/g,'&quot;')}" maxlength="80" oninput="pjDraft.tasks[${i}].text=this.value"><label class="pjTD${t.due?' set':''}" aria-label="날짜">${t.due?`<span>${t.due.slice(5).replace('-','.')}</span>`:'<span class="pjTDic">⟪calendar⟫</span>'}<input type="date" value="${t.due||''}" onchange="pjDraft.tasks[${i}].due=this.value;pjSortByDue();pjRenderTasks()">${t.due?`<button type="button" class="pjTDx" aria-label="날짜 지우기" onclick="event.preventDefault();event.stopPropagation();pjDraft.tasks[${i}].due='';pjRenderTasks()">×</button>`:''}</label><button type="button" class="pjX" aria-label="삭제" onclick="pjDraft.tasks.splice(${i},1);pjAutoState();pjRenderTasks();pjRenderSeg()">×</button></div>`).join('')+pjDoneToggleHTML();
 }
 function pjAddTask(){
-  const inp=document.getElementById('pjNewTask'),v=inp.value.trim();if(!v||!pjDraft)return;
+  const inp=document.getElementById('pjNewTask'),v=inp.value.trim();if(!pjDraft)return;if(!v){pjDraft.tasks.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),text:'',done:false});pjRenderTasks();const ins=document.querySelectorAll('#pjTasks .pjTaskInput');const l=ins[ins.length-1];if(l){l.focus();l.scrollIntoView({block:'center'});}return;}
   pjDraft.tasks.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),text:v,done:false});inp.value='';pjAutoState();pjRenderTasks();pjRenderSeg();inp.focus();
 }
 function pjSave(){
@@ -11491,17 +11565,17 @@ function pjDragStart(e){
 }
 function pjDragMove(e){
   if(!pjDrag||e.pointerId!==pjDrag.id)return;e.preventDefault();
-  const wrap=document.getElementById('pjTasks'),rows=[...wrap.children].filter(r=>r!==pjDrag.row);
+  const wrap=document.getElementById('pjTasks'),rows=[...wrap.children].filter(r=>r!==pjDrag.row&&r.classList.contains('pjTaskRow'));
   const y=e.clientY;let before=null;
   for(const r of rows){const b=r.getBoundingClientRect();if(y<b.top+b.height/2){before=r;break;}}
-  if(before)wrap.insertBefore(pjDrag.row,before);else wrap.appendChild(pjDrag.row);
+  if(before)wrap.insertBefore(pjDrag.row,before);else if(rows.length)rows[rows.length-1].after(pjDrag.row);
 }
 function pjDragEnd(e){
   if(!pjDrag||e.pointerId!==pjDrag.id)return;
   window.removeEventListener('pointermove',pjDragMove);window.removeEventListener('pointerup',pjDragEnd);window.removeEventListener('pointercancel',pjDragEnd);
-  const order=[...document.getElementById('pjTasks').children].map(r=>Number(r.dataset.i));
+  const order=[...document.getElementById('pjTasks').querySelectorAll('.pjTaskRow')].map(r=>Number(r.dataset.i));
   pjDrag=null;
-  if(pjDraft&&order.length===pjDraft.tasks.length){pjDraft.tasks=order.map(i=>pjDraft.tasks[i]);}
+  if(pjDraft){const slots=order.slice().sort((a,b)=>a-b),old=pjDraft.tasks.slice();slots.forEach((pos,k)=>{pjDraft.tasks[pos]=old[order[k]];});}
   pjRenderTasks();
 }
 
@@ -11569,6 +11643,48 @@ async function stDeleteAt(k,i){
   if(!stSessions(k).length)closeStLog();
 }
 function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b>`);}
+
+/* ===== 프로젝트: 복제 · 가져오기 · 여러 개 붙여넣기 ===== */
+function pjCloneTasks(list){return (list||[]).map(t=>({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),text:t.text,done:false}));}
+function pjDuplicate(){
+  if(!pjDraft)return;
+  const name=document.getElementById('pjName').value.trim()||pjDraft.name;
+  pjDraft={id:pjId(),name:name+' 복사',status:'active',start:'',due:'',tasks:pjCloneTasks(pjDraft.tasks),note:document.getElementById('pjNote').value.trim(),createdAt:Date.now(),isNew:true};
+  document.getElementById('pjTitle').textContent='새 프로젝트';
+  document.getElementById('pjName').value=pjDraft.name;document.getElementById('pjStart').value='';document.getElementById('pjDue').value='';pjDateSync();
+  document.getElementById('pjDel').classList.add('hide');document.getElementById('pjDupBtn').classList.add('hide');
+  pjRenderSeg();pjRenderTasks();
+}
+function pjImportMenu(){
+  const others=pjLoad().filter(p=>(p.tasks||[]).length&&(!pjDraft||p.id!==pjDraft.id));
+  if(!others.length)return appAlert('가져올 프로젝트가 아직 없어요.');
+  showRoutineActionSheet('할 일 가져오기',others.map(p=>({label:`${p.name} · ${p.tasks.length}개`,run:()=>{pjDraft.tasks=(pjDraft.tasks||[]).concat(pjCloneTasks(p.tasks));pjAutoState();pjRenderTasks();pjRenderSeg();}}))
+    .concat([{label:'취소',run:()=>{}}]));
+}
+function pjToggleBulk(){const b=document.getElementById('pjBulkBox');b.classList.toggle('hide');if(!b.classList.contains('hide'))document.getElementById('pjBulk').focus();}
+function pjBulkAdd(){
+  if(!pjDraft)return;const ta=document.getElementById('pjBulk');
+  const base=(document.getElementById('pjDue').value||document.getElementById('pjStart').value||getLocalDateKey(new Date())).slice(0,4);
+  let n=0;
+  ta.value.split(/\r?\n/).forEach(line=>{
+    let t=line.trim();if(!t)return;let due='';
+    const m=t.match(/^(?:\d{4}[./-])?(\d{1,2})(?:[./-]|월\s*)(\d{1,2})일?\s+(.+)$/);
+    if(m){const mo=+m[1],d=+m[2];if(mo>=1&&mo<=12&&d>=1&&d<=31){due=`${base}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;t=m[3].trim();}}
+    t=t.slice(0,80);const task={id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)+n,text:t,done:false};if(due)task.due=due;pjDraft.tasks.push(task);n++;
+  });
+  if(!n)return;pjSortByDue();ta.value='';document.getElementById('pjBulkBox').classList.add('hide');pjAutoState();pjRenderTasks();pjRenderSeg();
+}
+
+function pjSortByDue(){if(!pjDraft)return;const ts=pjDraft.tasks;ts.forEach((t,i)=>t._o=i);ts.sort((a,b)=>(a.due?0:1)-(b.due?0:1)||(a.due&&b.due&&a.due!==b.due?(a.due<b.due?-1:1):0)||a._o-b._o);ts.forEach(t=>delete t._o);}
+
+/* ===== 데이터 보호: 영구 저장 요청 + 마지막 파일 백업 표시 ===== */
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+(function(){try{const el=document.getElementById('backupLastInfo');const last=localStorage.getItem('lastFileBackup_v1');
+  if(el)el.textContent=last?`마지막 파일 백업: ${last.slice(5).replace('-','.')}`:'아직 파일로 백업한 적이 없어요';}catch(e){}})();
+
+/* ===== 퀵로그 칩: 숫자 항목 저장 직후에도 바로 갱신 ===== */
+(function(){const rc=renderCustomDailyCare;renderCustomDailyCare=function(){const r=rc.apply(this,arguments);try{renderOneOffTodayLogs();}catch(e){}return r;};})();
+(function(){const sv=saveRoutineInputSheet;saveRoutineInputSheet=function(){const r=sv.apply(this,arguments);const f=()=>{try{renderOneOffTodayLogs();}catch(e){}};f();Promise.resolve(r).then(f,f);return r;};})();
 </script>
 
 
