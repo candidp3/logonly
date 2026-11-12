@@ -11606,6 +11606,16 @@ function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b
 <style>
 #obRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
 #obRoot.hide{display:none}
+#viewToday .lgMoodCard{position:relative;cursor:pointer}
+#viewToday .lgMoodCard .lgMoodNow{display:flex;justify-content:center;color:var(--rc-gd,#2f6b55);margin-top:6px}
+#viewToday .lgMoodCard .lgMoodNow svg{width:30px;height:30px;stroke-width:1.7}
+.lgMoodPick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px 2px 4px}
+.lgMoodPick button{border:1.5px solid var(--rc-line,#e3e8e5);background:var(--rc-card,#fff);border-radius:16px;padding:12px 0 9px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--rc-tx2,#4a544f);font:inherit}
+.lgMoodPick button span{display:flex}
+.lgMoodPick button svg{width:30px;height:30px;stroke-width:1.7}
+.lgMoodPick button small{font-size:11px;color:var(--rc-mu,#8a938e);white-space:nowrap}
+.lgMoodPick button.on{border-color:var(--rc-solid,#3f9c7c);background:var(--rc-gl,#e2f4ec);color:var(--rc-gd,#2f6b55)}
+.lgMoodHint{font-size:12px;color:var(--rc-mu,#8a938e);text-align:center;padding:8px 0 4px}
 #viewToday .dailyCareItemCard .dailyCareMeta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;font-size:min(.65625rem,12.5px)!important;letter-spacing:-.2px}
 .photoMini,#todayPhotoBtn{display:none!important} /* 판매용 v1: 사진 기능 제외 */
 #obRoot *{box-sizing:border-box}
@@ -11640,6 +11650,7 @@ function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b
 .obGroup:first-child{margin-top:0}
 .obFoot{padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 18px)}
 .obBtn{width:100%;height:56px;border:0;border-radius:16px;background:var(--rc-solid,#3f9c7c);color:#fff;font-size:17px;font-weight:600;font-family:inherit}
+.obLink{border:0;background:none;padding:0;font:inherit;color:var(--rc-gd,#2f6b55);text-decoration:underline;text-underline-offset:2px}
 .obNote{text-align:center;font-size:13px;color:var(--rc-mu,#8a938e);margin-top:12px}
 .obHero{display:flex;flex-direction:column;justify-content:center;min-height:100%;padding-bottom:40px}
 .obHeroIco{width:76px;height:76px;border-radius:26px;background:var(--rc-soft,#eef3f0);color:var(--rc-gd,#2f6b55);display:flex;align-items:center;justify-content:center;margin-bottom:28px}
@@ -11666,7 +11677,7 @@ const OB_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 const OB_CARE=[
   {id:'water',ic:'drop',name:'물',desc:'하루 마신 물의 양',unit:'ml',step:250,min:250,max:5000,def:2000,on:true},
   {id:'sleep',ic:'moon',name:'수면',desc:'잠든 시간과 일어난 시간',unit:'시간',step:.5,min:3,max:12,def:7,on:true},
-  {id:'condition',ic:'smile',name:'오늘의 컨디션',desc:'기분을 다섯 단계로 가볍게 남겨요',on:true,noTarget:true},
+  {id:'condition',ic:'smile',name:'오늘의 컨디션',desc:'다섯 가지 얼굴 중 하나만 톡',on:true,noTarget:true},
   {id:'protein',ic:'dumbbell',name:'식단 챙기기 (단백질)',desc:'다이어트·운동 중 단백질 섭취량',unit:'g',step:10,min:10,max:300,def:80,on:false}
 ];
 const OB_ROUTINE_IC={breakfast_brush:'tooth',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'pulse',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'dumbbell'};
@@ -11700,7 +11711,7 @@ function obRender(){
     h=`<div class="obHero"><div class="obHeroIco">${obIcon('sparkle')}</div>
       <h1 class="obTitle">하루의 최소한만,\n가볍게 남겨요</h1>
       <p class="obSub">못 한 날이 있어도 괜찮아요.\n꼭 필요한 것만 골라서 시작해 볼게요.</p></div>`;
-    next.textContent='시작하기';note.textContent='1분이면 끝나요';
+    next.textContent='시작하기';note.innerHTML='1분이면 끝나요 · <button type="button" class="obLink" onclick="obRestore()">백업 파일로 불러오기</button>';
   }else if(key==='care'){
     h=`<h1 class="obTitle">매일 가볍게 챙길 것을\n골라주세요</h1><p class="obSub">필요한 것만 켜세요. 목표는 대략 정해도 돼요.</p><div class="obList">`+
       OB_CARE.map(c=>{const s=obSel.care[c.id];const v=c.id==='water'?Number(s.target).toLocaleString():s.target;
@@ -11760,9 +11771,9 @@ function obApply(){
   const vis=secVisLoad();['freetime','quicklog','project'].forEach(k=>{vis[k]=!!obSel.features[k];});
   /* 오늘의 컨디션: QUICK LOG의 '상태' 기록으로 추가하고 QUICK LOG 상자를 켬 */
   if(obSel.care.condition&&obSel.care.condition.on){
-    const ones=loadOneOffDefinitions();
-    if(!ones.some(d=>d.id==='condition'))ones.unshift({id:'condition',name:'컨디션',icon:'⟪smile⟫',type:'mood'});
-    saveOneOffDefinitions(ones);vis.quicklog=true;
+    const defs=loadDailyCareDefinitions();
+    if(!defs.some(d=>d.id==='condition'))defs.push(LG_CONDITION_DEF);
+    saveDailyCareDefinitions(defs);
   }
   try{localStorage.setItem(SECVIS_KEY,JSON.stringify(vis));}catch(e){}
   try{localStorage.setItem('periodEnabled_v1',obSel.features.period?'1':'0');}catch(e){}
@@ -11820,7 +11831,91 @@ function obFinish(skipped){
     return prev.call(this,ctx);
   };
 })();
+/* ===== 로그온리: 데일리케어 '컨디션' (얼굴 5단계, 값 1~5를 숫자형으로 저장 → 캘린더·RECORD에도 남음) ===== */
+const LG_CONDITION_DEF={id:'condition',name:'컨디션',icon:'⟪smile⟫',type:'numeric',special:'mood',unit:'',target:0,enabled:true};
+const LG_MOOD_LABEL=['','매우 나쁨','나쁨','보통','좋음','매우 좋음'];
+function lgIsMood(d){return d&&(d.special==='mood'||d.id==='condition');}
+function lgSetMood(id,n){
+  const cur=dailyCareNumericValue(activeDateKey,id);
+  if(cur===n){const all=getDailyCareValues();if(all[activeDateKey]){delete all[activeDateKey][id];localStorage.setItem(DAILY_CARE_VALUES_KEY,JSON.stringify(all));}}
+  else writeDailyCareMetricValue(activeDateKey,id,n);
+  renderCustomDailyCare();try{renderDailyCareDashboard();}catch(e){}
+}
+function lgOpenMood(id){
+  const d=loadDailyCareDefinitions().find(x=>x.id===id)||{name:'컨디션'};
+  const v=dailyCareNumericValue(activeDateKey,id);
+  let el=document.getElementById('lgMoodSheet');
+  if(!el){el=document.createElement('div');el.id='lgMoodSheet';el.className='lifeModal';el.onclick=e=>{if(e.target===el)lgCloseMood();};document.body.appendChild(el);}
+  el.innerHTML=`<div class="lifeSheet"><div class="lifeSheetHead"><b>오늘의 ${escapeLife(d.name||'컨디션')}</b><button class="lifeClose" onclick="lgCloseMood()">×</button></div>
+    <div class="lgMoodPick">${[1,2,3,4,5].map(n=>`<button type="button" class="${v===n?'on':''}" onclick="lgSetMood('${id}',${n});lgCloseMood()"><span>${appIconSvg('mood'+n)}</span><small>${LG_MOOD_LABEL[n]}</small></button>`).join('')}</div>
+    <div class="lgMoodHint">${v?'같은 얼굴을 한 번 더 누르면 기록이 지워져요.':'지금 느낌에 가까운 얼굴을 하나만 골라요.'}</div></div>`;
+  el.classList.remove('hide');
+}
+function lgCloseMood(){document.getElementById('lgMoodSheet')?.classList.add('hide');}
+(function(){
+  if(typeof renderCustomDailyCare!=='function')return;
+  const prev=renderCustomDailyCare;
+  renderCustomDailyCare=function(){
+    const r=prev.apply(this,arguments);
+    try{
+      loadDailyCareDefinitions().filter(lgIsMood).forEach(d=>{
+        const card=document.querySelector(`.dailyCareItemCard[data-daily-care-id="${d.id}"]`);if(!card)return;
+        const v=dailyCareNumericValue(activeDateKey,d.id);
+        card.setAttribute('onclick',`lgOpenMood('${d.id}')`);card.setAttribute('onkeydown',`if(event.key==='Enter'||event.key===' ')lgOpenMood('${d.id}')`);
+        card.classList.add('lgMoodCard');
+        const meta=card.querySelector('.dailyCareMeta');if(meta)meta.textContent=v?LG_MOOD_LABEL[v]||'':'눌러서 기록';
+        card.querySelector('.lgMoodNow')?.remove();
+        if(v)card.insertAdjacentHTML('beforeend',`<div class="lgMoodNow" aria-hidden="true">${appIconSvg('mood'+v)}</div>`);
+      });
+    }catch(e){}
+    return r;
+  };
+  try{renderCustomDailyCare();}catch(e){}
+})();
+
+/* ===== 로그온리: 기록 보호 =====
+   1) 브라우저/폰이 저장 공간을 정리할 때 이 앱 기록은 지우지 않도록 요청
+   2) 백업을 불러오기 직전 상태를 따로 보관 (잘못 불러와도 되돌릴 수 있게)
+   3) 불러오기·자동 백업 복원 시 자동 백업 기록은 지우지 않음 */
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(p=>{if(!p)navigator.storage.persist();});}catch(e){}
+const LG_PRE_RESTORE_KEY='__pre_restore__';
+(function(){
+  if(typeof applyLocalStorageSnapshot!=='function')return;
+  applyLocalStorageSnapshot=function(snapshot){
+    const keep={};
+    try{
+      const cur=snapshotLocalStorage();Object.keys(cur).forEach(k=>{if(k.startsWith(AUTO_BACKUP_PREFIX)||k===LG_PRE_RESTORE_KEY)delete cur[k];});
+      keep[LG_PRE_RESTORE_KEY]=JSON.stringify({savedAt:new Date().toISOString(),localStorage:cur});
+    }catch(e){}
+    BACKUP_EXCLUDED_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v!==null)keep[k]=v;});
+    getAutoBackupKeys().forEach(k=>{const v=localStorage.getItem(k);if(v!==null)keep[k]=v;});
+    localStorage.clear();
+    Object.entries(snapshot||{}).forEach(([k,v])=>{
+      if(v!==null&&v!==undefined&&!BACKUP_EXCLUDED_KEYS.has(k)&&!String(k).startsWith(AUTO_BACKUP_PREFIX)&&k!==LG_PRE_RESTORE_KEY)localStorage.setItem(k,String(v));
+    });
+    Object.entries(keep).forEach(([k,v])=>{try{localStorage.setItem(k,v);}catch(e){}});
+  };
+})();
+async function lgUndoRestore(){
+  let d=null;try{d=JSON.parse(localStorage.getItem(LG_PRE_RESTORE_KEY)||'null');}catch(e){}
+  if(!d||!d.localStorage)return appAlert('되돌릴 기록이 없어요.');
+  const t=new Date(d.savedAt);
+  if(!await appConfirm(`백업을 불러오기 전 상태(${t.getMonth()+1}.${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')})로 되돌릴까요?`))return;
+  const snap=d.localStorage;applyLocalStorageSnapshot(snap);
+  appAlert('되돌렸어요. 앱을 새로고침해 주세요.');
+}
+(function(){
+  const box=document.getElementById('autoBackupStatus');
+  const host=box?box.closest('.backupPart'):null;
+  if(host&&!document.getElementById('lgUndoRestoreBtn'))host.insertAdjacentHTML('beforeend','<button type="button" id="lgUndoRestoreBtn" class="settingsBtn uiActionSm" style="margin-top:8px" onclick="lgUndoRestore()">백업 불러오기 전으로 되돌리기</button>');
+})();
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
+/* 다른 폰에서 쓰던 기록이 있으면: 안내를 닫고 바로 불러오기 화면으로 */
+function obRestore(){
+  try{localStorage.setItem(OB_KEY,'done');}catch(e){}
+  document.getElementById('obRoot').classList.add('hide');
+  try{lifeNavigate('backup');openBackupData();}catch(e){}
+}
 function obStart(){
   obInitSel();obStep=0;obRender();
   document.getElementById('obRoot').classList.remove('hide');
