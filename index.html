@@ -12394,7 +12394,7 @@ const COACH_KEY='logonly_coach_v1';
 const COACH_STEPS=[
   {sel:()=>document.querySelector('#viewToday .dailyCareBlock'),t:'매일 챙길 것',p:'버튼을 누르면 바로 기록돼요. 카드를 누르면 직접 입력하거나 고칠 수 있어요.'},
   {sel:()=>document.querySelector('#lifeGuide .lifeBlock')||document.getElementById('lifeGuide'),t:'시간대별 루틴',p:'시간대를 누르면 할 일이 펼쳐져요. 못 한 날이 있어도 괜찮아요. 한 것만 체크하면 끝이에요.'},
-  {sel:()=>document.querySelector('.bottomNav, nav')||document.getElementById('navCalendar'),t:'기록 모아 보기',p:'남긴 기록은 CALENDAR와 RECORD에 차곡차곡 모여요. 항목과 기능은 SETTING에서 언제든 바꿀 수 있어요.'}
+  {sel:()=>document.querySelector('.bottomNav, nav')||document.getElementById('navCalendar'),t:'기록 모아 보기',p:'남긴 기록은 ‘달력’과 ‘기록’에 차곡차곡 모여요. 항목과 기능은 ‘설정’에서 언제든 바꿀 수 있어요.'}
 ];
 let coachI=0;
 function coachRender(){
@@ -12535,10 +12535,10 @@ const RW_ORIG_OPEN=openRoutineModal;
 openRoutineModal=function(id,block){if(!id){rwOpen(block);return;}return RW_ORIG_OPEN.apply(this,arguments);};
 /* ===== 메뉴별 첫 안내 (공개용) — 각 메뉴를 처음 열 때 한 번만 ===== */
 const MENU_COACH={
-  calendar:[{sel:()=>document.querySelector('#viewCalendar .calWrap'),t:'CALENDAR',p:'날짜를 누르면 그날 기록을 보고 고칠 수 있어요. ‘루틴으로 보기’에서 루틴을 고르면 그 루틴을 한 날만 표시돼요. 여러 개 함께 골라도 돼요.'},
+  calendar:[{sel:()=>document.querySelector('#viewCalendar .calWrap'),t:'달력',p:'날짜를 누르면 그날 기록을 보고 고칠 수 있어요. ‘루틴으로 보기’에서 루틴을 고르면 그 루틴을 한 날만 표시돼요. 여러 개 함께 골라도 돼요.'},
             {sel:()=>document.querySelector('#viewCalendar .calSearchBtn'),t:'기록 찾기',p:'돋보기를 누르면 메모나 루틴 이름으로 그 기록이 있는 날을 찾을 수 있어요.'}],
-  books:[{sel:()=>document.querySelector('#viewBooks .booksHead')||document.getElementById('viewBooks'),t:'BOOKS',p:'읽고 싶은 책을 담아두고, 읽기 시작하면 ‘읽고있어’, 다 읽으면 ‘다 읽었어’로 옮겨요. 별점과 기억에 남는 문장도 남길 수 있어요.'}],
-  record:[{sel:()=>document.querySelector('#viewAll_v2 .rr-record-hero')||document.getElementById('viewAll_v2'),t:'RECORD',p:'주·월·년으로 바꿔 가며 지금까지 해온 흐름을 봐요. 잘했는지 평가하지 않고, 남긴 만큼만 보여줘요.'}],
+  books:[{sel:()=>document.querySelector('#viewBooks .booksHead')||document.getElementById('viewBooks'),t:'책',p:'읽고 싶은 책을 담아두고, 읽기 시작하면 ‘읽고있어’, 다 읽으면 ‘다 읽었어’로 옮겨요. 별점과 기억에 남는 문장도 남길 수 있어요.'}],
+  record:[{sel:()=>document.querySelector('#viewAll_v2 .rr-record-hero')||document.getElementById('viewAll_v2'),t:'기록',p:'주·월·년으로 바꿔 가며 지금까지 해온 흐름을 봐요. 잘했는지 평가하지 않고, 남긴 만큼만 보여줘요.'}],
   backup:[{sel:()=>document.querySelector('.setSearch'),t:'설정 찾기',p:'찾는 설정이 있으면 ‘글씨’, ‘백업’처럼 단어로 검색해 보세요.'},
           {sel:()=>{const t=[...document.querySelectorAll('#viewBackup .backupCardTitle')].find(x=>x.textContent.trim()==='MANAGE');return t?t.closest('.backupCard'):null;},t:'항목 바꾸기',p:'데일리케어·루틴·빠른 기록 항목은 여기서 추가하고 고쳐요. 꺼도 기록은 지워지지 않아요.'}]
 };
@@ -12564,6 +12564,14 @@ function menuCoachRender(){
 }
 function menuCoachNext(){if(!menuCoach)return;menuCoach.i++;if(menuCoach.i>=menuCoach.steps.length){menuCoach=null;document.getElementById('coachRoot')?.remove();window.scrollTo(0,0);}else menuCoachRender();}
 (function(){const n=lifeNavigate;lifeNavigate=function(v){const r=n.apply(this,arguments);try{if(MENU_COACH[v])setTimeout(()=>menuCoachShow(v),350);}catch(e){}return r;};})();
+/* 공개용: 하단 메뉴 이름은 한글 (가장 자주 누르는 곳이라 바로 알아볼 수 있게) */
+(function(){
+  const KO={navToday:'오늘',navCalendar:'달력',navBooks:'책',navRecord:'기록',navBackup:'설정'};
+  Object.entries(KO).forEach(([id,label])=>{const b=document.getElementById(id);if(!b)return;
+    [...b.childNodes].forEach(n=>{if(n.nodeType===3&&n.textContent.trim())n.textContent=label;});
+    b.querySelectorAll(':scope>b,:scope>em,:scope>small,:scope>.navLabel').forEach(x=>x.textContent=label);
+    b.setAttribute('aria-label',label);});
+})();
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
 /* 다른 폰에서 쓰던 기록이 있으면: 안내를 닫고 바로 불러오기 화면으로 */
 function obRestore(){
