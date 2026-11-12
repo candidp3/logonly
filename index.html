@@ -384,7 +384,8 @@ button,input,select,textarea{font:inherit}
   font-family:inherit;font-size:var(--fs-2);font-weight:var(--fw-1);color:var(--rc-mu)
 }
 
-.proteinInlineActions{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.proteinInlineActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.proteinInlineActions:has(>:nth-child(3)){grid-template-columns:repeat(4,minmax(0,1fr))!important}
 .proteinInlineActions button{padding-left:2px;padding-right:2px;font-size:var(--fs-1)}
 
 .sleepManualSheet .lifeField{margin:10px 0}
@@ -2476,6 +2477,17 @@ body.scrolled .tdChip .tdToday{height:28px!important;padding:0 10px!important;fo
 .secAddWrap .pjAll{font-size:var(--fs-2);color:var(--rc-mu);background:none;border:0;padding:0 2px;white-space:nowrap;min-height:0}
 .projectFoot.empty{display:none}
 .dailyCareMeta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+.tdHero .thNext{display:flex;align-items:center;gap:12px;width:100%;border:1.5px solid var(--rc-line2,var(--rc-line));background:var(--rc-soft2,var(--rc-soft));border-radius:18px;padding:12px 14px;margin:0 0 10px;text-align:left;color:var(--rc-tx);font:inherit;cursor:pointer}
+.tdHero .thNext:active{transform:scale(.99)}
+.tdHero .thNextIco{width:40px;height:40px;border-radius:50%;background:var(--rc-gl);color:var(--rc-gs);display:inline-flex!important;align-items:center;justify-content:center;flex:none;font-size:18px}
+.tdHero .thNextIco svg{width:20px;height:20px}
+.tdHero .thNextTx{display:flex;flex-direction:column;min-width:0;flex:1}
+.tdHero .thNextTx small{font-size:var(--fs-1);color:var(--rc-mu)}
+.tdHero .thNextTx b{font-size:var(--fs-4);font-weight:var(--fw-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tdHero .thNextChk{width:30px;height:30px;border-radius:50%;border:2px solid var(--rc-gs);flex:none}
+.tdHero .thAllDone{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);color:var(--rc-gd);background:var(--rc-gl);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.tdHero .thAllDone span{font-weight:700}
+.tdHero .thRest button{font-size:var(--fs-1)}
 </style>
 <script>/* 화면 모드를 그리기 전에 먼저 적용 (깜빡임 방지) */
 (function(){try{const m=localStorage.getItem('themeMode_v1');if(m!=='light'&&m!=='dark')return;
@@ -2520,9 +2532,7 @@ document.documentElement.style.colorScheme=m;}catch(e){}})();</script>
           <div class="dailyCareMeta" id="proteinTrackText"></div>
           <div class="dailyCareActions proteinInlineActions">
             <button onclick="addProtein(-5)">−5</button>
-            <button onclick="addProtein(-10)">−10</button>
-            <button onclick="addProtein(10)">+10</button>
-            <button onclick="addProtein(20)">+20</button>
+            <button onclick="addProtein(5)">+5</button>
           </div>
           <button class="dailyCareReset proteinReset" onclick="resetProtein()">초기화</button>
           <div id="proteinHint" class="healthHint hide"></div>
@@ -3821,7 +3831,7 @@ function applyDailyCareTodayOrder(order=normalizedDailyCareTodayOrder()){
   });
 }
 const DEFAULT_DAILY_CARE_DEFS=[
-  {id:'protein',icon:'⟪dumbbell⟫',name:'단백질',unit:'g',target:80,quickValues:[-5,-10,10,20],enabled:true,builtin:true},
+  {id:'protein',icon:'⟪dumbbell⟫',name:'단백질',unit:'g',target:80,quickValues:[-5,5],enabled:true,builtin:true},
   {id:'water',icon:'⟪drop⟫',name:'물',unit:'ml',target:2000,quickValues:[-120,120],enabled:true,builtin:true},
   {id:'sleep',icon:'⟪moon⟫',name:'수면',unit:'시간',target:7,quickValues:[],enabled:true,builtin:true,special:'sleep'}
 ];
@@ -4493,7 +4503,7 @@ function backToToday(){
 
 function update(){
   const proteinDef=dailyCareDef('protein'),waterDef=dailyCareDef('water'),sleepDef=dailyCareDef('sleep');
-  const pActions=document.querySelector('.proteinInlineActions');if(pActions&&proteinDef)pActions.innerHTML=dailyCareQuickValues('protein',[-5,-10,10,20]).map(v=>`<button onclick="addProtein(${Number(v)||0})">${Number(v)>0?'+':''}${formatDailyCareNumber(Number(v)||0)}</button>`).join('');
+  const pActions=document.querySelector('.proteinInlineActions');if(pActions&&proteinDef)pActions.innerHTML=dailyCareQuickValues('protein',[-5,5]).map(v=>`<button onclick="addProtein(${Number(v)||0})">${Number(v)>0?'+':''}${formatDailyCareNumber(Number(v)||0)}</button>`).join('');
   const wActions=document.querySelector('.waterInlineActions');if(wActions&&waterDef)wActions.innerHTML=dailyCareQuickValues('water',[-120,120]).map(v=>`<button onclick="addWater(${Number(v)||0})">${Number(v)>0?'+':''}${formatDailyCareNumber(Number(v)||0)}</button>`).join('');
   document.querySelector('[data-daily-care-id="protein"]')?.classList.toggle('hide',!proteinDef||!dailyCareShouldShowOnDate(normalizeDailyCareDefinition(proteinDef),activeDateKey));
   document.querySelector('[data-daily-care-id="water"]')?.classList.toggle('hide',!waterDef||!dailyCareShouldShowOnDate(normalizeDailyCareDefinition(waterDef),activeDateKey));
@@ -12125,11 +12135,12 @@ function renderTodayHero(){
   const LB_SUB={dawn:'새벽',breakfast:'기상 후',morning:'오전',lunch:'점심',afternoon:'오후',evening:'저녁',night:'잠들기 전'};
   const sec=document.querySelector(`#lifeGuide>[data-lbid="${bid}"]`);
   const rows=sec?[...sec.querySelectorAll('.lifeRoutine[data-routine-id]')]:[];
-  const rt=loadLifeRoutines();let done=0;
-  const pills=rows.map(row=>{const id=row.dataset.routineId,dn=!!row.querySelector('.lifeCheck.done');if(dn)done++;const r=rt.find(x=>x.id===id)||{};
-    return `<button type="button" class="${dn?'done':''}" onclick="handleRoutineRowTap(null,'${id}')"><i>${dn?'✓':''}</i>${escapeLife(String(r.name||''))}</button>`;}).join('');
+  const rt=loadLifeRoutines();let done=0,next=null;
+  const items=rows.map(row=>{const id=row.dataset.routineId,dn=!!row.querySelector('.lifeCheck.done');if(dn)done++;const r=rt.find(x=>x.id===id)||{};if(!dn&&!next)next={id,r};return {id,dn,r};});
+  const pills=items.filter(x=>!next||x.id!==next.id).map(({id,dn,r})=>`<button type="button" class="${dn?'done':''}" onclick="handleRoutineRowTap(null,'${id}')"><i>${dn?'✓':''}</i>${escapeLife(String(r.name||''))}</button>`).join('');
+  const nextHtml=next?`<button type="button" class="thNext" onclick="handleRoutineRowTap(null,'${next.id}')"><span class="thNextIco lbPkIco">${escapeLife(String(next.r.icon||''))}</span><span class="thNextTx"><small>다음 할 일</small><b>${escapeLife(String(next.r.name||''))}</b></span><span class="thNextChk" aria-hidden="true"></span></button>`:`<div class="thAllDone"><span>✓</span>이 시간대는 다 했어요</div>`;
   el.innerHTML=`<div class="thTop"><span class="thIco">${appIconSvg(hi[0])}</span><div><div class="thHi">${hi[1]}</div><div class="thSum">${sum}</div></div></div>
-    ${rows.length?`<div class="thNow"><div class="thNowHead"><b>지금은 ${escapeLife(LB_SUB[bid]||b.name)}</b><span>${LB_SUB[bid]?escapeLife(b.name):''}</span><em>${done}/${rows.length}</em></div><div class="lbPeek">${pills}</div></div>`:''}`;
+    ${rows.length?`<div class="thNow"><div class="thNowHead"><b>지금은 ${escapeLife(LB_SUB[bid]||b.name)}</b><span>${LB_SUB[bid]?escapeLife(b.name):''}</span><em>${done}/${rows.length}</em></div>${nextHtml}${pills?`<div class="lbPeek thRest">${pills}</div>`:''}</div>`:''}`;
 }
 (function(){const g=renderLifeGuide;renderLifeGuide=function(){const r=g.apply(this,arguments);try{renderTodayHero();}catch(e){}return r;};try{renderTodayHero();}catch(e){}})();
 /* ===== 상자 제목 오른쪽 + 버튼 (2026-11-13) ===== */
@@ -12148,6 +12159,15 @@ function addSecAdds(){
   if(foot){foot.querySelectorAll('.lifeMiniBtn').forEach(b=>{if(/프로젝트/.test(b.textContent))b.style.display='none';});foot.classList.toggle('empty',![...foot.children].some(c=>c.style.display!=='none'&&!c.classList.contains('hide')));}
 }
 (function(){const g=renderLifeGuide;renderLifeGuide=function(){const r=g.apply(this,arguments);try{addSecAdds();}catch(e){}return r;};try{addSecAdds();}catch(e){}})();
+/* 단백질 버튼: 예전 기본값(−5 −10 +10 +20)을 그대로 쓰는 경우에만 −5 +5로 한 번 바꿈. 직접 바꾼 값은 건드리지 않음 */
+(function(){try{
+  const FLAG='proteinQuick55_v1';if(localStorage.getItem(FLAG))return;
+  const raw=localStorage.getItem(DAILY_CARE_DEFS_KEY);
+  if(raw){const defs=JSON.parse(raw);const p=Array.isArray(defs)?defs.find(d=>d&&d.id==='protein'):null;
+    if(p&&Array.isArray(p.quickValues)&&p.quickValues.join(',')==='-5,-10,10,20'){p.quickValues=[-5,5];localStorage.setItem(DAILY_CARE_DEFS_KEY,JSON.stringify(defs));}}
+  localStorage.setItem(FLAG,'1');
+  try{update();}catch(e){}
+}catch(e){}})();
 </script>
 
 
@@ -12272,6 +12292,11 @@ function addSecAdds(){
 .obHeroIco svg{width:38px;height:38px}
 .obPane{animation:obIn .25s ease}
 @keyframes obIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+#swRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
+#swRoot.hide{display:none}#swRoot *{box-sizing:border-box}#swRoot .obTitle,#swRoot .obSub{text-align:left}
+#swRoot .obGroup{margin-top:20px}
+#swRoot .rwInline input:not(.rwUnit){width:96px}
+#swRoot .swArea{height:auto;min-height:140px;padding:14px 16px;line-height:1.6;resize:none}
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -12689,6 +12714,154 @@ function rwSave(){
 }
 const RW_ORIG_OPEN=openRoutineModal;
 openRoutineModal=function(id,block){if(!id){rwOpen(block);return;}return RW_ORIG_OPEN.apply(this,arguments);};
+/* ===== 단계별 추가 (공개용): DAILY CARE · QUICK LOG · 프로젝트 · 책 ===== */
+const SW_ORIG={dc:openDailyCareItemEditor,ql:openOneOffRecordEditor,pj:openProject,bk:openBookModal};
+const SW_BACK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+let sw=null;
+function swEsc(v){return escapeLife(String(v??''));}
+function swIco(name,fallback){const g=rwGuessIcon(name);if(g!=='star')return g;const n=String(name||'');
+  if(/체중|몸무게/.test(n))return 'scale';if(/걸음/.test(n))return 'shoe';if(/술|음주|맥주|와인/.test(n))return 'cup';if(/간식|과자/.test(n))return 'cookie';if(/기분|감정/.test(n))return 'smile';if(/두통|아픔|통증/.test(n))return 'alert';
+  return fallback||'star';}
+function swOpen(kind,init){
+  sw={kind,step:0,d:Object.assign({},init||{})};
+  let el=document.getElementById('swRoot');
+  if(!el){el=document.createElement('div');el.id='swRoot';el.innerHTML=`<div class="obTop"><button type="button" class="obBack" onclick="swBack()" aria-label="이전">${SW_BACK_SVG}</button><div class="obBar"><i id="swBar"></i></div><button type="button" class="obSkip" onclick="swClose()">닫기</button></div><div class="obBody" id="swBody"></div><div class="obFoot" id="swFoot"></div>`;document.body.appendChild(el);}
+  el.classList.remove('hide');swRender();
+}
+function swClose(){document.getElementById('swRoot')?.classList.add('hide');sw=null;}
+function swBack(){if(!sw)return;if(sw.step===0){swClose();return;}sw.step--;swRender();}
+function swSet(k,v){sw.d[k]=v;const b=document.getElementById('swBody'),y=b?b.scrollTop:0;swRender();if(b)b.scrollTop=y;}
+function swNext(){
+  if(!sw)return;const def=SW_DEFS[sw.kind],st=def.steps(sw.d),cur=st[sw.step];
+  if(cur.check&&!cur.check(sw.d))return;
+  if(sw.step>=st.length-1){const k=sw.kind,d={...sw.d};swClose();Promise.resolve(def.save(d)).catch(e=>console.warn(e));return;}
+  sw.step++;swRender();
+}
+function swPreset(i){const def=SW_DEFS[sw.kind];const p=def.presets()[i];if(!p)return;Object.assign(sw.d,p,{preset:true});if(def.afterPreset){sw.step=def.afterPreset(sw.d);}else sw.step++;swRender();}
+function swDetail(){const def=SW_DEFS[sw.kind],d={...sw.d};const n=document.getElementById('swName');if(n)d.name=n.value.trim();swClose();def.detail(d);}
+function swNameStep(o){
+  return {check:d=>{const v=(document.getElementById('swName')?.value||'').trim();if(!v){document.getElementById('swName')?.focus();return false;}d.name=v;if(!d.ic||!d.preset)d.ic=swIco(v,o.icon);return true;},
+    render:d=>{const ps=o.presets?o.presets():[];
+      return {h:`<h1 class="obTitle">${o.title}</h1><p class="obSub">${o.sub}</p>
+        <input id="swName" class="rwInput" maxlength="30" placeholder="${o.ph}" value="${swEsc(d.name)}" oninput="sw.d.name=this.value;sw.d.preset=false" onkeydown="if(event.key==='Enter'){event.preventDefault();swNext();}">
+        ${o.extra?o.extra(d):''}
+        ${ps.length?`<div class="obGroup">추천</div><div class="rwChips">${ps.map((p,i)=>p.hide?'':`<button type="button" class="rwChip" onclick="swPreset(${i})"><span class="obPvIc">${obIcon(p.ic)}</span>${swEsc(p.name)}${p.tag?` <small>${swEsc(p.tag)}</small>`:''}</button>`).join('')}</div>`:''}`,
+        f:`<button type="button" class="obBtn" onclick="swNext()">다음</button>${o.detail!==false?`<div class="obNote"><button type="button" class="obLink" onclick="swDetail()">자세히 설정</button></div>`:''}`};},focus:'swName'};
+}
+function swPickStep(o){
+  return {render:d=>({h:`<h1 class="obTitle">${o.title}</h1><p class="obSub">${swEsc(d.name)}</p><div class="obList">`+
+      o.items(d).map(t=>`<div class="obItem${d[o.key]===t.id?' on':''}" role="button" tabindex="0" onclick="swSet('${o.key}','${t.id}')"><span class="obIco">${obIcon(t.ic)}</span><span class="obTxt"><div class="obName">${t.name}</div><div class="obDesc">${t.desc}</div>${t.ex?`<div class="obEx">예) ${t.ex}</div>`:''}${d[o.key]===t.id&&t.more?`<div onclick="event.stopPropagation()">${t.more(d)}</div>`:''}</span><span class="obChk">${OB_CHECK}</span></div>`).join('')+`</div>`,
+    f:`<button type="button" class="obBtn" onclick="swNext()">${o.last?'추가하기':'다음'}</button>`}),
+    check:o.check};
+}
+function swInline(label,key,ph,unit,num){return `<div class="rwInline">${label} <input ${num!==false?'type="number" inputmode="decimal" min="0" step="any"':'maxlength="6" class="rwUnit"'} value="${swEsc(sw.d[key])}" placeholder="${ph}" oninput="sw.d['${key}']=this.value"> ${unit||''}</div>`;}
+const SW_DEFS={
+  dc:{
+    presets:()=>{const have=new Set(loadDailyCareDefinitions().filter(x=>x.enabled!==false).map(x=>String(x.name).trim()));return [
+      {name:'커피',ic:'coffee',type:'cumulative',unit:'잔',target:'',step:1,tag:'잔'},{name:'체중',ic:'scale',type:'numeric',unit:'kg',target:'',tag:'kg'},
+      {name:'걸음 수',ic:'shoe',type:'numeric',unit:'걸음',target:6000,tag:'걸음'},{name:'영양제',ic:'pill',type:'cumulative',unit:'개',target:1,step:1,tag:'개'},
+      {name:'낮잠',ic:'bed',type:'duration',target:'',tag:'시간'},{name:'스트레칭',ic:'yoga',type:'cumulative',unit:'분',target:10,step:5,tag:'분'}
+    ].map(p=>({...p,hide:have.has(p.name)}));},
+    afterPreset:()=>2,
+    steps:d=>[
+      swNameStep({title:'매일 챙길 것을\n추가할까요?',sub:'물·수면처럼 매일 한눈에 보는 기록이에요.',ph:'직접 입력 (예: 커피, 체중)',presets:()=>SW_DEFS.dc.presets(),icon:'sparkle'}),
+      swPickStep({title:'어떻게 기록할까요?',key:'type',items:()=>[
+        {id:'cumulative',ic:'drop',name:'더해 가며 기록',desc:'버튼을 눌러 조금씩 더해요',ex:'커피 2잔, 물 1,200ml'},
+        {id:'numeric',ic:'scale',name:'숫자 하나 기록',desc:'그날의 값을 한 번 적어요',ex:'체중 52.3kg, 걸음 8,000걸음'},
+        {id:'duration',ic:'bed',name:'시작~끝 시간',desc:'시작과 끝을 눌러 시간을 재요',ex:'낮잠 40분'}],
+        check:d=>{if(!d.type)d.type='cumulative';return true;}}),
+      {render:d=>{const t=d.type||'cumulative';
+        const body=t==='duration'
+          ?`<div class="obGroup">하루 목표 (선택)</div>${swInline('목표','target','없음','분')}<p class="obSub" style="margin-top:14px">TODAY 카드에서 시작·끝을 누르면 시간이 기록돼요.</p>`
+          :`<div class="obGroup">단위</div>${swInline('','unit',t==='numeric'?'kg':'잔','',false)}
+            <div class="obGroup">하루 목표 (선택)</div>${swInline('목표','target','없음',swEsc(d.unit||''))}
+            ${t==='cumulative'?`<div class="obGroup">한 번 누를 때 더할 양</div>${swInline('','step','1',swEsc(d.unit||''))}`:''}`;
+        return {h:`<h1 class="obTitle">조금만 정해 볼까요?</h1><p class="obSub">${swEsc(d.name)} · 나중에 언제든 바꿀 수 있어요.</p>${body}`,
+          f:`<button type="button" class="obBtn" onclick="swNext()">추가하기</button><div class="obNote"><button type="button" class="obLink" onclick="swDetail()">자세히 설정</button></div>`};},
+       check:d=>{if((d.type||'cumulative')!=='duration'&&!String(d.unit||'').trim()){appAlert('단위를 적어 주세요. (예: 잔, kg)');return false;}return true;}}
+    ],
+    fill:d=>{SW_ORIG.dc('');const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+      set('dailyCareEditName',d.name||'');set('dailyCareEditIcon',`⟪${d.ic||swIco(d.name,'sparkle')}⟫`);
+      if(d.type){set('dailyCareEditType',d.type);try{updateDailyCareEditorFields();}catch(e){}}
+      if(d.type==='duration'){const m=Number(d.target)||0;set('dailyCareDurationGoalHours',m?Math.floor(m/60):'');set('dailyCareDurationGoalMinutes',m?m%60:'');}
+      else{set('dailyCareEditUnit',d.unit||'');set('dailyCareEditTarget',d.target||'');const st=Math.abs(Number(d.step)||1);set('dailyCareQuickValues',d.type==='cumulative'?`-${st}, +${st}`:'');}},
+    save:d=>{SW_DEFS.dc.fill(d);saveDailyCareItemEditor();if(document.getElementById('dailyCareItemModal')?.classList.contains('hide'))appToast(`'${d.name}' 추가했어요`);},
+    detail:d=>{SW_DEFS.dc.fill(d);}
+  },
+  ql:{
+    presets:()=>{const have=new Set(loadOneOffDefinitions().map(x=>String(x.name).trim()));return [
+      {name:'몸무게',ic:'scale',type:'numeric',unit:'kg'},{name:'간식',ic:'cookie',type:'meal',asMeal:true},{name:'야식',ic:'bowl',type:'meal',asMeal:true},
+      {name:'음주',ic:'cup',type:'check'},{name:'두통',ic:'alert',type:'check'},{name:'기분',ic:'smile',type:'mood'}
+    ].map(p=>({...p,hide:have.has(p.name)}));},
+    afterPreset:null,
+    steps:d=>[
+      swNameStep({title:'필요할 때 남길 기록을\n추가할까요?',sub:'매일은 아니고, 생길 때만 한 줄 남겨요.',ph:'직접 입력 (예: 야식, 몸무게)',presets:()=>SW_DEFS.ql.presets(),icon:'pencil'}),
+      swPickStep({title:'어떻게 기록할까요?',key:'type',last:true,items:()=>[
+        {id:'check',ic:'star',name:'했는지만',desc:'톡 눌러서 표시해요',ex:'음주 ✓'},
+        {id:'numeric',ic:'scale',name:'숫자',desc:'값을 적어요',ex:'몸무게 52.3kg',more:d=>swInline('단위','unit','kg','',false)},
+        {id:'meal',ic:'pencil',name:'메모',desc:'짧은 글로 남겨요',ex:'간식: 쿠키 2개'},
+        {id:'mood',ic:'smile',name:'상태',desc:'1~5단계로 고르고 메모도 남겨요',ex:'두통 3단계'}],
+        check:d=>{if(!d.type)d.type='check';if(d.type==='numeric'&&!String(d.unit||'').trim()){appAlert('단위를 적어 주세요. (예: kg)');return false;}return true;}})
+    ],
+    fill:d=>{SW_ORIG.ql('');const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+      set('oneOffEditName',d.name||'');set('oneOffEditIcon',`⟪${d.ic||swIco(d.name,'pencil')}⟫`);if(d.type)set('oneOffEditType',d.type);set('oneOffEditUnit',d.unit||'');
+      const am=document.getElementById('oneOffAsMeal');if(am)am.checked=!!d.asMeal;try{updateOneOffEditorFields();}catch(e){}},
+    save:d=>{SW_DEFS.ql.fill(d);saveOneOffRecordEditor();try{renderOneOffQuick();}catch(e){}if(document.getElementById('oneOffRecordModal')?.classList.contains('hide'))appToast(`'${d.name}' 추가했어요`);},
+    detail:d=>{SW_DEFS.ql.fill(d);}
+  },
+  pj:{
+    presets:()=>[],
+    steps:d=>[
+      swNameStep({title:'어떤 일을\n진행하고 있나요?',sub:'끝날 때까지 TODAY에서 챙겨 볼 수 있어요.',ph:'예: 이사 준비, 자격증 공부',icon:'calendar'}),
+      {render:d=>{const c=d.dueMode||'none';const chip=(k,l)=>`<button type="button" class="rwChip${c===k?' on':''}" onclick="swSet('dueMode','${k}')">${l}</button>`;
+        return {h:`<h1 class="obTitle">언제까지 할까요?</h1><p class="obSub">${swEsc(d.name)} · 마감이 없어도 괜찮아요.</p>
+          <div class="rwChips">${chip('none','정하지 않기')}${chip('week','이번 주')}${chip('month','이번 달')}${chip('pick','날짜 고르기')}</div>
+          ${c==='pick'?`<input type="date" class="rwInput" style="margin-top:14px" value="${swEsc(d.due||'')}" oninput="sw.d.due=this.value">`:''}`,
+          f:`<button type="button" class="obBtn" onclick="swNext()">다음</button>`};},
+       check:d=>{const c=d.dueMode||'none',t=new Date();
+         if(c==='none')d.due='';
+         else if(c==='week'){const x=new Date(t);x.setDate(t.getDate()+((7-t.getDay())%7));d.due=x.toLocaleDateString('sv-SE');}
+         else if(c==='month'){d.due=new Date(t.getFullYear(),t.getMonth()+1,0).toLocaleDateString('sv-SE');}
+         else if(!d.due){appAlert('날짜를 골라 주세요.');return false;}
+         return true;}},
+      {render:d=>({h:`<h1 class="obTitle">첫 할 일을\n적어 볼까요?</h1><p class="obSub">한 줄에 하나씩 적어요. 비워 두고 나중에 적어도 돼요.</p>
+          <textarea id="swTasks" class="rwInput swArea" rows="5" placeholder="예: 견적 받기&#10;짐 정리하기" oninput="sw.d.tasks=this.value">${swEsc(d.tasks||'')}</textarea>`,
+         f:`<button type="button" class="obBtn" onclick="swNext()">추가하기</button>`})}
+    ],
+    fill:d=>{SW_ORIG.pj(null);document.getElementById('pjName').value=d.name||'';document.getElementById('pjDue').value=d.due||'';try{pjDateSync();}catch(e){}
+      String(d.tasks||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach((t,i)=>pjDraft.tasks.push({id:'t'+Date.now().toString(36)+i+Math.random().toString(36).slice(2,5),text:t,done:false}));
+      try{pjRenderTasks();pjRenderSeg();}catch(e){}},
+    save:d=>{SW_DEFS.pj.fill(d);pjSave();if(document.getElementById('projectModal')?.classList.contains('hide'))appToast(`'${d.name}' 추가했어요`);},
+    detail:d=>{SW_DEFS.pj.fill(d);}
+  },
+  bk:{
+    presets:()=>[],
+    steps:d=>[
+      swNameStep({title:'어떤 책을\n추가할까요?',sub:'제목만 적어도 돼요.',ph:'책 제목',icon:'book',
+        extra:d=>`<input class="rwInput" style="margin-top:10px" maxlength="40" placeholder="저자 (선택)" value="${swEsc(d.author||'')}" oninput="sw.d.author=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();swNext();}">`}),
+      swPickStep({title:'지금 어떤 상태인가요?',key:'status',last:true,items:()=>[
+        {id:'읽고싶어',ic:'heart',name:'읽고 싶어요',desc:'담아 두고 나중에 읽어요'},
+        {id:'읽고있어',ic:'book',name:'읽고 있어요',desc:'오늘부터 읽는 중으로 표시해요'},
+        {id:'완독',ic:'star',name:'다 읽었어요',desc:'오늘 다 읽은 책으로 기록해요'}],
+        check:d=>{if(!d.status)d.status='읽고싶어';return true;}})
+    ],
+    fill:async d=>{await SW_ORIG.bk();const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+      set('bookTitle',d.name||'');set('bookAuthor',d.author||'');if(d.status){set('bookStatus',d.status);try{autoFillBookReadingDates();}catch(e){}}},
+    save:async d=>{await SW_DEFS.bk.fill(d);await saveBook();if(document.getElementById('bookModal')?.classList.contains('hide'))appToast(`'${d.name}' 추가했어요`);},
+    detail:d=>{SW_DEFS.bk.fill(d);}
+  }
+};
+function swRender(){
+  const def=SW_DEFS[sw.kind],st=def.steps(sw.d),cur=st[sw.step];
+  document.getElementById('swBar').style.width=`${Math.round((sw.step+1)/st.length*100)}%`;
+  const r=cur.render(sw.d);
+  document.getElementById('swBody').innerHTML=`<div class="obPane">${r.h}</div>`;document.getElementById('swFoot').innerHTML=r.f;
+  if(cur.focus)setTimeout(()=>{const i=document.getElementById(cur.focus);if(i&&!sw?.d.name)i.focus();},50);
+}
+openDailyCareItemEditor=function(id){if(!id)return swOpen('dc');return SW_ORIG.dc.apply(this,arguments);};
+openOneOffRecordEditor=function(id){if(!id)return swOpen('ql');return SW_ORIG.ql.apply(this,arguments);};
+openProject=function(id){if(!id)return swOpen('pj');return SW_ORIG.pj.apply(this,arguments);};
+openBookModal=function(id){if(!id){swOpen('bk');return Promise.resolve();}return SW_ORIG.bk.apply(this,arguments);};
 /* ===== 메뉴별 첫 안내 (공개용) — 각 메뉴를 처음 열 때 한 번만 ===== */
 const MENU_COACH={
   calendar:[{sel:()=>document.querySelector('#viewCalendar .calWrap'),t:'달력',p:'날짜를 누르면 그날 기록을 보고 고칠 수 있어요. ‘루틴으로 보기’에서 루틴을 고르면 그 루틴을 한 날만 표시돼요. 여러 개 함께 골라도 돼요.'},
