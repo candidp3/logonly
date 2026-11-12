@@ -4663,15 +4663,15 @@ const ROUTINE_SEMANTICS_V4_KEY = "routineSemanticsV4";
 const ROUTINE_CLEANUP_V5_KEY = "routineCleanupV5";
 
 const LIFE_DEFAULT_ROUTINES = [
-  {id:"breakfast_brush",name:"양치",icon:"🪥",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"breakfast_brush",name:"양치",icon:"⟪tooth⟫",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
   {id:"breakfast_water",name:"물 한 잔",icon:"💧",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
   {id:"breakfast_meal",name:"아침식사",icon:"🍳",type:"free",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
-  {id:"morning_stretch",name:"스트레칭",icon:"🏋️",type:"time",block:"morning",recurrence:"daily",days:[],target:10,unit:"분",maxDuration:10,enabled:true,order:10},
+  {id:"morning_stretch",name:"스트레칭",icon:"⟪pulse⟫",type:"time",block:"morning",recurrence:"daily",days:[],target:10,unit:"분",maxDuration:10,enabled:true,order:10},
   {id:"lunch_meal",name:"점심식사",icon:"🍚",type:"check",block:"lunch",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
   {id:"lunch_walk",name:"식후 걷기",icon:"🚶",type:"time",block:"lunch",recurrence:"daily",days:[],target:20,unit:"분",maxDuration:20,enabled:true,order:20},
   {id:"afternoon_work",name:"업무 / 공부",icon:"💻",type:"check",block:"afternoon",recurrence:"weekday",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
   {id:"evening_dinner",name:"저녁식사",icon:"🥗",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
-  {id:"evening_exercise",name:"운동",icon:"🏋️",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
+  {id:"evening_exercise",name:"운동",icon:"⟪dumbbell⟫",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
   {id:"free_read",name:"독서",icon:"📚",type:"time",block:"free",recurrence:"free",days:[],target:null,unit:"분",maxDuration:null,enabled:true,order:10},
   {id:"free_exercise",name:"운동",icon:"🏋️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
   {id:"free_rest",name:"그냥 쉬기",icon:"☁️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:40}
@@ -10883,7 +10883,7 @@ syncRRBlocks();lifeFillBlockSelect();enhanceSubSelects();
 /* ===== 단발성 기록: 체크 / 상태 / 메모(식사 제외) ===== */
 function oneOffDestLabel(d){return d.type==='numeric'?'건강 기록':d.type==='static'?'숨참기 기록':d.type==='check'||d.type==='mood'?'QUICK LOG':(d.asMeal===false?'QUICK LOG':'식사 기록');}
 function loadOneOffLogs(){try{const v=JSON.parse(localStorage.getItem('oneOffLogs_v1')||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}catch(e){return {};}}
-function saveOneOffLogs(v){try{localStorage.setItem('oneOffLogs_v1',JSON.stringify(v));return true;}catch(e){appAlert('저장 공간이 부족해요. 백업 후 오래된 사진을 정리해 주세요.');return false;}}
+function saveOneOffLogs(v){try{localStorage.setItem('oneOffLogs_v1',JSON.stringify(v));return true;}catch(e){appAlert('저장 공간이 부족해요. 백업 후 오래된 기록을 정리해 주세요.');return false;}}
 function oneOffLogsOn(k,defId){return (loadOneOffLogs()[k]||[]).map((x,i)=>({x,i})).filter(o=>!defId||o.x.defId===defId);}
 const MOOD_LABELS=['','매우 나쁨','나쁨','보통','좋음','매우 좋음'];
 let olCtx=null;
@@ -10965,7 +10965,7 @@ function oneOffLogQuick(d){
 /* ===== NOTE 아래 스티커 사진 (최대 3장) ===== */
 let _dpRaw=null,_dpVal=null;
 function loadDailyPhotos(){try{const raw=localStorage.getItem('dailyPhotos_v1')||'{}';if(_dpVal&&raw===_dpRaw)return _dpVal;const v=JSON.parse(raw);const o=v&&typeof v==='object'&&!Array.isArray(v)?v:{};_dpRaw=raw;_dpVal=o;return o;}catch(e){return {};}}
-function saveDailyPhotos(v){try{_dpVal=null;localStorage.setItem('dailyPhotos_v1',JSON.stringify(v));return true;}catch(e){appAlert('저장 공간이 부족해요. 백업 후 오래된 사진을 정리해 주세요.');return false;}}
+function saveDailyPhotos(v){try{_dpVal=null;localStorage.setItem('dailyPhotos_v1',JSON.stringify(v));return true;}catch(e){appAlert('저장 공간이 부족해요. 백업 후 오래된 기록을 정리해 주세요.');return false;}}
 let photoTargetKey=null;
 function photoAdd(k){photoTargetKey=k;const p=document.getElementById('photoPick');p.value='';p.click();}
 document.getElementById('photoPick')?.addEventListener('change',async e=>{
@@ -11171,7 +11171,7 @@ function qlWatch(el){qlJustify(el);if(qlRO)qlRO.observe(el);}
 const PROJECTS_KEY='projects_v1';
 const PJ_STATUS=[['active','진행 중'],['hold','잠시 멈춤'],['done','완료']];
 function pjLoad(){try{const v=JSON.parse(localStorage.getItem(PROJECTS_KEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
-function pjStore(list){try{localStorage.setItem(PROJECTS_KEY,JSON.stringify(list));return true;}catch(e){appAlert('저장 공간이 부족해요. 백업 후 오래된 사진을 정리해 주세요.');return false;}}
+function pjStore(list){try{localStorage.setItem(PROJECTS_KEY,JSON.stringify(list));return true;}catch(e){appAlert('저장 공간이 부족해요. 백업 후 오래된 기록을 정리해 주세요.');return false;}}
 function pjId(){return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function pjDays(due){
   if(!due||!/^\d{4}-\d{2}-\d{2}$/.test(due))return null;
@@ -11599,6 +11599,7 @@ function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b
 <style>
 #obRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
 #obRoot.hide{display:none}
+.photoMini,#todayPhotoBtn{display:none!important} /* 판매용 v1: 사진 기능 제외 */
 #obRoot *{box-sizing:border-box}
 #obRoot .obTitle,#obRoot .obSub{text-align:left}
 .obTop{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 14px) 20px 6px;min-height:44px}
@@ -11658,7 +11659,7 @@ const OB_CARE=[
   {id:'water',ic:'drop',name:'물',desc:'하루 마신 물의 양',unit:'ml',step:250,min:250,max:5000,def:2000},
   {id:'sleep',ic:'moon',name:'수면',desc:'잠든 시간과 일어난 시간',unit:'시간',step:.5,min:3,max:12,def:7}
 ];
-const OB_ROUTINE_IC={breakfast_brush:'brush',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'yoga',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'pulse'};
+const OB_ROUTINE_IC={breakfast_brush:'tooth',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'pulse',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'dumbbell'};
 const OB_BLOCK_NAME={breakfast:'아침',morning:'오전',lunch:'점심',afternoon:'오후',evening:'저녁'};
 const OB_FEATURES=[
   {id:'freetime',ic:'timer',name:'취미 타이머',desc:'독서·운동처럼 여유 있을 때 하는 활동 기록'},
@@ -11755,6 +11756,7 @@ function obFinish(skipped){
   try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');}catch(e){console.error(e);}
   location.reload();
 }
+function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
 function obStart(){
   obInitSel();obStep=0;obRender();
   document.getElementById('obRoot').classList.remove('hide');
