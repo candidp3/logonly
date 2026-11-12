@@ -11801,6 +11801,17 @@ function obFinish(skipped){
   };
   try{renderCustomDailyCare();}catch(e){}
 })();
+/* 판매용: 시간 기록 수정 창에 11.89… 같은 소수 대신 반올림한 분으로 표시 */
+(function(){
+  if(typeof openRoutineInputSheet!=='function')return;
+  const prev=openRoutineInputSheet;
+  openRoutineInputSheet=function(ctx){
+    if(ctx&&ctx.mode==='time'&&ctx.value!==''&&ctx.value!==null&&ctx.value!==undefined&&Number.isFinite(Number(ctx.value))){
+      const v=Number(ctx.value);ctx={...ctx,value:v>0?Math.max(1,Math.round(v)):0};
+    }
+    return prev.call(this,ctx);
+  };
+})();
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
 function obStart(){
   obInitSel();obStep=0;obRender();
