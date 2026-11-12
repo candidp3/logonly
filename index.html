@@ -12293,6 +12293,20 @@ function addSecAdds(){
 .obPane{animation:obIn .25s ease}
 @keyframes obIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
 #swRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
+#cuRoot{position:fixed;inset:0;z-index:1990;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
+#cuRoot.hide{display:none}#cuRoot *{box-sizing:border-box}#cuRoot .obTitle,#cuRoot .obSub{text-align:left}
+#cuRoot .obGroup{margin-top:22px}#cuRoot .obGroup small{font-weight:400;color:var(--rc-mu);margin-left:4px;font-size:var(--fs-1)}
+#cuRoot .obItem{cursor:pointer}
+.cuSw{width:46px;height:28px;border-radius:14px;background:var(--rc-line,#d9dfdb);position:relative;flex:none;transition:background .15s}
+.cuSw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .15s}
+.obItem.on .cuSw{background:var(--rc-solid,#3f9c7c)}.obItem.on .cuSw::after{transform:translateX(18px)}
+.cuWhere{font-size:var(--fs-0,11px);font-weight:500;color:var(--rc-mu);margin-left:6px;letter-spacing:.2px}
+.cuAdd{display:block;width:100%;margin-top:10px;padding:13px;border:1.5px dashed var(--rc-line,#d9dfdb);border-radius:16px;background:none;color:var(--rc-gs,#3f9c7c);font:inherit;font-size:var(--fs-2);cursor:pointer}
+.cuCard{display:flex;align-items:center;gap:14px;width:calc(100% - 0px);margin:0 0 14px;padding:16px 18px;border:0;border-radius:20px;background:var(--rc-gl);color:var(--rc-tx);font:inherit;text-align:left;cursor:pointer}
+.cuCardIc{width:42px;height:42px;border-radius:50%;background:var(--rc-card,#fff);color:var(--rc-gs);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.cuCardIc svg{width:22px;height:22px}
+.cuCardTx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.cuCardTx b{font-size:var(--fs-3)}.cuCardTx small{font-size:var(--fs-1);color:var(--rc-mu)}
+.cuCardGo{font-size:22px;color:var(--rc-mu)}
 #swRoot.hide{display:none}#swRoot *{box-sizing:border-box}#swRoot .obTitle,#swRoot .obSub{text-align:left}
 #swRoot .obGroup{margin-top:20px}
 #swRoot .rwInline input:not(.rwUnit){width:96px}
@@ -12920,6 +12934,68 @@ function menuCoachNext(){if(!menuCoach)return;menuCoach.i++;if(menuCoach.i>=menu
     b.setAttribute('aria-label',label);});
 })();
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
+/* ===== 내 화면 꾸미기 (공개용): 쓸 기능을 한 곳에서 켜고 끄기 ===== */
+function cuCareList(){
+  const deleted=loadDailyCareDeletedIds();let saved=[];try{saved=JSON.parse(localStorage.getItem(DAILY_CARE_DEFS_KEY)||'[]')||[];}catch(e){}
+  const byId=new Map(saved.map(x=>[x.id,x]));
+  const out=OB_CARE.map(c=>{const d=byId.get(c.id);const exists=c.id==='condition'?!!d:true;
+    const on=exists&&!deleted.has(c.id)&&(!d||d.enabled!==false);return {id:c.id,ic:c.ic,name:c.name,desc:c.desc,on,builtin:true};});
+  saved.filter(d=>!OB_CARE.some(c=>c.id===d.id)&&!deleted.has(d.id)).forEach(d=>{
+    const m=String(d.icon||'').match(/⟪(.+?)⟫/);out.push({id:d.id,ic:m?m[1]:'sparkle',name:d.name,desc:{cumulative:'더해 가며 기록',numeric:'숫자 하나 기록',duration:'시작~끝 시간'}[d.type]||'직접 추가한 항목',on:d.enabled!==false});});
+  return out;
+}
+function cuToggleCare(id){
+  const it=cuCareList().find(x=>x.id===id);if(!it)return;const turnOn=!it.on;
+  let saved=[];try{saved=JSON.parse(localStorage.getItem(DAILY_CARE_DEFS_KEY)||'[]')||[];}catch(e){}
+  const deleted=loadDailyCareDeletedIds();
+  if(turnOn){deleted.delete(id);saveDailyCareDeletedIds(deleted);
+    if(id==='condition'&&!saved.some(d=>d.id==='condition'))saved.push({...LG_CONDITION_DEF});}
+  let d=saved.find(x=>x.id===id);
+  if(!d&&['water','sleep','protein'].includes(id)){d={id};saved.push(d);}
+  if(d)d.enabled=turnOn;
+  localStorage.setItem(DAILY_CARE_DEFS_KEY,JSON.stringify(saved));
+  cuRender();
+}
+function cuFeatOn(id){
+  if(id==='period')return periodEnabled();
+  if(id==='static')return loadOneOffDefinitions().some(d=>d.type==='static');
+  return secVisOn(id);
+}
+function cuToggleFeat(id){
+  const on=!cuFeatOn(id);
+  if(id==='period'){localStorage.setItem('periodEnabled_v1',on?'1':'0');}
+  else if(id==='static'){const defs=loadOneOffDefinitions();
+    if(on){if(!defs.some(d=>d.type==='static'))defs.push({id:'oneoff_static',icon:'⟪wind⟫',name:'숨참기',type:'static'});saveOneOffDefinitions(defs);
+      const v=secVisLoad();v.quicklog=true;localStorage.setItem(SECVIS_KEY,JSON.stringify(v));}
+    else saveOneOffDefinitions(defs.filter(d=>d.type!=='static'));}
+  else{const v=secVisLoad();v[id]=on;localStorage.setItem(SECVIS_KEY,JSON.stringify(v));}
+  cuRender();
+}
+function cuRow(it,fn){return `<div class="obItem${it.on?' on':''}" role="switch" aria-checked="${it.on}" tabindex="0" onclick="${fn}('${it.id}')"><span class="obIco">${obIcon(it.ic)}</span><span class="obTxt"><div class="obName">${escapeLife(it.name)}${it.where?`<small class="cuWhere">${it.where}</small>`:''}</div><div class="obDesc">${escapeLife(it.desc)}</div>${it.ex?`<div class="obEx">예) ${escapeLife(it.ex)}</div>`:''}</span><span class="cuSw"></span></div>`;}
+function cuRender(){
+  const b=document.getElementById('cuBody');if(!b)return;const y=b.scrollTop;
+  b.innerHTML=`<div class="obPane"><h1 class="obTitle">내 화면 꾸미기</h1><p class="obSub">TODAY에 보일 것만 골라요. 꺼도 기록은 지워지지 않아요.</p>
+    <div class="obGroup">매일 챙기는 것 <small>DAILY CARE</small></div><div class="obList">${cuCareList().map(it=>cuRow(it,'cuToggleCare')).join('')}</div>
+    <button type="button" class="cuAdd" onclick="cuClose(true);openDailyCareItemEditor('')">+ 매일 챙길 것 추가</button>
+    <div class="obGroup">더 쓰고 싶은 기능</div><div class="obList">${OB_FEATURES.map(f=>cuRow({...f,on:cuFeatOn(f.id),where:{freetime:'FREE TIME',quicklog:'QUICK LOG',project:'PROJECTS',period:'달력',static:'QUICK LOG'}[f.id]},'cuToggleFeat')).join('')}</div></div>`;
+  b.scrollTop=y;
+}
+function cuOpen(){
+  let el=document.getElementById('cuRoot');
+  if(!el){el=document.createElement('div');el.id='cuRoot';el.innerHTML=`<div class="obTop"><button type="button" class="obBack" onclick="cuClose()" aria-label="닫기">${SW_BACK_SVG}</button><div style="flex:1"></div></div><div class="obBody" id="cuBody"></div><div class="obFoot"><button type="button" class="obBtn" onclick="cuClose()">완료</button></div>`;document.body.appendChild(el);}
+  el.classList.remove('hide');cuRender();
+}
+function cuClose(keep){
+  document.getElementById('cuRoot')?.classList.add('hide');
+  try{secVisApply();}catch(e){}try{update();}catch(e){}try{renderLifeGuide();}catch(e){}try{renderProjects();}catch(e){}
+  try{renderOneOffSettings();renderOneOffQuick();}catch(e){}try{renderDailyCareSettings();}catch(e){}try{renderSecVis();}catch(e){}try{updatePeriodToggleBtn();renderLifeCalendar();}catch(e){}
+  if(!keep)try{appToast('화면에 반영했어요');}catch(e){}
+}
+(function(){
+  const hero=document.querySelector('#viewBackup .backupHero');if(!hero||document.getElementById('cuCard'))return;
+  hero.insertAdjacentHTML('afterend',`<button type="button" id="cuCard" class="cuCard" onclick="cuOpen()"><span class="cuCardIc">${obIcon('palette')}</span><span class="cuCardTx"><b>내 화면 꾸미기</b><small>TODAY에 보일 기능을 한 곳에서 골라요</small></span><span class="cuCardGo">›</span></button>`);
+})();
+
 /* 다른 폰에서 쓰던 기록이 있으면: 안내를 닫고 바로 불러오기 화면으로 */
 function obRestore(){
   try{localStorage.setItem(OB_KEY,'done');}catch(e){}
