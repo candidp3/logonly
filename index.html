@@ -11767,6 +11767,27 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 .obFoot{padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 18px)}
 .obBtn{width:100%;height:56px;border:0;border-radius:16px;background:var(--rc-solid,#3f9c7c);color:#fff;font-size:17px;font-weight:600;font-family:inherit}
 .obLink{border:0;background:none;padding:0;font:inherit;color:var(--rc-gd,#2f6b55);text-decoration:underline;text-underline-offset:2px}
+.obEx{display:inline-block;margin-top:6px;font-size:12px;color:var(--rc-gd,#2f6b55);background:var(--rc-soft,#eef3f0);border-radius:8px;padding:3px 8px;line-height:1.4}
+.obPv{border:1.5px solid var(--rc-line,#e3e8e5);border-radius:22px;background:var(--rc-card,#fff);padding:16px 16px 10px;margin-top:4px}
+.obPvHead{font-size:18px;font-weight:700;margin-bottom:10px;letter-spacing:.2px}
+.obPvSec{background:var(--rc-bg,#f5f7f5);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.obPvTitle{font-size:11px;font-weight:600;letter-spacing:.6px;color:var(--rc-mu,#8a938e);margin-bottom:6px}
+.obPvChips{display:flex;flex-wrap:wrap;gap:6px}
+.obPvChip{display:inline-flex;align-items:center;gap:5px;background:var(--rc-card,#fff);border:1px solid var(--rc-line,#e3e8e5);border-radius:99px;padding:4px 10px 4px 6px;font-size:13px}
+.obPvIc{display:inline-flex;width:18px;height:18px;color:var(--rc-gd,#2f6b55)}.obPvIc svg{width:18px;height:18px}
+.obPvLine{font-size:13px;color:var(--rc-tx2,#4a544f)}
+.obPvFoot{font-size:12px;color:var(--rc-mu,#8a938e);text-align:center;padding:4px 0 2px}
+/* 첫 TODAY 말풍선 안내 */
+#coachRoot{position:fixed;inset:0;z-index:1900}
+#coachRoot .coachHole{position:fixed;border-radius:18px;box-shadow:0 0 0 9999px rgba(20,28,24,.55);transition:all .25s ease;pointer-events:none}
+#coachRoot .coachTip{position:fixed;left:20px;right:20px;background:var(--rc-card,#fff);color:var(--rc-tx,#1d2420);border-radius:18px;padding:16px 18px 12px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+#coachRoot .coachTip b{display:block;font-size:16px;margin-bottom:4px}
+#coachRoot .coachTip p{margin:0;font-size:14px;line-height:1.5;color:var(--rc-tx2,#4a544f)}
+#coachRoot .coachNav{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+#coachRoot .coachNav span{font-size:12px;color:var(--rc-mu,#8a938e)}
+#coachRoot .coachNav button{border:0;border-radius:12px;padding:9px 16px;font:inherit;font-size:14px}
+#coachRoot .coachSkip{background:transparent;color:var(--rc-mu,#8a938e)}
+#coachRoot .coachNext{background:var(--rc-solid,#3f9c7c);color:#fff;font-weight:600}
 .obNote{text-align:center;font-size:13px;color:var(--rc-mu,#8a938e);margin-top:12px}
 .obHero{display:flex;flex-direction:column;justify-content:center;min-height:100%;padding-bottom:40px}
 .obHeroIco{width:76px;height:76px;border-radius:26px;background:var(--rc-soft,#eef3f0);color:var(--rc-gd,#2f6b55);display:flex;align-items:center;justify-content:center;margin-bottom:28px}
@@ -11791,19 +11812,19 @@ const OB_KEY='onboardingDone_v1';
 const OB_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 /* 기본은 누구나 공감하는 항목(물·수면·컨디션), 단백질은 켜서 쓰는 선택 항목 */
 const OB_CARE=[
-  {id:'water',ic:'drop',name:'물',desc:'하루 마신 물의 양',unit:'ml',step:250,min:250,max:5000,def:2000,on:true},
-  {id:'sleep',ic:'moon',name:'수면',desc:'잠든 시간과 일어난 시간',unit:'시간',step:.5,min:3,max:12,def:7,on:true},
-  {id:'condition',ic:'smile',name:'오늘의 컨디션',desc:'다섯 가지 얼굴 중 하나만 톡',on:true,noTarget:true},
-  {id:'protein',ic:'dumbbell',name:'식단 챙기기 (단백질)',desc:'다이어트·운동 중 단백질 섭취량',unit:'g',step:10,min:10,max:300,def:80,on:false}
+  {id:'water',ic:'drop',name:'물',desc:'하루 마신 물의 양',ex:'버튼 한 번에 +120ml',unit:'ml',step:250,min:250,max:5000,def:2000,on:true},
+  {id:'sleep',ic:'moon',name:'수면',desc:'잠든 시간과 일어난 시간',ex:'취침 → 기상 누르면 7시간 30분',unit:'시간',step:.5,min:3,max:12,def:7,on:true},
+  {id:'condition',ic:'smile',name:'오늘의 컨디션',desc:'다섯 가지 얼굴 중 하나만 톡',ex:'오늘 컨디션: 좋음',on:true,noTarget:true},
+  {id:'protein',ic:'dumbbell',name:'식단 챙기기 (단백질)',desc:'다이어트·운동 중 단백질 섭취량',ex:'닭가슴살 먹고 +20g',unit:'g',step:10,min:10,max:300,def:80,on:false}
 ];
 const OB_ROUTINE_IC={breakfast_brush:'tooth',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'pulse',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'dumbbell'};
 const OB_BLOCK_NAME={breakfast:'아침',morning:'오전',lunch:'점심',afternoon:'오후',evening:'저녁'};
 const OB_FEATURES=[
-  {id:'freetime',ic:'timer',name:'취미 타이머',desc:'독서·운동처럼 여유 있을 때 하는 활동 기록'},
-  {id:'quicklog',ic:'pencil',name:'빠른 기록',desc:'간식·체중·컨디션을 필요할 때만 한 줄로'},
-  {id:'project',ic:'calendar',name:'프로젝트',desc:'할 일과 마감일을 단계별로 관리'},
-  {id:'period',ic:'heart',name:'생리주기',desc:'기간을 기록하면 다음 시작일을 예측'},
-  {id:'static',ic:'wind',name:'숨참기 훈련',desc:'CO2·O2 테이블과 숨참기 기록'}
+  {id:'freetime',ic:'timer',name:'취미 타이머',desc:'독서·운동처럼 여유 있을 때 하는 활동 기록',ex:'독서 32분 · 운동 ✓'},
+  {id:'quicklog',ic:'pencil',name:'빠른 기록',desc:'간식·체중처럼 필요할 때만 한 줄로',ex:'간식: 쿠키 · 체중 52kg'},
+  {id:'project',ic:'calendar',name:'프로젝트',desc:'할 일과 마감일을 단계별로 관리',ex:'여행 준비 2/5 · D-3'},
+  {id:'period',ic:'heart',name:'생리주기',desc:'기간을 기록하면 다음 시작일을 예측',ex:'다음 시작 예정 11.28'},
+  {id:'static',ic:'wind',name:'숨참기 훈련',desc:'프리다이빙용 CO2·O2 테이블과 숨참기 기록',ex:'CO2 8세트 · 최고 2분 10초'}
 ];
 let obStep=0,obSel=null;
 function obIcon(n){try{return appIconSvg(n)||'';}catch(e){return '';}}
@@ -11832,7 +11853,7 @@ function obRender(){
     h=`<h1 class="obTitle">매일 가볍게 챙길 것을\n골라주세요</h1><p class="obSub">필요한 것만 켜세요. 목표는 대략 정해도 돼요.</p><div class="obList">`+
       OB_CARE.map(c=>{const s=obSel.care[c.id];const v=c.id==='water'?Number(s.target).toLocaleString():s.target;
         return `<div class="obItem${s.on?' on':''}" role="button" tabindex="0" onclick="obToggle('care','${c.id}')"><span class="obIco">${obIcon(c.ic)}</span>
-        <span class="obTxt"><div class="obName">${c.name}</div><div class="obDesc">${c.desc}</div>
+        <span class="obTxt"><div class="obName">${c.name}</div><div class="obDesc">${c.desc}</div>${c.ex?`<div class="obEx">예) ${c.ex}</div>`:''}
         ${c.noTarget?'':`<div class="obStep" onclick="event.stopPropagation()"><button type="button" onclick="obAdj('${c.id}',-1)" aria-label="줄이기">−</button><b>목표 ${v}${c.unit}</b><button type="button" onclick="obAdj('${c.id}',1)" aria-label="늘리기">＋</button></div>`}</span>
         <span class="obChk">${OB_CHECK}</span></div>`;}).join('')+`</div>`;
     next.textContent='다음';
@@ -11848,15 +11869,33 @@ function obRender(){
   }else if(key==='feature'){
     h=`<h1 class="obTitle">더 쓰고 싶은 기능이\n있나요?</h1><p class="obSub">필요한 것만 켜세요. 안 골라도 괜찮아요.\nSETTING에서 언제든 켜고 끌 수 있어요.</p><div class="obList">`+
       OB_FEATURES.map(f=>`<button type="button" class="obItem${obSel.features[f.id]?' on':''}" onclick="obToggle('features','${f.id}')"><span class="obIco">${obIcon(f.ic)}</span>
-        <span class="obTxt"><div class="obName">${f.name}</div><div class="obDesc">${f.desc}</div></span><span class="obChk">${OB_CHECK}</span></button>`).join('')+`</div>`;
+        <span class="obTxt"><div class="obName">${f.name}</div><div class="obDesc">${f.desc}</div>${f.ex?`<div class="obEx">예) ${f.ex}</div>`:''}</span><span class="obChk">${OB_CHECK}</span></button>`).join('')+`</div>`;
     next.textContent=Object.values(obSel.features).some(Boolean)?'다음':'지금은 괜찮아요';
   }else{
-    h=`<div class="obHero"><div class="obHeroIco">${obIcon('smile')}</div>
-      <h1 class="obTitle">준비 끝!</h1>
-      <p class="obSub">오늘 할 수 있는 만큼만 체크해 보세요.\n고른 항목은 SETTING에서 언제든 바꿀 수 있어요.</p></div>`;
+    h=`<h1 class="obTitle">준비 끝!\n이런 화면으로 시작해요</h1>
+      <p class="obSub">오늘 할 수 있는 만큼만 체크해 보세요.\n고른 항목은 SETTING에서 언제든 바꿀 수 있어요.</p>${obPreviewHTML()}`;
     next.textContent='오늘 시작하기';
   }
   body.innerHTML=`<div class="obPane">${h}</div>`;body.scrollTop=0;
+}
+function obRoutineIc(r){return OB_ROUTINE_IC[r.id]||((String(r.icon||'').match(/⟪([a-z0-9_]+)⟫/)||[])[1])||'star';}
+/* 준비 끝 화면: 고른 항목으로 만든 TODAY 미리보기 */
+function obPreviewHTML(){
+  const care=OB_CARE.filter(c=>obSel.care[c.id]&&obSel.care[c.id].on);
+  const routines=LIFE_DEFAULT_ROUTINES.filter(r=>r.block!=='free'&&obSel.routines[r.id]);
+  const blocks=[...new Set(routines.map(r=>OB_BLOCK_NAME[r.block]).filter(Boolean))];
+  const free=LIFE_DEFAULT_ROUTINES.filter(r=>r.block==='free');
+  const ic=x=>`<span class="obPvIc">${obIcon(x)}</span>`;
+  const sec=(title,body)=>`<div class="obPvSec"><div class="obPvTitle">${title}</div>${body}</div>`;
+  let h='';
+  if(care.length)h+=sec('DAILY CARE',`<div class="obPvChips">${care.map(c=>`<span class="obPvChip">${ic(c.ic)}${c.name.replace(/ \(.+\)$/,'').replace('식단 챙기기','단백질').replace('오늘의 ','')}</span>`).join('')}</div>`);
+  if(routines.length)h+=sec('루틴',`<div class="obPvLine">${blocks.join(' · ')} · ${routines.length}개</div>`);
+  if(obSel.features.freetime)h+=sec('FREE TIME',`<div class="obPvChips">${free.map(r=>`<span class="obPvChip">${ic(obRoutineIc(r))}${escapeLife(r.name)}</span>`).join('')}</div>`);
+  if(obSel.features.project)h+=sec('PROJECTS','<div class="obPvLine">할 일과 마감일</div>');
+  if(obSel.features.quicklog||obSel.features.static)h+=sec('QUICK LOG',`<div class="obPvLine">${obSel.features.static?'숨참기 · ':''}필요할 때만 한 줄 기록</div>`);
+  h+=sec('NOTE','<div class="obPvLine">오늘의 메모</div>');
+  const extra=[obSel.features.period?'생리주기는 CALENDAR에':'',].filter(Boolean);
+  return `<div class="obPv"><div class="obPvHead">TODAY</div>${h}${extra.length?`<div class="obPvFoot">${extra.join(' · ')}</div>`:''}</div>`;
 }
 function obToggle(group,id){
   if(group==='care')obSel.care[id].on=!obSel.care[id].on;else obSel[group][id]=!obSel[group][id];
@@ -11896,7 +11935,7 @@ function obApply(){
   try{localStorage.setItem(ST_ON_KEY,obSel.features.static?'1':'0');}catch(e){}
 }
 function obFinish(skipped){
-  try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');}catch(e){console.error(e);}
+  try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');sessionStorage.setItem('logonly_just_onboarded','1');}catch(e){console.error(e);}
   location.reload();
 }
 /* 판매용: 시간형 데일리케어 — 기록 전 '목표 7시간', 기록 후 '기록 7시간 30분' (세부 시각은 카드를 누르면) */
@@ -12024,6 +12063,43 @@ async function lgUndoRestore(){
   const box=document.getElementById('autoBackupStatus');
   const host=box?box.closest('.backupPart'):null;
   if(host&&!document.getElementById('lgUndoRestoreBtn'))host.insertAdjacentHTML('beforeend','<button type="button" id="lgUndoRestoreBtn" class="settingsBtn uiActionSm" style="margin-top:8px" onclick="lgUndoRestore()">백업 불러오기 전으로 되돌리기</button>');
+})();
+/* ===== 첫 TODAY 말풍선 안내 (처음 한 번만) ===== */
+const COACH_KEY='logonly_coach_v1';
+const COACH_STEPS=[
+  {sel:()=>document.querySelector('#viewToday .dailyCareBlock'),t:'매일 챙길 것',p:'버튼을 누르면 바로 기록돼요. 카드를 누르면 직접 입력하거나 고칠 수 있어요.'},
+  {sel:()=>document.querySelector('#lifeGuide .lifeBlock')||document.getElementById('lifeGuide'),t:'시간대별 루틴',p:'시간대를 누르면 할 일이 펼쳐져요. 못 한 날이 있어도 괜찮아요. 한 것만 체크하면 끝이에요.'},
+  {sel:()=>document.querySelector('.bottomNav, nav')||document.getElementById('navCalendar'),t:'기록 모아 보기',p:'남긴 기록은 CALENDAR와 RECORD에 차곡차곡 모여요. 항목과 기능은 SETTING에서 언제든 바꿀 수 있어요.'}
+];
+let coachI=0;
+function coachRender(){
+  const root=document.getElementById('coachRoot');if(!root)return;
+  const st=COACH_STEPS[coachI],el=st.sel();
+  if(!el){coachNext();return;}
+  el.scrollIntoView({block:'center',behavior:'instant'});
+  requestAnimationFrame(()=>{
+    const r=el.getBoundingClientRect(),pad=6,vh=window.innerHeight;
+    const hole=root.querySelector('.coachHole'),tip=root.querySelector('.coachTip');
+    Object.assign(hole.style,{left:(r.left-pad)+'px',top:(r.top-pad)+'px',width:(r.width+pad*2)+'px',height:(Math.min(r.height,vh*0.55)+pad*2)+'px'});
+    tip.innerHTML=`<b>${st.t}</b><p>${st.p}</p><div class="coachNav"><span>${coachI+1} / ${COACH_STEPS.length}</span><div><button type="button" class="coachSkip" onclick="coachEnd()">${coachI<COACH_STEPS.length-1?'건너뛰기':''}</button><button type="button" class="coachNext" onclick="coachNext()">${coachI<COACH_STEPS.length-1?'다음':'시작하기'}</button></div></div>`;
+    const below=r.top+Math.min(r.height,vh*0.55)+pad+14;
+    if(below+170<vh){tip.style.top=below+'px';tip.style.bottom='';}else{tip.style.top='';tip.style.bottom=(vh-r.top+pad+14)+'px';}
+  });
+}
+function coachNext(){coachI++;if(coachI>=COACH_STEPS.length)coachEnd();else coachRender();}
+function coachEnd(){try{localStorage.setItem(COACH_KEY,'done');}catch(e){}document.getElementById('coachRoot')?.remove();window.scrollTo(0,0);}
+function coachStart(){
+  if(document.getElementById('coachRoot'))return;
+  const root=document.createElement('div');root.id='coachRoot';root.innerHTML='<div class="coachHole"></div><div class="coachTip"></div>';
+  document.body.appendChild(root);coachI=0;coachRender();
+}
+(function(){
+  let done=null,ob=null;try{done=localStorage.getItem(COACH_KEY);ob=localStorage.getItem(OB_KEY);}catch(e){}
+  /* 온보딩을 막 마친 첫 실행에만 */
+  if(done||!ob)return;
+  let fresh=false;try{fresh=sessionStorage.getItem('logonly_just_onboarded')==='1';sessionStorage.removeItem('logonly_just_onboarded');}catch(e){}
+  if(!fresh){try{localStorage.setItem(COACH_KEY,'done');}catch(e){}return;}
+  setTimeout(coachStart,600);
 })();
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
 /* 다른 폰에서 쓰던 기록이 있으면: 안내를 닫고 바로 불러오기 화면으로 */
