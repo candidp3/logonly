@@ -12557,6 +12557,24 @@ const LG_PRE_RESTORE_KEY='__pre_restore__';
     Object.entries(keep).forEach(([k,v])=>{try{localStorage.setItem(k,v);}catch(e){}});
   };
 })();
+/* 루틴체크(개인용) 백업을 로그온리에 복원할 때: 로그온리에서만 기본으로 꺼 둔 기능(FREE TIME·PROJECTS·QUICK LOG)은
+   루틴체크에서 켜져 있던 것과 같게 맞춤. 루틴체크 백업에는 onboardingDone_v1이 없어서 구분할 수 있음 */
+(function(){
+  const base=applyLocalStorageSnapshot;
+  applyLocalStorageSnapshot=function(snapshot){
+    const r=base.apply(this,arguments);
+    try{
+      const s=snapshot||{};
+      if(!Object.prototype.hasOwnProperty.call(s,OB_KEY)){
+        let v={};try{v=JSON.parse(s[SECVIS_KEY]||'{}')||{};}catch(e){v={};}
+        SECVIS_DEFAULT_OFF.forEach(id=>{if(v[id]===undefined)v[id]=true;});
+        localStorage.setItem(SECVIS_KEY,JSON.stringify(v));
+        localStorage.setItem(OB_KEY,'done');localStorage.setItem(COACH_KEY,'done');
+      }
+    }catch(e){}
+    return r;
+  };
+})();
 async function lgUndoRestore(){
   let d=null;try{d=JSON.parse(localStorage.getItem(LG_PRE_RESTORE_KEY)||'null');}catch(e){}
   if(!d||!d.localStorage)return appAlert('되돌릴 기록이 없어요.');
