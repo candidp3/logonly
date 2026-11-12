@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>로그온리 · Logonly</title>
+<title>로그온리</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#f5f7f5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121615" media="(prefers-color-scheme: dark)">
@@ -54,6 +54,7 @@ select,.textin{
 details{background:var(--rc-card);border-radius:14px;padding:10px 12px;margin-bottom:10px}
 details > summary{cursor:pointer;font-weight:var(--fw-3);list-style:none}
 details > summary::-webkit-details-marker{display:none}
+.mono{font-variant-numeric:tabular-nums}
 
 /* ===== 모바일 표 줄바꿈 완전 차단 + 글자 축소 + 열 최소폭 ===== */
 table{table-layout:auto;width:max-content;min-width:100%}
@@ -134,6 +135,30 @@ th:nth-child(6), td:nth-child(6){ min-width:70px; } /* 물 */
   opacity:1;
 }
 
+/* 체크리스트 전용 글씨 크기 복구 */
+
+olumns: 1fr auto auto;
+  gap:8px;
+  padding:6px 0;
+  align-items:center;
+  font-size:0.87500rem;
+}
+.mealItem .protein{
+  font-weight:var(--fw-3);
+  color:#2e7d32;
+}
+.optionCard{
+  background:var(--rc-soft);
+  border-radius:10px;
+  padding:8px;
+  margin-top:8px;
+}
+.optionTitle{
+  font-size:var(--fs-2);
+  font-weight:var(--fw-3);
+  color:var(--rc-tx2);
+  margin-bottom:4px;
+}
 
   textarea{
   box-sizing: border-box;
@@ -2443,6 +2468,151 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
   <div id="rrOut"></div>
 </div>
 
+<!-- MEAL -->
+<div id="viewMeal" class="hide">
+
+  <!-- 공통 메인 단백질 -->
+  <div class="section">
+    <h2>🥩 메인 단백질 <span class="small">(점심·저녁 공통)</span></h2>
+    <div class="small"><b>아래 중 1가지 선택</b></div>
+  
+    <div class="mealItem">
+      <span>🍗 닭가슴살</span>
+      <span class="mono">100g</span>
+      <span class="protein">20g</span>
+    </div>
+    <div class="mealItem">
+      <span>🥩 목살구이</span>
+      <span class="mono">100g</span>
+      <span class="protein">20g</span>
+    </div>
+    <div class="mealItem">
+      <span>🐟 생선구이</span>
+      <span class="mono">100g</span>
+      <span class="protein">20g</span>
+    </div>
+  </div>
+  
+  <!-- 점심 -->
+  <div class="section">
+    <h2>🍽️ 점심 <span class="small">(11:00)</span></h2>
+    <div class="small">
+      기본 구성 + <b>메인 단백질 1가지 선택</b> = 37g
+    </div>
+  
+    <div class="mealItem">
+      <span>🥚 단백이</span>
+      <span class="mono">1개</span>
+      <span class="protein">8g</span>
+    </div>
+    <div class="mealItem">
+      <span>🍚 현미밥</span>
+      <span class="mono">160g</span>
+      <span class="protein">3g</span>
+    </div>
+    <div class="mealItem">
+      <span>🥗 채소</span>
+      <span class="mono">100g</span>
+      <span class="protein">1g</span>
+    </div>
+    <div class="mealItem">
+      <span>🫘 두유</span>
+      <span class="mono">190ml</span>
+      <span class="protein">5g</span>
+    </div>
+  </div>
+
+
+  <!-- 간식 -->
+  <div class="section">
+    <h2>🍪 간식 <span class="small">(16:30)</span></h2>
+    <div class="small" style="margin-bottom:6px">
+    단백질 <b>20g</b> + 과일 <b>80g</b> = 20g<br>
+    </div>  
+
+    <div class="optionCard">
+      <div class="optionTitle">아래 중 선택</div>
+    
+      <div class="mealItem">
+        <span>🥤 단백질 음료</span>
+        <span class="mono">1팩</span>
+        <span class="protein">20g</span>
+      </div>
+    
+      <div class="mealItem">
+        <span>🍫 단백질 바</span>
+        <span class="mono">1개</span>
+        <span class="protein">20g</span>
+      </div>
+    
+      <div class="mealItem">
+        <span>🥨 단백질 과자</span>
+        <span class="mono">90개</span>
+        <span class="protein">10g</span>
+      </div>
+    
+      <div class="mealItem">
+        <span>🥛 단백질 우유</span>
+        <span class="mono">200ml</span>
+        <span class="protein">9g</span>
+      </div>
+    
+      <div class="mealItem">
+        <span>🍶 그릭요거트</span>
+        <span class="mono">100g</span>
+        <span class="protein">11g</span>
+      </div>
+    
+      <div class="mealItem">
+        <span>🥜 그레놀라</span>
+        <span class="mono">40g</span>
+        <span class="protein">3g</span>
+      </div>
+    
+      <div class="small" style="margin-top:4px">
+        ※ 토요일 간식에 과일 대신:<br>
+        🍪 과자 20g or 🍫 초콜릿 7g → 저녁밥 15g<br>
+      </div>
+    </div>
+  </div>
+
+  <!-- 저녁 -->
+  <div class="section">
+    <h2>🍽️ 저녁 <span class="small">(20:00)</span></h2>
+    <div class="small">
+      기본 구성 + <b>메인 단백질 1가지 선택</b> = 23g<br>
+      (🎯 집중 1주차 협미밥 60g → 50g)     
+    </div>
+  
+    <div class="mealItem">
+      <span>🍚 현미밥</span>
+      <span class="mono">100g</span>
+      <span class="protein">2g</span>
+    </div>
+    <div class="mealItem">
+      <span>🥗 채소</span>
+      <span class="mono">100g</span>
+      <span class="protein">1g</span>
+    </div>
+  </div>
+
+  <!-- 치환 기준 -->
+  <details class="section">
+    <summary>🔁 식단 치환 기준</summary>
+    <div class="small" style="margin-top:8px;line-height:1.6">
+      <b>곡물</b><br>
+      • 현미밥 160g = 통밀모닝빵 80g (약 2개)<br>
+      • 현미밥 100g = 통밀모닝빵 50g (1~1.5개)<br><br>
+
+      <b>채소 100g 기준</b><br>
+      • 상추 6장 + 방울토마토 6개<br>
+      • 상추 12장<br>
+      • 방울토마토 12개<br>
+      • 볶음밥용 채소 (조리 전 100g)
+    </div>
+  </details>
+    
+</div>
   
 <!-- BACKUP -->
 <div id="viewBackup" class="hide backupView">
@@ -2468,7 +2638,7 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
 
   <section class="backupCard backupBundle">
     <div class="backupCardTitle">MANAGE</div>
-    <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openDailyCareSettings()"><div><div class="backupSubTitle">데일리케어 관리</div><div class="backupHint">물·수면처럼 매일 가볍게 챙기는 항목</div></div><span class="manageChev" aria-hidden="true">›</span></div>
+    <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openDailyCareSettings()"><div><div class="backupSubTitle">데일리케어 관리</div><div class="backupHint">단백질·물·수면 등 매일 챙기는 항목</div></div><span class="manageChev" aria-hidden="true">›</span></div>
     <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openInactiveRoutineManager()"><div><div class="backupSubTitle">루틴 관리</div><div class="backupHint">루틴·FREE TIME 항목의 편집, 순서, 사용 중지</div></div><span class="manageChev" aria-hidden="true">›</span></div>
     <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openLifeBlockSettings()"><div><div class="backupSubTitle">시간대 관리</div><div class="backupHint">BREAKFAST 같은 시간대 이름 바꾸기, 새벽·밤 추가</div></div><span class="manageChev" aria-hidden="true">›</span></div>
     <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openProjectManage()"><div><div class="backupSubTitle">프로젝트 관리</div><div class="backupHint">할 일과 마감일이 있는 일</div></div><span class="manageChev" aria-hidden="true">›</span></div>
@@ -2477,17 +2647,14 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
 
   <section class="backupCard backupBundle">
     <div class="backupCardTitle">FEATURES</div>
-    <div class="backupHint lgFeatHint">필요한 기능만 켜서 나만의 화면을 만들어요. 꺼도 기록은 지워지지 않아요.</div>
-    <div id="lgFeatList"></div>
-    <div class="backupPart settingLinkRow tapRow" id="lgPeriodRow" role="button" tabindex="0" onclick="openPeriodSettings()"><div><div class="backupSubTitle">생리주기 설정</div><div class="backupHint" id="periodSettingsSummary">캘린더에 시작·종료 기록과 예측 표시</div></div><span class="manageChev" aria-hidden="true">›</span></div>
+    <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openSecVis()"><div><div class="backupSubTitle">화면 표시</div><div class="backupHint" id="secVisSummary">TODAY·캘린더에 보일 상자 고르기</div></div><span class="manageChev" aria-hidden="true">›</span></div>
+    <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openPeriodSettings()"><div><div class="backupSubTitle">생리주기 기록</div><div class="backupHint" id="periodSettingsSummary">캘린더에 시작·종료 기록과 예측 표시</div></div><button type="button" id="periodToggleBtn" class="settingsBtn uiActionSm statePill" onclick="event.stopPropagation();togglePeriodFeature()">사용 중</button></div>
   </section>
 
   <section class="backupCard backupBundle">
     <div class="backupCardTitle">DATA</div>
     <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openBackupData()"><div><div class="backupSubTitle">백업 · 복원 · 초기화</div><div class="backupHint">기록을 파일로 저장하고 불러와요</div></div><span class="manageChev" aria-hidden="true">›</span></div>
   </section>
-
-  <div class="lgFooter">Oday Lab · Logonly v1.0</div>
 
 </div>
 
@@ -4271,7 +4438,7 @@ async function restoreBookCoverPayload(payload){
 async function buildFullBackupPayload(){
   const bookCovers=await exportBookCoverPayload();
   return {
-    format:'logonly-backup-v1', /* 로그온리 백업 (구 routine-check-backup-v2와 구조 동일) */
+    format:'routine-check-backup-v2',
     createdAt:new Date().toISOString(),
     localStorage:snapshotLocalStorage(),
     bookCovers
@@ -4280,7 +4447,7 @@ async function buildFullBackupPayload(){
 
 function validateBackupPayload(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return 'invalid';
-  if(value.format==='logonly-backup-v1'||value.format==='routine-check-backup-v2'){ /* 이전 Routine Check 백업도 그대로 불러오기 */
+  if(value.format==='routine-check-backup-v2'){
     if(!value.localStorage||typeof value.localStorage!=='object'||Array.isArray(value.localStorage))return 'invalid';
     if(value.bookCovers!==undefined&&(typeof value.bookCovers!=='object'||Array.isArray(value.bookCovers)||value.bookCovers===null))return 'invalid';
     const storageOk=Object.values(value.localStorage).every(v=>typeof v==='string'||v===null);
@@ -4301,7 +4468,7 @@ async function downloadBackup(){
     const payload=await buildFullBackupPayload();
     const data=JSON.stringify(payload);
     const date=getLocalDateKey(new Date());
-    const filename=`logonly_backup_${date}.json`;
+    const filename=`routine_backup_${date}.json`;
     const blob=new Blob([data],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
@@ -4496,14 +4663,19 @@ const ROUTINE_SEMANTICS_V3_KEY = "routineSemanticsV3";
 const ROUTINE_SEMANTICS_V4_KEY = "routineSemanticsV4";
 const ROUTINE_CLEANUP_V5_KEY = "routineCleanupV5";
 
-/* 로그온리 기본 루틴: 누구나 부담 없는 최소한 (루틴 3 + FREE TIME 3) */
 const LIFE_DEFAULT_ROUTINES = [
-  {id:"breakfast_water",name:"아침 물 한 잔",icon:"⟪drop⟫",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"breakfast_brush",name:"양치",icon:"⟪tooth⟫",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"breakfast_water",name:"물 한 잔",icon:"💧",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
+  {id:"breakfast_meal",name:"아침식사",icon:"🍳",type:"free",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
   {id:"morning_stretch",name:"스트레칭",icon:"⟪pulse⟫",type:"time",block:"morning",recurrence:"daily",days:[],target:10,unit:"분",maxDuration:10,enabled:true,order:10},
-  {id:"lunch_walk",name:"산책",icon:"⟪shoe⟫",type:"time",block:"lunch",recurrence:"daily",days:[],target:20,unit:"분",maxDuration:20,enabled:true,order:10},
-  {id:"free_read",name:"독서",icon:"⟪book⟫",type:"time",block:"free",recurrence:"free",days:[],target:null,unit:"분",maxDuration:null,enabled:true,order:10},
-  {id:"free_exercise",name:"운동",icon:"⟪dumbbell⟫",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
-  {id:"free_rest",name:"그냥 쉬기",icon:"⟪cloud⟫",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30}
+  {id:"lunch_meal",name:"점심식사",icon:"🍚",type:"check",block:"lunch",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"lunch_walk",name:"식후 걷기",icon:"🚶",type:"time",block:"lunch",recurrence:"daily",days:[],target:20,unit:"분",maxDuration:20,enabled:true,order:20},
+  {id:"afternoon_work",name:"업무 / 공부",icon:"💻",type:"check",block:"afternoon",recurrence:"weekday",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"evening_dinner",name:"저녁식사",icon:"🥗",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"evening_exercise",name:"운동",icon:"⟪dumbbell⟫",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
+  {id:"free_read",name:"독서",icon:"📚",type:"time",block:"free",recurrence:"free",days:[],target:null,unit:"분",maxDuration:null,enabled:true,order:10},
+  {id:"free_exercise",name:"운동",icon:"🏋️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
+  {id:"free_rest",name:"그냥 쉬기",icon:"☁️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:40}
 ];
 
 
@@ -5642,7 +5814,7 @@ function rrRenderMonth(){
   const freeBuckets=st.D.map(x=>x?[x]:[]);
   out.innerHTML=`
   <div class="rr-card"><h2>일별 추이 <span class="rr-card-note">${escapeLife(c.title)} 평균 ${c.fmt(c.avg)}${c.goal?` · 목표 ${c.fmt(c.goal)}`:''}</span></h2>${rrMetricChips()}${rrBars(c.vals,c.goal,c.max,tips,labs)}<div class="rr-card-note">막대를 눌러 수치를 확인하세요.</div></div>
-  <div class="rr-card"><h2>시간대별 기록 흐름</h2>${RR_BLOCKS.map(b=>{const a=st.R.flatMap(x=>x.routines.filter(r=>r[4]===b&&r[5]!==false)),p=a.length?Math.round(a.filter(r=>r[2]).length/a.length*100):0;return `<div class="rr-progress"><span>${b}</span><span class="rr-sub">${p}%</span></div><div class="rr-bar"><i style="width:${p}%"></i></div>`}).join('')}</div>
+  <div class="rr-card"><h2>시간대별 달성률</h2>${RR_BLOCKS.map(b=>{const a=st.R.flatMap(x=>x.routines.filter(r=>r[4]===b&&r[5]!==false)),p=a.length?Math.round(a.filter(r=>r[2]).length/a.length*100):0;return `<div class="rr-progress"><span>${b}</span><span class="rr-sub">${p}%</span></div><div class="rr-bar"><i style="width:${p}%"></i></div>`}).join('')}</div>
   <div class="rr-card rr-free-card"><h2>취미생활</h2>${rrLeisureSummary(freeBuckets,labs,false)}</div>`;
 }
 
@@ -11434,20 +11606,6 @@ function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b
 <style>
 #obRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
 #obRoot.hide{display:none}
-/* 로그온리: FEATURES 스위치 */
-.lgFeatHint{margin:2px 2px 6px}
-.lgFeatRow{display:flex;align-items:center;gap:12px;padding:12px 2px;border-top:1px solid var(--rc-line,#e3e8e5)}
-.lgFeatRow:first-child{border-top:0}
-.lgFeatTxt{flex:1;min-width:0}
-.lgFeatName{font-size:var(--fs-2,.9rem);color:var(--rc-tx,#1d2420)}
-.lgFeatDesc{font-size:var(--fs-1,.75rem);color:var(--rc-mu,#8a938e);margin-top:2px;line-height:1.4}
-.lgSw{position:relative;width:46px;height:28px;border-radius:99px;border:0;background:var(--rc-line2,#cfd8d3);flex:0 0 auto;padding:0;transition:background .2s}
-.lgSw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .2s}
-.lgSw.on{background:var(--rc-solid,#3f9c7c)}
-.lgSw.on::after{transform:translateX(18px)}
-body.featOff-books #navBooks{display:none!important}
-body.featOff-period #lgPeriodRow{display:none!important}
-.lgFooter{text-align:center;font-size:12px;color:var(--rc-mu,#8a938e);letter-spacing:.3px;margin:22px 0 8px}
 #viewToday .dailyCareItemCard .dailyCareMeta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;font-size:min(.65625rem,12.5px)!important;letter-spacing:-.2px}
 .photoMini,#todayPhotoBtn{display:none!important} /* 판매용 v1: 사진 기능 제외 */
 #obRoot *{box-sizing:border-box}
@@ -11502,46 +11660,7 @@ body.featOff-period #lgPeriodRow{display:none!important}
 /* ===== 판매용: 첫 실행 안내 (온보딩) =====
    - 처음 설치한 사람에게만 한 번 보여줌 (onboardingDone_v1)
    - 고른 내용은 기존 저장 구조 그대로 사용: 데일리케어 정의/삭제 목록, 루틴 목록, 상자 보이기, 생리주기·숨참기 켜기 */
-const OB_KEY='logonly_onboarded_v1',OB_KEY_OLD='onboardingDone_v1';
-/* ===== 로그온리: SETTING › FEATURES 기능 켜고 끄기 ===== */
-const FEAT_BOOKS_KEY='featBooks_v1';
-function featBooksOn(){try{return localStorage.getItem(FEAT_BOOKS_KEY)!=='0';}catch(e){return true;}}
-function featProteinOn(){try{return !loadDailyCareDeletedIds().has('protein');}catch(e){return false;}}
-function featStaticOn(){try{const d=loadOneOffDefinitions().find(x=>x.type==='static');return !!d&&!d.hidden;}catch(e){return false;}}
-const LG_FEATURES=[
-  {id:'dailycare',name:'DAILY CARE',desc:'물·수면처럼 매일 챙기는 항목',get:()=>secVisOn('dailycare'),set:v=>lgSecVis('dailycare',v)},
-  {id:'protein',name:'단백질 기록',desc:'식단·운동 중이라면 추천해요',get:featProteinOn,set:v=>{const d=loadDailyCareDeletedIds();if(v)d.delete('protein');else d.add('protein');saveDailyCareDeletedIds(d);}},
-  {id:'routine',name:'시간대별 루틴',desc:'아침·점심·저녁에 할 일을 가볍게 체크',get:()=>secVisOn('routine'),set:v=>lgSecVis('routine',v)},
-  {id:'freetime',name:'자유 취미 타이머',desc:'FREE TIME · 여유 있을 때 하는 활동',get:()=>secVisOn('freetime'),set:v=>lgSecVis('freetime',v)},
-  {id:'books',name:'독서 기록',desc:'BOOKS 탭 보이기',get:featBooksOn,set:v=>{try{localStorage.setItem(FEAT_BOOKS_KEY,v?'1':'0');}catch(e){}}},
-  {id:'project',name:'프로젝트 관리',desc:'할 일과 마감일을 단계별로',get:()=>secVisOn('project'),set:v=>lgSecVis('project',v)},
-  {id:'quicklog',name:'빠른 기록',desc:'QUICK LOG · 간식·컨디션·체중을 필요할 때만',get:()=>secVisOn('quicklog'),set:v=>lgSecVis('quicklog',v)},
-  {id:'period',name:'생리주기 기록',desc:'캘린더에 기간 기록과 다음 시작일 예측',get:()=>periodEnabled(),set:v=>{try{localStorage.setItem('periodEnabled_v1',v?'1':'0');}catch(e){}}},
-  {id:'static',name:'숨참기 훈련',desc:'CO2·O2 테이블과 숨참기 기록 (QUICK LOG 버튼)',get:featStaticOn,set:v=>{
-    const defs=loadOneOffDefinitions();let d=defs.find(x=>x.type==='static');
-    if(v){if(!d){d={id:'oneoff_static',icon:'⟪wind⟫',name:'숨참기',type:'static'};defs.push(d);}d.hidden=false;lgSecVis('quicklog',true);}
-    else if(d)d.hidden=true;
-    saveOneOffDefinitions(defs);}}
-];
-function lgSecVis(id,v){const o=secVisLoad();o[id]=!!v;try{localStorage.setItem(SECVIS_KEY,JSON.stringify(o));}catch(e){}}
-function lgFeatApply(){
-  document.body.classList.toggle('featOff-books',!featBooksOn());
-  document.body.classList.toggle('featOff-period',!periodEnabled());
-  if(!featBooksOn()&&!document.getElementById('viewBooks')?.classList.contains('hide')){try{lifeNavigate('today');}catch(e){}}
-}
-function renderLgFeatures(){
-  const root=document.getElementById('lgFeatList');if(!root)return;
-  root.innerHTML=LG_FEATURES.map(f=>{const on=!!f.get();return `<div class="lgFeatRow"><div class="lgFeatTxt"><div class="lgFeatName">${f.name}</div><div class="lgFeatDesc">${f.desc}</div></div><button type="button" class="lgSw${on?' on':''}" role="switch" aria-checked="${on}" aria-label="${f.name}" onclick="lgFeatToggle('${f.id}')"></button></div>`;}).join('');
-}
-function lgFeatToggle(id){
-  const f=LG_FEATURES.find(x=>x.id===id);if(!f)return;
-  f.set(!f.get());
-  try{secVisApply();}catch(e){}
-  lgFeatApply();renderLgFeatures();
-  ['update','renderCustomDailyCare','renderLifeGuide','renderProjects','renderOneOffQuick','renderLifeCalendar'].forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]();}catch(e){}});
-}
-try{lgFeatApply();renderLgFeatures();}catch(e){}
-(function(){const n=lifeNavigate;lifeNavigate=function(w){const r=n.apply(this,arguments);if(w==='backup'){try{renderLgFeatures();}catch(e){}}return r;};})();
+const OB_KEY='onboardingDone_v1';
 const OB_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 /* 기본은 누구나 공감하는 항목(물·수면·컨디션), 단백질은 켜서 쓰는 선택 항목 */
 const OB_CARE=[
@@ -11550,18 +11669,15 @@ const OB_CARE=[
   {id:'condition',ic:'smile',name:'오늘의 컨디션',desc:'기분을 다섯 단계로 가볍게 남겨요',on:true,noTarget:true},
   {id:'protein',ic:'dumbbell',name:'식단 챙기기 (단백질)',desc:'다이어트·운동 중 단백질 섭취량',unit:'g',step:10,min:10,max:300,def:80,on:false}
 ];
-const OB_ROUTINE_IC_OLD={breakfast_brush:'tooth',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'pulse',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'dumbbell'};
+const OB_ROUTINE_IC={breakfast_brush:'tooth',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'pulse',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'dumbbell'};
 const OB_BLOCK_NAME={breakfast:'아침',morning:'오전',lunch:'점심',afternoon:'오후',evening:'저녁'};
 const OB_FEATURES=[
-  {id:'routine',ic:'clock',name:'시간대별 루틴',desc:'아침·점심·저녁에 할 일을 가볍게 체크',on:true},
-  {id:'freetime',ic:'timer',name:'자유 취미 타이머',desc:'독서·운동처럼 여유 있을 때 하는 활동',on:true},
-  {id:'books',ic:'book',name:'독서 기록',desc:'읽고 싶은 책, 읽는 책, 다 읽은 책 모아보기',on:true},
-  {id:'project',ic:'calendar',name:'프로젝트 관리',desc:'할 일과 마감일을 단계별로',on:false},
-  {id:'period',ic:'heart',name:'생리주기 기록',desc:'기간을 기록하면 다음 시작일을 예측',on:false},
-  {id:'quicklog',ic:'pencil',name:'빠른 기록',desc:'간식·체중처럼 필요할 때만 한 줄로',on:false},
-  {id:'static',ic:'wind',name:'숨참기 훈련',desc:'CO2·O2 테이블과 숨참기 기록',on:false}
+  {id:'freetime',ic:'timer',name:'취미 타이머',desc:'독서·운동처럼 여유 있을 때 하는 활동 기록'},
+  {id:'quicklog',ic:'pencil',name:'빠른 기록',desc:'간식·체중·컨디션을 필요할 때만 한 줄로'},
+  {id:'project',ic:'calendar',name:'프로젝트',desc:'할 일과 마감일을 단계별로 관리'},
+  {id:'period',ic:'heart',name:'생리주기',desc:'기간을 기록하면 다음 시작일을 예측'},
+  {id:'static',ic:'wind',name:'숨참기 훈련',desc:'CO2·O2 테이블과 숨참기 기록'}
 ];
-function obRoutineIc(r){return OB_ROUTINE_IC_OLD[r.id]||((String(r.icon||'').match(/⟪([a-z0-9_]+)⟫/)||[])[1])||'star';}
 let obStep=0,obSel=null;
 function obIcon(n){try{return appIconSvg(n)||'';}catch(e){return '';}}
 function obInitSel(){
@@ -11569,7 +11685,7 @@ function obInitSel(){
   obSel={
     care:Object.fromEntries(OB_CARE.map(c=>[c.id,{on:c.on!==false,target:c.def}])),
     routines:Object.fromEntries(routines.map(r=>[r.id,true])),
-    features:Object.fromEntries(OB_FEATURES.map(f=>[f.id,!!f.on]))
+    features:Object.fromEntries(OB_FEATURES.map(f=>[f.id,false]))
   };
 }
 function obSteps(){return ['welcome','care','routine','feature','done'];}
@@ -11582,8 +11698,8 @@ function obRender(){
   let h='';
   if(key==='welcome'){
     h=`<div class="obHero"><div class="obHeroIco">${obIcon('sparkle')}</div>
-      <h1 class="obTitle">압박 없이\n하루의 최소한만 챙겨요</h1>
-      <p class="obSub">필요한 기능만 켜서\n나만의 화면을 만들어 보세요.</p></div>`;
+      <h1 class="obTitle">하루의 최소한만,\n가볍게 남겨요</h1>
+      <p class="obSub">못 한 날이 있어도 괜찮아요.\n꼭 필요한 것만 골라서 시작해 볼게요.</p></div>`;
     next.textContent='시작하기';note.textContent='1분이면 끝나요';
   }else if(key==='care'){
     h=`<h1 class="obTitle">매일 가볍게 챙길 것을\n골라주세요</h1><p class="obSub">필요한 것만 켜세요. 목표는 대략 정해도 돼요.</p><div class="obList">`+
@@ -11598,15 +11714,15 @@ function obRender(){
     h=`<h1 class="obTitle">하루 루틴을\n골라볼까요?</h1><p class="obSub">예시예요. 마음에 드는 것만 남기고,\n내 루틴은 나중에 직접 추가할 수 있어요.</p><div class="obList">`+
       routines.map(r=>{let g='';if(r.block!==last){last=r.block;g=`<div class="obGroup">${OB_BLOCK_NAME[r.block]||''}</div>`;}
         const on=obSel.routines[r.id];const d=r.type==='time'&&r.target?`목표 ${r.target}${r.unit||'분'}`:(r.recurrence==='weekday'?'평일만':'매일');
-        return g+`<button type="button" class="obItem${on?' on':''}" onclick="obToggle('routines','${r.id}')"><span class="obIco">${obIcon(obRoutineIc(r))}</span>
+        return g+`<button type="button" class="obItem${on?' on':''}" onclick="obToggle('routines','${r.id}')"><span class="obIco">${obIcon(OB_ROUTINE_IC[r.id]||'star')}</span>
         <span class="obTxt"><div class="obName">${escapeLife(r.name)}</div><div class="obDesc">${d}</div></span><span class="obChk">${OB_CHECK}</span></button>`;}).join('')+`</div>`;
     const n=Object.values(obSel.routines).filter(Boolean).length;
     next.textContent=n?`다음 · ${n}개 선택`:"루틴 없이 다음";
   }else if(key==='feature'){
-    h=`<h1 class="obTitle">쓰고 싶은 기능을\n켜 주세요</h1><p class="obSub">나중에 SETTING › FEATURES에서\n언제든 켜고 끌 수 있어요.</p><div class="obList">`+
+    h=`<h1 class="obTitle">더 쓰고 싶은 기능이\n있나요?</h1><p class="obSub">필요한 것만 켜세요. 안 골라도 괜찮아요.\nSETTING에서 언제든 켜고 끌 수 있어요.</p><div class="obList">`+
       OB_FEATURES.map(f=>`<button type="button" class="obItem${obSel.features[f.id]?' on':''}" onclick="obToggle('features','${f.id}')"><span class="obIco">${obIcon(f.ic)}</span>
         <span class="obTxt"><div class="obName">${f.name}</div><div class="obDesc">${f.desc}</div></span><span class="obChk">${OB_CHECK}</span></button>`).join('')+`</div>`;
-    next.textContent='다음';
+    next.textContent=Object.values(obSel.features).some(Boolean)?'다음':'지금은 괜찮아요';
   }else{
     h=`<div class="obHero"><div class="obHeroIco">${obIcon('smile')}</div>
       <h1 class="obTitle">준비 끝!</h1>
@@ -11641,9 +11757,7 @@ function obApply(){
   try{localStorage.setItem(ROUTINE_LAYOUT_V2_KEY,'done');localStorage.setItem(LEGACY_MIGRATION_KEY,'done');}catch(e){}
   saveLifeRoutines(list);
   /* 3) 추가 기능 켜기 */
-  const vis=secVisLoad();['routine','freetime','quicklog','project'].forEach(k=>{vis[k]=!!obSel.features[k];});
-  if(obSel.features.static)vis.quicklog=true; /* 숨참기는 QUICK LOG 버튼으로 열림 */
-  try{localStorage.setItem(FEAT_BOOKS_KEY,obSel.features.books?'1':'0');}catch(e){}
+  const vis=secVisLoad();['freetime','quicklog','project'].forEach(k=>{vis[k]=!!obSel.features[k];});
   /* 오늘의 컨디션: QUICK LOG의 '상태' 기록으로 추가하고 QUICK LOG 상자를 켬 */
   if(obSel.care.condition&&obSel.care.condition.on){
     const ones=loadOneOffDefinitions();
@@ -11655,8 +11769,7 @@ function obApply(){
   try{localStorage.setItem(ST_ON_KEY,obSel.features.static?'1':'0');}catch(e){}
 }
 function obFinish(skipped){
-  /* 건너뛰어도 기본 선택값(물·수면·컨디션, 루틴·취미·독서)으로 시작 */
-  try{if(skipped)obInitSel();obApply();localStorage.setItem(OB_KEY,'done');}catch(e){console.error(e);}
+  try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');}catch(e){console.error(e);}
   location.reload();
 }
 /* 판매용: 시간형 데일리케어 — 기록 전 '목표 7시간', 기록 후 '기록 7시간 30분' (세부 시각은 카드를 누르면) */
@@ -11713,7 +11826,7 @@ function obStart(){
   document.getElementById('obRoot').classList.remove('hide');
 }
 (function(){
-  let done=null;try{done=localStorage.getItem(OB_KEY)||localStorage.getItem(OB_KEY_OLD);}catch(e){}
+  let done=null;try{done=localStorage.getItem(OB_KEY);}catch(e){}
   if(done)return;
   /* 이미 기록이 있는 사람(백업 복원 등)에게는 보여주지 않음 */
   let hasData=false;try{for(let i=0;i<localStorage.length;i++){if(/^\d{4}-\d{2}-\d{2}$/.test(localStorage.key(i))){hasData=true;break;}}}catch(e){}
