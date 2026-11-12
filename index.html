@@ -6419,7 +6419,7 @@ function lifeDone(rid){
 }
 function countMetaText(r,log){
   const u=r.unit||'개',v=Number(log?.value)||0,t=Number(r.target)||0;
-  if(!log)return t?`목표 ${t}${u}`:'';
+  if(!log)return t?`0 / ${t}${u}`:''; /* 판매용: 현재 / 목표 단위 로 통일 */
   return t?`${v} / ${t}${u}`:`${v}${u}`;
 }
 function freeTypeIcon(r){
@@ -6437,8 +6437,14 @@ function freeDisplayMeta(r){
   if(running)return running;
   const lg=getLifeDayLogs().find(x=>x.routineId===r.id);
   if(r.type==='count')return countMetaText(r,lg);
-  if(r.type==='time'&&lg&&Number(lg.duration)>0)return formatDurationMin(lg.duration);
+  if(r.type==='time')return timeMetaText(r,lg);
   return '';
+}
+/* 판매용: 시간형도 현재 / 목표 단위 (목표 없으면 기록한 시간만) */
+function timeMetaText(r,log){
+  const t=Number(r.target)||0,u=r.unit||'분',m=Number(log?.duration)||0;
+  if(t)return `${Math.round(m)} / ${t}${u}`;
+  return m>0?formatDurationMin(m):'';
 }
 function lifeMeta(r){
   const run=timerElapsedForRoutine(r.id);if(run)return run;
@@ -6447,8 +6453,8 @@ function lifeMeta(r){
     const note=(log?.memo||r.defaultNote||'').trim();if(note)a.push(note);
     if(isMealFreeRoutine(r)&&log)mealLogIds(log).forEach(id=>{const d=dailyCareDef(id)||{};a.push(`${d.name||id} ${formatDailyCareNumber(mealItemValue(log,id))}${d.unit||''}`);});
   }else if(r.type==='count'){const t=countMetaText(r,log);if(t)a.push(t);
-  }else if(log&&Number(log.duration)>0)a.push(`기록 ${formatDurationMin(log.duration)}`);
-  else if(r.type==='time'&&r.target)a.push(`목표 ${r.target}${r.unit||'분'}`);
+  }else if(r.type==='time'){const t=timeMetaText(r,log);if(t)a.push(t);
+  }else if(log&&Number(log.duration)>0)a.push(formatDurationMin(log.duration));
   else if(r.type==='number'&&r.target)a.push(`${r.target}${r.unit||''}`);
   return a.join(' · ');
 }
@@ -11756,6 +11762,26 @@ function obFinish(skipped){
   try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');}catch(e){console.error(e);}
   location.reload();
 }
+/* 판매용: 수면 카드도 '현재 / 목표 단위' (예: 7.5 / 7시간), 세부 시각은 카드를 누르면 */
+(function(){
+  if(typeof renderSleep!=='function')return;
+  const prev=renderSleep;
+  renderSleep=function(){
+    const r=prev.apply(this,arguments);
+    try{
+      const el=document.getElementById('sleepText');if(!el)return r;
+      if(loadSleepSession()?.startAt)return r;
+      const def=dailyCareDef('sleep')||{},t=Number(def.target)||0;
+      const x=calendarDaySleepRecord(activeDateKey);
+      if(Number.isFinite(x.dur)){
+        const h=Math.round(x.dur/6)/10,hs=String(h).replace(/\.0$/,'');
+        el.textContent=t?`${hs} / ${t}시간`:formatDurationMin(x.dur);
+      }else if(t)el.textContent=`0 / ${t}시간`;
+    }catch(e){}
+    return r;
+  };
+  try{renderSleep();}catch(e){}
+})();
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
 function obStart(){
   obInitSel();obStep=0;obRender();
