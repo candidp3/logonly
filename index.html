@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🍎루틴 체크 · 6.34</title>
+<title>로그온리</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#f5f7f5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121615" media="(prefers-color-scheme: dark)">
@@ -11662,10 +11662,12 @@ function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b
    - 고른 내용은 기존 저장 구조 그대로 사용: 데일리케어 정의/삭제 목록, 루틴 목록, 상자 보이기, 생리주기·숨참기 켜기 */
 const OB_KEY='onboardingDone_v1';
 const OB_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+/* 기본은 누구나 공감하는 항목(물·수면·컨디션), 단백질은 켜서 쓰는 선택 항목 */
 const OB_CARE=[
-  {id:'protein',ic:'dumbbell',name:'단백질',desc:'하루 단백질 섭취량',unit:'g',step:10,min:10,max:300,def:80},
-  {id:'water',ic:'drop',name:'물',desc:'하루 마신 물의 양',unit:'ml',step:250,min:250,max:5000,def:2000},
-  {id:'sleep',ic:'moon',name:'수면',desc:'잠든 시간과 일어난 시간',unit:'시간',step:.5,min:3,max:12,def:7}
+  {id:'water',ic:'drop',name:'물',desc:'하루 마신 물의 양',unit:'ml',step:250,min:250,max:5000,def:2000,on:true},
+  {id:'sleep',ic:'moon',name:'수면',desc:'잠든 시간과 일어난 시간',unit:'시간',step:.5,min:3,max:12,def:7,on:true},
+  {id:'condition',ic:'smile',name:'오늘의 컨디션',desc:'기분을 다섯 단계로 가볍게 남겨요',on:true,noTarget:true},
+  {id:'protein',ic:'dumbbell',name:'식단 챙기기 (단백질)',desc:'다이어트·운동 중 단백질 섭취량',unit:'g',step:10,min:10,max:300,def:80,on:false}
 ];
 const OB_ROUTINE_IC={breakfast_brush:'tooth',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'pulse',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'dumbbell'};
 const OB_BLOCK_NAME={breakfast:'아침',morning:'오전',lunch:'점심',afternoon:'오후',evening:'저녁'};
@@ -11681,7 +11683,7 @@ function obIcon(n){try{return appIconSvg(n)||'';}catch(e){return '';}}
 function obInitSel(){
   const routines=(typeof LIFE_DEFAULT_ROUTINES!=='undefined'?LIFE_DEFAULT_ROUTINES:[]).filter(r=>r.block!=='free');
   obSel={
-    care:Object.fromEntries(OB_CARE.map(c=>[c.id,{on:true,target:c.def}])),
+    care:Object.fromEntries(OB_CARE.map(c=>[c.id,{on:c.on!==false,target:c.def}])),
     routines:Object.fromEntries(routines.map(r=>[r.id,true])),
     features:Object.fromEntries(OB_FEATURES.map(f=>[f.id,false]))
   };
@@ -11696,15 +11698,15 @@ function obRender(){
   let h='';
   if(key==='welcome'){
     h=`<div class="obHero"><div class="obHeroIco">${obIcon('sparkle')}</div>
-      <h1 class="obTitle">하루의 최소한만,\n가볍게 챙겨요</h1>
+      <h1 class="obTitle">하루의 최소한만,\n가볍게 남겨요</h1>
       <p class="obSub">못 한 날이 있어도 괜찮아요.\n꼭 필요한 것만 골라서 시작해 볼게요.</p></div>`;
     next.textContent='시작하기';note.textContent='1분이면 끝나요';
   }else if(key==='care'){
-    h=`<h1 class="obTitle">매일 챙길 건강 습관을\n골라주세요</h1><p class="obSub">목표는 대략 정해도 돼요. 나중에 바꿀 수 있어요.</p><div class="obList">`+
+    h=`<h1 class="obTitle">매일 가볍게 챙길 것을\n골라주세요</h1><p class="obSub">필요한 것만 켜세요. 목표는 대략 정해도 돼요.</p><div class="obList">`+
       OB_CARE.map(c=>{const s=obSel.care[c.id];const v=c.id==='water'?Number(s.target).toLocaleString():s.target;
         return `<div class="obItem${s.on?' on':''}" role="button" tabindex="0" onclick="obToggle('care','${c.id}')"><span class="obIco">${obIcon(c.ic)}</span>
         <span class="obTxt"><div class="obName">${c.name}</div><div class="obDesc">${c.desc}</div>
-        <div class="obStep" onclick="event.stopPropagation()"><button type="button" onclick="obAdj('${c.id}',-1)" aria-label="줄이기">−</button><b>목표 ${v}${c.unit}</b><button type="button" onclick="obAdj('${c.id}',1)" aria-label="늘리기">＋</button></div></span>
+        ${c.noTarget?'':`<div class="obStep" onclick="event.stopPropagation()"><button type="button" onclick="obAdj('${c.id}',-1)" aria-label="줄이기">−</button><b>목표 ${v}${c.unit}</b><button type="button" onclick="obAdj('${c.id}',1)" aria-label="늘리기">＋</button></div>`}</span>
         <span class="obChk">${OB_CHECK}</span></div>`;}).join('')+`</div>`;
     next.textContent='다음';
   }else if(key==='routine'){
@@ -11746,7 +11748,7 @@ function obGo(d){
 function obApply(){
   /* 1) 데일리케어: 안 고른 기본 항목은 삭제 목록으로, 목표값은 정의에 저장 */
   const deleted=loadDailyCareDeletedIds();
-  OB_CARE.forEach(c=>{if(obSel.care[c.id].on)deleted.delete(c.id);else deleted.add(c.id);});
+  OB_CARE.filter(c=>!c.noTarget).forEach(c=>{if(obSel.care[c.id].on)deleted.delete(c.id);else deleted.add(c.id);});
   saveDailyCareDeletedIds(deleted);
   const defs=loadDailyCareDefinitions().map(d=>obSel.care[d.id]&&obSel.care[d.id].on?{...d,target:obSel.care[d.id].target}:d);
   saveDailyCareDefinitions(defs);
@@ -11756,6 +11758,12 @@ function obApply(){
   saveLifeRoutines(list);
   /* 3) 추가 기능 켜기 */
   const vis=secVisLoad();['freetime','quicklog','project'].forEach(k=>{vis[k]=!!obSel.features[k];});
+  /* 오늘의 컨디션: QUICK LOG의 '상태' 기록으로 추가하고 QUICK LOG 상자를 켬 */
+  if(obSel.care.condition&&obSel.care.condition.on){
+    const ones=loadOneOffDefinitions();
+    if(!ones.some(d=>d.id==='condition'))ones.unshift({id:'condition',name:'컨디션',icon:'⟪smile⟫',type:'mood'});
+    saveOneOffDefinitions(ones);vis.quicklog=true;
+  }
   try{localStorage.setItem(SECVIS_KEY,JSON.stringify(vis));}catch(e){}
   try{localStorage.setItem('periodEnabled_v1',obSel.features.period?'1':'0');}catch(e){}
   try{localStorage.setItem(ST_ON_KEY,obSel.features.static?'1':'0');}catch(e){}
