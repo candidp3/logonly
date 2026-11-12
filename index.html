@@ -12941,7 +12941,7 @@ function cuCareList(){
   const byId=new Map(saved.map(x=>[x.id,x]));
   const out=OB_CARE.map(c=>{const d=byId.get(c.id);const exists=c.id==='condition'?!!d:true;
     const on=exists&&!deleted.has(c.id)&&(!d||d.enabled!==false);return {id:c.id,ic:c.ic,name:c.name,desc:c.desc,on,builtin:true};});
-  saved.filter(d=>!OB_CARE.some(c=>c.id===d.id)&&!deleted.has(d.id)).forEach(d=>{
+  saved.filter(d=>!d.oneOff&&!OB_CARE.some(c=>c.id===d.id)&&!deleted.has(d.id)).forEach(d=>{
     const m=String(d.icon||'').match(/⟪(.+?)⟫/);out.push({id:d.id,ic:m?m[1]:'sparkle',name:d.name,desc:{cumulative:'더해 가며 기록',numeric:'숫자 하나 기록',duration:'시작~끝 시간'}[d.type]||'직접 추가한 항목',on:d.enabled!==false});});
   /* 매일이 아닌 항목: 언제 보이는지 함께 표시 (예: 골격근량 매주 월요일 → 오늘 TODAY에는 없음) */
   const all=new Map(loadDailyCareDefinitions().map(d=>[d.id,d]));
