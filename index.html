@@ -12301,6 +12301,7 @@ function addSecAdds(){
 .cuSw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .15s}
 .obItem.on .cuSw{background:var(--rc-solid,#3f9c7c)}.obItem.on .cuSw::after{transform:translateX(18px)}
 .cuWhere{font-size:var(--fs-0,11px);font-weight:500;color:var(--rc-mu);margin-left:6px;letter-spacing:.2px}
+.cuOff{font-size:12px;color:var(--rc-gd,#2f6b55);margin-top:5px}
 .cuAdd{display:block;width:100%;margin-top:10px;padding:13px;border:1.5px dashed var(--rc-line,#d9dfdb);border-radius:16px;background:none;color:var(--rc-gs,#3f9c7c);font:inherit;font-size:var(--fs-2);cursor:pointer}
 .cuCard{display:flex;align-items:center;gap:14px;width:calc(100% - 0px);margin:0 0 14px;padding:16px 18px;border:0;border-radius:20px;background:var(--rc-gl);color:var(--rc-tx);font:inherit;text-align:left;cursor:pointer}
 .cuCardIc{width:42px;height:42px;border-radius:50%;background:var(--rc-card,#fff);color:var(--rc-gs);display:inline-flex;align-items:center;justify-content:center;flex:none}
@@ -12942,7 +12943,21 @@ function cuCareList(){
     const on=exists&&!deleted.has(c.id)&&(!d||d.enabled!==false);return {id:c.id,ic:c.ic,name:c.name,desc:c.desc,on,builtin:true};});
   saved.filter(d=>!OB_CARE.some(c=>c.id===d.id)&&!deleted.has(d.id)).forEach(d=>{
     const m=String(d.icon||'').match(/⟪(.+?)⟫/);out.push({id:d.id,ic:m?m[1]:'sparkle',name:d.name,desc:{cumulative:'더해 가며 기록',numeric:'숫자 하나 기록',duration:'시작~끝 시간'}[d.type]||'직접 추가한 항목',on:d.enabled!==false});});
+  /* 매일이 아닌 항목: 언제 보이는지 함께 표시 (예: 골격근량 매주 월요일 → 오늘 TODAY에는 없음) */
+  const all=new Map(loadDailyCareDefinitions().map(d=>[d.id,d]));
+  out.forEach(it=>{const d=all.get(it.id);if(!d)return;const t=cuSchedText(d);if(!t)return;
+    it.sched=t;it.today=scheduleApplies({...d,enabled:true},getLocalDateKey());});
   return out;
+}
+function cuSchedText(d){
+  const sc=normalizeSchedule(d,{allowFree:true}),W='일월화수목금토';
+  const days=sc.days.slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(x=>W[x]).join('·');
+  if(sc.kind==='daily')return '';
+  if(sc.kind==='free')return '필요할 때만';
+  if(sc.kind==='weekdays')return days?`매주 ${days}`:'';
+  if(sc.kind==='intervalWeeks')return `${sc.every>1?sc.every+'주마다':'매주'} ${days}`.trim();
+  if(sc.kind==='intervalMonths'){const day=sc.anchorDate?Number(sc.anchorDate.slice(8)):'';return `${sc.every>1?sc.every+'개월마다':'매달'}${day?' '+day+'일':''}`;}
+  return '';
 }
 function cuToggleCare(id){
   const it=cuCareList().find(x=>x.id===id);if(!it)return;const turnOn=!it.on;
@@ -12971,7 +12986,7 @@ function cuToggleFeat(id){
   else{const v=secVisLoad();v[id]=on;localStorage.setItem(SECVIS_KEY,JSON.stringify(v));}
   cuRender();
 }
-function cuRow(it,fn){return `<div class="obItem${it.on?' on':''}" role="switch" aria-checked="${it.on}" tabindex="0" onclick="${fn}('${it.id}')"><span class="obIco">${obIcon(it.ic)}</span><span class="obTxt"><div class="obName">${escapeLife(it.name)}${it.where?`<small class="cuWhere">${it.where}</small>`:''}</div><div class="obDesc">${escapeLife(it.desc)}</div>${it.ex?`<div class="obEx">예) ${escapeLife(it.ex)}</div>`:''}</span><span class="cuSw"></span></div>`;}
+function cuRow(it,fn){return `<div class="obItem${it.on?' on':''}" role="switch" aria-checked="${it.on}" tabindex="0" onclick="${fn}('${it.id}')"><span class="obIco">${obIcon(it.ic)}</span><span class="obTxt"><div class="obName">${escapeLife(it.name)}${it.where?`<small class="cuWhere">${it.where}</small>`:''}</div><div class="obDesc">${escapeLife(it.desc)}${it.sched?` · ${escapeLife(it.sched)}`:''}</div>${it.sched&&it.on&&!it.today?`<div class="cuOff">오늘은 쉬는 날 · TODAY에 안 보여요</div>`:''}${it.ex?`<div class="obEx">예) ${escapeLife(it.ex)}</div>`:''}</span><span class="cuSw"></span></div>`;}
 function cuRender(){
   const b=document.getElementById('cuBody');if(!b)return;const y=b.scrollTop;
   b.innerHTML=`<div class="obPane"><h1 class="obTitle">내 화면 꾸미기</h1><p class="obSub">TODAY에 보일 것만 골라요. 꺼도 기록은 지워지지 않아요.</p>
