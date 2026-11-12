@@ -11596,6 +11596,182 @@ function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b
   </div>
 </div>
 
+<!-- ===== 판매용: 첫 실행 안내 (온보딩) ===== -->
+<style>
+#obRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
+#obRoot.hide{display:none}
+#obRoot *{box-sizing:border-box}
+#obRoot .obTitle,#obRoot .obSub{text-align:left}
+.obTop{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 14px) 20px 6px;min-height:44px}
+.obBack{border:0;background:transparent;color:var(--rc-tx2,#4a544f);width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:0}
+.obBack[hidden]{visibility:hidden;display:flex}
+.obBack svg{width:22px;height:22px}
+.obBar{flex:1;height:4px;border-radius:99px;background:var(--rc-line,#e3e8e5);overflow:hidden}
+.obBar i{display:block;height:100%;background:var(--rc-solid,#3f9c7c);border-radius:99px;transition:width .3s ease}
+.obSkip{border:0;background:transparent;color:var(--rc-mu,#8a938e);font-size:14px;padding:8px 4px;min-width:36px}
+.obBody{flex:1;overflow-y:auto;padding:22px 24px 24px;-webkit-overflow-scrolling:touch}
+.obTitle{font-size:25px;line-height:1.38;font-weight:700;letter-spacing:-.4px;margin:0 0 10px;white-space:pre-line}
+.obSub{font-size:15px;line-height:1.55;color:var(--rc-mu,#8a938e);margin:0 0 26px;white-space:pre-line}
+.obList{display:grid;gap:10px}
+.obItem{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:1.5px solid var(--rc-line,#e3e8e5);background:var(--rc-card,#fff);color:inherit;border-radius:18px;padding:14px 16px;font:inherit;transition:border-color .15s,background .15s}
+.obItem.on{border-color:var(--rc-solid,#3f9c7c);background:var(--accent-surface,#f8fbf9)}
+.obIco{width:42px;height:42px;border-radius:50%;background:var(--rc-soft,#eef3f0);color:var(--rc-gd,#2f6b55);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.obIco svg{width:22px;height:22px}
+.obTxt{flex:1;min-width:0}
+.obName{font-size:16px;font-weight:600}
+.obDesc{font-size:13px;color:var(--rc-mu,#8a938e);margin-top:3px;line-height:1.4}
+.obChk{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--rc-line2,#cfd8d3);flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff}
+.obItem.on .obChk{background:var(--rc-solid,#3f9c7c);border-color:var(--rc-solid,#3f9c7c)}
+.obChk svg{width:14px;height:14px;opacity:0}
+.obItem.on .obChk svg{opacity:1}
+.obStep{display:flex;align-items:center;gap:6px;margin-top:9px}
+.obStep button{width:30px;height:30px;border-radius:10px;border:0;background:var(--rc-soft,#eef3f0);color:var(--rc-tx2,#4a544f);font-size:17px;line-height:1;padding:0}
+.obStep b{min-width:74px;text-align:center;font-size:14px;font-weight:600}
+.obItem:not(.on) .obStep{display:none}
+.obGroup{font-size:12px;letter-spacing:.6px;color:var(--rc-mu,#8a938e);margin:20px 4px 8px;font-weight:600}
+.obGroup:first-child{margin-top:0}
+.obFoot{padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 18px)}
+.obBtn{width:100%;height:56px;border:0;border-radius:16px;background:var(--rc-solid,#3f9c7c);color:#fff;font-size:17px;font-weight:600;font-family:inherit}
+.obNote{text-align:center;font-size:13px;color:var(--rc-mu,#8a938e);margin-top:12px}
+.obHero{display:flex;flex-direction:column;justify-content:center;min-height:100%;padding-bottom:40px}
+.obHeroIco{width:76px;height:76px;border-radius:26px;background:var(--rc-soft,#eef3f0);color:var(--rc-gd,#2f6b55);display:flex;align-items:center;justify-content:center;margin-bottom:28px}
+.obHeroIco svg{width:38px;height:38px}
+.obPane{animation:obIn .25s ease}
+@keyframes obIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+</style>
+<div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
+  <div class="obTop">
+    <button type="button" class="obBack" id="obBack" aria-label="이전" onclick="obGo(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="obBar"><i id="obBarFill"></i></div>
+    <button type="button" class="obSkip" id="obSkip" onclick="obFinish(true)">건너뛰기</button>
+  </div>
+  <div class="obBody" id="obBody"></div>
+  <div class="obFoot"><button type="button" class="obBtn" id="obNext" onclick="obGo(1)">다음</button><div class="obNote" id="obNote"></div></div>
+</div>
+<script>
+/* ===== 판매용: 첫 실행 안내 (온보딩) =====
+   - 처음 설치한 사람에게만 한 번 보여줌 (onboardingDone_v1)
+   - 고른 내용은 기존 저장 구조 그대로 사용: 데일리케어 정의/삭제 목록, 루틴 목록, 상자 보이기, 생리주기·숨참기 켜기 */
+const OB_KEY='onboardingDone_v1';
+const OB_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const OB_CARE=[
+  {id:'protein',ic:'dumbbell',name:'단백질',desc:'하루 단백질 섭취량',unit:'g',step:10,min:10,max:300,def:80},
+  {id:'water',ic:'drop',name:'물',desc:'하루 마신 물의 양',unit:'ml',step:250,min:250,max:5000,def:2000},
+  {id:'sleep',ic:'moon',name:'수면',desc:'잠든 시간과 일어난 시간',unit:'시간',step:.5,min:3,max:12,def:7}
+];
+const OB_ROUTINE_IC={breakfast_brush:'brush',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'yoga',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'pulse'};
+const OB_BLOCK_NAME={breakfast:'아침',morning:'오전',lunch:'점심',afternoon:'오후',evening:'저녁'};
+const OB_FEATURES=[
+  {id:'freetime',ic:'timer',name:'취미 타이머',desc:'독서·산책처럼 여유 있을 때 하는 활동 기록'},
+  {id:'quicklog',ic:'pencil',name:'빠른 기록',desc:'간식·체중·컨디션을 필요할 때만 한 줄로'},
+  {id:'project',ic:'calendar',name:'프로젝트',desc:'할 일과 마감일을 단계별로 관리'},
+  {id:'period',ic:'heart',name:'생리주기',desc:'기간을 기록하면 다음 시작일을 예측'},
+  {id:'static',ic:'wind',name:'숨참기 훈련',desc:'CO2·O2 테이블과 숨참기 기록'}
+];
+let obStep=0,obSel=null;
+function obIcon(n){try{return appIconSvg(n)||'';}catch(e){return '';}}
+function obInitSel(){
+  const routines=(typeof LIFE_DEFAULT_ROUTINES!=='undefined'?LIFE_DEFAULT_ROUTINES:[]).filter(r=>r.block!=='free');
+  obSel={
+    care:Object.fromEntries(OB_CARE.map(c=>[c.id,{on:true,target:c.def}])),
+    routines:Object.fromEntries(routines.map(r=>[r.id,true])),
+    features:Object.fromEntries(OB_FEATURES.map(f=>[f.id,false]))
+  };
+}
+function obSteps(){return ['welcome','care','routine','feature','done'];}
+function obRender(){
+  const steps=obSteps(),key=steps[obStep],body=document.getElementById('obBody');
+  document.getElementById('obBarFill').style.width=`${Math.round(obStep/(steps.length-1)*100)}%`;
+  document.getElementById('obBack').hidden=obStep===0;
+  document.getElementById('obSkip').style.visibility=(key==='done')?'hidden':'visible';
+  const next=document.getElementById('obNext'),note=document.getElementById('obNote');note.textContent='';
+  let h='';
+  if(key==='welcome'){
+    h=`<div class="obHero"><div class="obHeroIco">${obIcon('sparkle')}</div>
+      <h1 class="obTitle">하루의 최소한만,\n가볍게 챙겨요</h1>
+      <p class="obSub">못 한 날이 있어도 괜찮아요.\n꼭 필요한 것만 골라서 시작해 볼게요.</p></div>`;
+    next.textContent='시작하기';note.textContent='1분이면 끝나요';
+  }else if(key==='care'){
+    h=`<h1 class="obTitle">매일 챙길 건강 습관을\n골라주세요</h1><p class="obSub">목표는 대략 정해도 돼요. 나중에 바꿀 수 있어요.</p><div class="obList">`+
+      OB_CARE.map(c=>{const s=obSel.care[c.id];const v=c.id==='water'?Number(s.target).toLocaleString():s.target;
+        return `<div class="obItem${s.on?' on':''}" role="button" tabindex="0" onclick="obToggle('care','${c.id}')"><span class="obIco">${obIcon(c.ic)}</span>
+        <span class="obTxt"><div class="obName">${c.name}</div><div class="obDesc">${c.desc}</div>
+        <div class="obStep" onclick="event.stopPropagation()"><button type="button" onclick="obAdj('${c.id}',-1)" aria-label="줄이기">−</button><b>목표 ${v}${c.unit}</b><button type="button" onclick="obAdj('${c.id}',1)" aria-label="늘리기">＋</button></div></span>
+        <span class="obChk">${OB_CHECK}</span></div>`;}).join('')+`</div>`;
+    next.textContent='다음';
+  }else if(key==='routine'){
+    const routines=LIFE_DEFAULT_ROUTINES.filter(r=>r.block!=='free');let last='';
+    h=`<h1 class="obTitle">하루 루틴을\n골라볼까요?</h1><p class="obSub">예시예요. 마음에 드는 것만 남기고,\n내 루틴은 나중에 직접 추가할 수 있어요.</p><div class="obList">`+
+      routines.map(r=>{let g='';if(r.block!==last){last=r.block;g=`<div class="obGroup">${OB_BLOCK_NAME[r.block]||''}</div>`;}
+        const on=obSel.routines[r.id];const d=r.type==='time'&&r.target?`목표 ${r.target}${r.unit||'분'}`:(r.recurrence==='weekday'?'평일만':'매일');
+        return g+`<button type="button" class="obItem${on?' on':''}" onclick="obToggle('routines','${r.id}')"><span class="obIco">${obIcon(OB_ROUTINE_IC[r.id]||'star')}</span>
+        <span class="obTxt"><div class="obName">${escapeLife(r.name)}</div><div class="obDesc">${d}</div></span><span class="obChk">${OB_CHECK}</span></button>`;}).join('')+`</div>`;
+    const n=Object.values(obSel.routines).filter(Boolean).length;
+    next.textContent=n?`다음 · ${n}개 선택`:"루틴 없이 다음";
+  }else if(key==='feature'){
+    h=`<h1 class="obTitle">더 쓰고 싶은 기능이\n있나요?</h1><p class="obSub">필요한 것만 켜세요. 안 골라도 괜찮아요.\nSETTING에서 언제든 켜고 끌 수 있어요.</p><div class="obList">`+
+      OB_FEATURES.map(f=>`<button type="button" class="obItem${obSel.features[f.id]?' on':''}" onclick="obToggle('features','${f.id}')"><span class="obIco">${obIcon(f.ic)}</span>
+        <span class="obTxt"><div class="obName">${f.name}</div><div class="obDesc">${f.desc}</div></span><span class="obChk">${OB_CHECK}</span></button>`).join('')+`</div>`;
+    next.textContent=Object.values(obSel.features).some(Boolean)?'다음':'지금은 괜찮아요';
+  }else{
+    h=`<div class="obHero"><div class="obHeroIco">${obIcon('smile')}</div>
+      <h1 class="obTitle">준비 끝!</h1>
+      <p class="obSub">오늘 할 수 있는 만큼만 체크해 보세요.\n고른 항목은 SETTING에서 언제든 바꿀 수 있어요.</p></div>`;
+    next.textContent='오늘 시작하기';
+  }
+  body.innerHTML=`<div class="obPane">${h}</div>`;body.scrollTop=0;
+}
+function obToggle(group,id){
+  if(group==='care')obSel.care[id].on=!obSel.care[id].on;else obSel[group][id]=!obSel[group][id];
+  const y=document.getElementById('obBody').scrollTop;obRender();document.getElementById('obBody').scrollTop=y;
+}
+function obAdj(id,dir){
+  const c=OB_CARE.find(x=>x.id===id),s=obSel.care[id];
+  s.target=Math.min(c.max,Math.max(c.min,Math.round((s.target+dir*c.step)*10)/10));
+  const y=document.getElementById('obBody').scrollTop;obRender();document.getElementById('obBody').scrollTop=y;
+}
+function obGo(d){
+  const steps=obSteps();
+  if(d>0&&obStep===steps.length-1){obFinish(false);return;}
+  obStep=Math.max(0,Math.min(steps.length-1,obStep+d));obRender();
+}
+function obApply(){
+  /* 1) 데일리케어: 안 고른 기본 항목은 삭제 목록으로, 목표값은 정의에 저장 */
+  const deleted=loadDailyCareDeletedIds();
+  OB_CARE.forEach(c=>{if(obSel.care[c.id].on)deleted.delete(c.id);else deleted.add(c.id);});
+  saveDailyCareDeletedIds(deleted);
+  const defs=loadDailyCareDefinitions().map(d=>obSel.care[d.id]&&obSel.care[d.id].on?{...d,target:obSel.care[d.id].target}:d);
+  saveDailyCareDefinitions(defs);
+  /* 2) 루틴: 고른 예시 + FREE TIME 예시 */
+  const list=lifeClone(LIFE_DEFAULT_ROUTINES).filter(r=>r.block==='free'||obSel.routines[r.id]);
+  try{localStorage.setItem(ROUTINE_LAYOUT_V2_KEY,'done');localStorage.setItem(LEGACY_MIGRATION_KEY,'done');}catch(e){}
+  saveLifeRoutines(list);
+  /* 3) 추가 기능 켜기 */
+  const vis=secVisLoad();['freetime','quicklog','project'].forEach(k=>{vis[k]=!!obSel.features[k];});
+  try{localStorage.setItem(SECVIS_KEY,JSON.stringify(vis));}catch(e){}
+  try{localStorage.setItem('periodEnabled_v1',obSel.features.period?'1':'0');}catch(e){}
+  try{localStorage.setItem(ST_ON_KEY,obSel.features.static?'1':'0');}catch(e){}
+}
+function obFinish(skipped){
+  try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');}catch(e){console.error(e);}
+  location.reload();
+}
+function obStart(){
+  obInitSel();obStep=0;obRender();
+  document.getElementById('obRoot').classList.remove('hide');
+}
+(function(){
+  let done=null;try{done=localStorage.getItem(OB_KEY);}catch(e){}
+  if(done)return;
+  /* 이미 기록이 있는 사람(백업 복원 등)에게는 보여주지 않음 */
+  let hasData=false;try{for(let i=0;i<localStorage.length;i++){if(/^\d{4}-\d{2}-\d{2}$/.test(localStorage.key(i))){hasData=true;break;}}}catch(e){}
+  try{const lg=JSON.parse(localStorage.getItem(LIFE_LOGS_KEY)||'{}');if(lg&&Object.keys(lg).length)hasData=true;}catch(e){}
+  try{const bk=JSON.parse(localStorage.getItem(BOOKS_KEY)||'[]');if(Array.isArray(bk)&&bk.length)hasData=true;}catch(e){}
+  if(hasData){try{localStorage.setItem(OB_KEY,'done');}catch(e){}return;}
+  setTimeout(obStart,0);
+})();
+</script>
+
 </body>
 </html>
 
