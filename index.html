@@ -3742,7 +3742,7 @@ function renderCustomDailyCare(){
       const v=dailyCareNumericValue(activeDateKey,d.id);
       /* 판매용: 숫자형도 목표 표시 (기록 전: 목표 X / 기록 후: 값 / 목표) — 체중처럼 낮추는 목표가 있어 '달성'은 붙이지 않음 */
       const nt=Number(d.target)||0,un=escapeLife(d.unit||'');
-      const valueText=v===null?(nt?`목표 ${formatDailyCareNumber(nt)}${un}`:'기록 없음'):(nt?`${formatDailyCareNumber(v)} / ${formatDailyCareNumber(nt)}${un}`:`${formatDailyCareNumber(v)}${un}`);
+      const valueText=v===null?(nt?`목표 ${formatDailyCareNumber(nt)}${un}`:'기록 없음'):`기록 ${formatDailyCareNumber(v)}${un}`;
       return `<div class="dailyCareItem dailyCareItemCard dailyCareNumericCard" data-daily-care-id="${escapeLife(d.id)}" role="button" tabindex="0" onclick="openCustomDailyCareNumericPopup('${d.id}')" onkeydown="if(event.key==='Enter'||event.key===' ')openCustomDailyCareNumericPopup('${d.id}')"><div class="dailyCareName">${escapeLife(d.icon||'')} ${escapeLife(d.name)}</div><div class="dailyCareMeta">${valueText}</div></div>`;
     }
 
@@ -11764,7 +11764,7 @@ function obFinish(skipped){
   try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');}catch(e){console.error(e);}
   location.reload();
 }
-/* 판매용: 수면 카드도 '현재 / 목표 단위' (예: 7.5 / 7시간), 세부 시각은 카드를 누르면 */
+/* 판매용: 시간형 데일리케어 — 기록 전 '목표 7시간', 기록 후 '기록 7시간 30분' (세부 시각은 카드를 누르면) */
 (function(){
   if(typeof renderSleep!=='function')return;
   const prev=renderSleep;
@@ -11775,14 +11775,31 @@ function obFinish(skipped){
       if(loadSleepSession()?.startAt)return r;
       const def=dailyCareDef('sleep')||{},t=Number(def.target)||0;
       const x=calendarDaySleepRecord(activeDateKey);
-      if(Number.isFinite(x.dur)){
-        const h=Math.round(x.dur/6)/10,hs=String(h).replace(/\.0$/,'');
-        el.textContent=t?`${hs} / ${t}시간`:formatDurationMin(x.dur);
-      }else if(t)el.textContent=`0 / ${t}시간`;
+      if(Number.isFinite(x.dur))el.textContent=`기록 ${formatDailyCareDuration(x.dur)}`;
+      else el.textContent=t?`목표 ${formatDailyCareDuration(Math.round(t*60))}`:'기록 없음';
     }catch(e){}
     return r;
   };
   try{renderSleep();}catch(e){}
+})();
+(function(){
+  if(typeof renderCustomDailyCare!=='function')return;
+  const prev=renderCustomDailyCare;
+  renderCustomDailyCare=function(){
+    const r=prev.apply(this,arguments);
+    try{
+      loadDailyCareDefinitions().map(normalizeDailyCareDefinition).filter(d=>!d.builtin&&!d.oneOff&&d.type==='duration').forEach(d=>{
+        const meta=document.querySelector(`.dailyCareItemCard[data-daily-care-id="${d.id}"] .dailyCareMeta`);if(!meta)return;
+        if(getDailyCareDurationSession(d.id)?.startAt)return;
+        const raw=readDailyCareMetricValue(activeDateKey,d.id),val=raw&&typeof raw==='object'?raw:null;
+        const g=Number(d.durationGoalMinutes)||0;
+        if(val&&Number.isFinite(Number(val.minutes)))meta.textContent=`기록 ${formatDailyCareDuration(Number(val.minutes))}`;
+        else if(!val||(!val.start&&!val.end))meta.textContent=g?`목표 ${formatDailyCareDuration(g)}`:'기록 없음';
+      });
+    }catch(e){}
+    return r;
+  };
+  try{renderCustomDailyCare();}catch(e){}
 })();
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
 function obStart(){
