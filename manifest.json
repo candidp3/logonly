@@ -1,7 +1,8 @@
 {
+  "id": "logonly",
   "name": "로그온리",
   "short_name": "로그온리",
-  "description": "압박 없이 하루의 최소한만 남기는 가벼운 기록",
+  "description": "압박 없이 하루의 최소한만 남기는 가벼운 기록 (Oday Lab)",
   "lang": "ko",
   "start_url": "./index.html",
   "scope": "./",
