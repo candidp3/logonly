@@ -2676,6 +2676,9 @@ body.secOff-project #calendarDetail [data-sec="project"],body.secOff-project .ca
     <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openPeriodSettings()"><div><div class="backupSubTitle">생리주기 기록</div><div class="backupHint" id="periodSettingsSummary">캘린더에 시작·종료 기록과 예측 표시</div></div><button type="button" id="periodToggleBtn" class="settingsBtn uiActionSm statePill" onclick="event.stopPropagation();togglePeriodFeature()">사용 중</button></div>
   </section>
 
+  <section class="backupCard backupBundle"><div class="backupCardTitle">HELP</div>
+    <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="obReplay()"><div><div class="backupSubTitle">처음 안내 다시 보기</div><div class="backupHint">시작 화면과 사용법 안내를 다시 봐요. 지금 기록과 설정은 바뀌지 않아요.</div></div><span class="manageChev" aria-hidden="true">›</span></div>
+    </section>
   <section class="backupCard backupBundle">
     <div class="backupCardTitle">DATA</div>
     <div class="backupPart settingLinkRow tapRow" role="button" tabindex="0" onclick="openBackupData()"><div><div class="backupSubTitle">백업 · 복원 · 초기화</div><div class="backupHint">기록을 파일로 저장하고 불러와요</div></div><span class="manageChev" aria-hidden="true">›</span></div>
@@ -11788,6 +11791,21 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 #coachRoot .coachNav button{border:0;border-radius:12px;padding:9px 16px;font:inherit;font-size:14px}
 #coachRoot .coachSkip{background:transparent;color:var(--rc-mu,#8a938e)}
 #coachRoot .coachNext{background:var(--rc-solid,#3f9c7c);color:#fff;font-weight:600}
+#rwRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
+#rwRoot.hide{display:none}#rwRoot *{box-sizing:border-box}#rwRoot .obTitle,#rwRoot .obSub{text-align:left}
+.rwInput{width:100%;height:54px;border:1.5px solid var(--rc-line,#e3e8e5);border-radius:16px;background:var(--rc-card,#fff);padding:0 16px;font:inherit;font-size:16px;color:inherit;outline:none}
+.rwInput:focus{border-color:var(--rc-solid,#3f9c7c)}
+.rwIcoPreview{display:flex;align-items:center;gap:6px;min-height:22px;margin:8px 4px 0;font-size:12px;color:var(--rc-mu,#8a938e)}
+.rwChips{display:flex;flex-wrap:wrap;gap:8px}
+.rwChip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--rc-line,#e3e8e5);background:var(--rc-card,#fff);color:inherit;border-radius:99px;padding:9px 14px 9px 10px;font:inherit;font-size:14px}
+.rwChip small{font-size:11px;color:var(--rc-mu,#8a938e)}
+.rwChip.on{border-color:var(--rc-solid,#3f9c7c);background:var(--rc-gl,#e2f4ec);color:var(--rc-gd,#2f6b55)}
+.rwInline{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:14px}
+.rwInline input{width:72px;height:36px;border:1.5px solid var(--rc-line,#e3e8e5);border-radius:10px;padding:0 10px;font:inherit;font-size:15px;background:var(--rc-card,#fff);color:inherit}
+.rwInline .rwUnit{width:56px}
+.rwDays{display:flex;gap:6px;margin-top:12px}
+.rwDays button{flex:1;height:42px;border-radius:12px;border:1.5px solid var(--rc-line,#e3e8e5);background:var(--rc-card,#fff);font:inherit;font-size:14px;color:inherit}
+.rwDays button.on{border-color:var(--rc-solid,#3f9c7c);background:var(--rc-gl,#e2f4ec);color:var(--rc-gd,#2f6b55);font-weight:600}
 .obNote{text-align:center;font-size:13px;color:var(--rc-mu,#8a938e);margin-top:12px}
 .obHero{display:flex;flex-direction:column;justify-content:center;min-height:100%;padding-bottom:40px}
 .obHeroIco{width:76px;height:76px;border-radius:26px;background:var(--rc-soft,#eef3f0);color:var(--rc-gd,#2f6b55);display:flex;align-items:center;justify-content:center;margin-bottom:28px}
@@ -11934,7 +11952,10 @@ function obApply(){
   try{localStorage.setItem('periodEnabled_v1',obSel.features.period?'1':'0');}catch(e){}
   try{localStorage.setItem(ST_ON_KEY,obSel.features.static?'1':'0');}catch(e){}
 }
+let obPreviewOnly=false;
+function obReplay(){obPreviewOnly=true;obStart();}
 function obFinish(skipped){
+  if(obPreviewOnly){obPreviewOnly=false;document.getElementById('obRoot').classList.add('hide');try{lifeNavigate('today');}catch(e){}setTimeout(coachStart,300);return;}
   try{if(!skipped)obApply();localStorage.setItem(OB_KEY,'done');sessionStorage.setItem('logonly_just_onboarded','1');}catch(e){console.error(e);}
   location.reload();
 }
@@ -12101,6 +12122,113 @@ function coachStart(){
   if(!fresh){try{localStorage.setItem(COACH_KEY,'done');}catch(e){}return;}
   setTimeout(coachStart,600);
 })();
+/* ===== 루틴 추가: 단계별(토스식) — 새로 만들 때만. 수정은 기존 한 화면 =====
+   원칙: 추천 항목은 2번 탭, 직접 만들어도 최대 3단계, 언제든 '바로 추가', 세부 옵션은 '자세히 설정' */
+const RW_PRESETS=[
+  {name:'물 한 잔',ic:'drop',type:'check'},{name:'영양제',ic:'pill',type:'check'},{name:'양치',ic:'tooth',type:'check'},
+  {name:'스트레칭',ic:'pulse',type:'time',target:10},{name:'산책',ic:'shoe',type:'time',target:20},{name:'독서',ic:'book',type:'time',target:30},
+  {name:'명상',ic:'wind',type:'time',target:5},{name:'일기 쓰기',ic:'pencil',type:'check'},{name:'정리정돈',ic:'sparkle',type:'check'},
+  {name:'외국어 공부',ic:'speak',type:'time',target:20},{name:'샤워',ic:'shower',type:'check'},{name:'일찍 자기',ic:'bed',type:'check'}
+];
+const RW_FREE_PRESETS=[
+  {name:'독서',ic:'book',type:'time'},{name:'산책',ic:'shoe',type:'time'},{name:'운동',ic:'dumbbell',type:'check'},{name:'음악 듣기',ic:'music',type:'check'},
+  {name:'그림 그리기',ic:'palette',type:'time'},{name:'게임',ic:'gamepad',type:'time'},{name:'영화·드라마',ic:'cinema',type:'check'},{name:'자전거',ic:'bike',type:'time'},{name:'그냥 쉬기',ic:'cloud',type:'check'}
+];
+const RW_ICON_WORDS=[[/물|수분/,'drop'],[/약|영양|비타민/,'pill'],[/책|독서|읽/,'book'],[/걷|산책/,'shoe'],[/스트레칭|요가/,'pulse'],[/운동|헬스|근력|스쿼트|푸시업|플랭크|런지/,'dumbbell'],[/폴/,'poledance'],
+  [/명상|호흡/,'wind'],[/일기|메모|쓰기|글/,'pencil'],[/양치|치실/,'tooth'],[/잠|수면|취침/,'bed'],[/커피/,'coffee'],[/청소|정리/,'sparkle'],[/밥|식사|아침|점심|저녁/,'bowl'],
+  [/영어|외국어|말하기|회화/,'speak'],[/공부|업무|일하기|코딩/,'laptop'],[/샤워|목욕/,'shower'],[/세안|스킨|팩/,'facecare'],[/음악|노래|피아노|기타/,'music'],[/그림|드로잉/,'palette'],
+  [/자전거/,'bike'],[/게임/,'gamepad'],[/영화|드라마/,'cinema'],[/사진/,'camera'],[/강아지|고양이|산책시키/,'paw'],[/과일|사과/,'apple'],[/채소|샐러드/,'salad'],[/뜨개/,'yarn'],[/휴식|쉬기/,'cloud'],[/전화|연락/,'phone']];
+function rwGuessIcon(name){const n=String(name||'');for(const [re,ic] of RW_ICON_WORDS)if(re.test(n)&&APP_ICON_MAP[ic])return ic;return 'star';}
+const RW_TYPES=[
+  {id:'check',ic:'star',name:'체크',desc:'했는지만 톡 표시',ex:'영양제 ✓'},
+  {id:'time',ic:'timer',name:'시간',desc:'몇 분 했는지 기록 (타이머 가능)',ex:'스트레칭 12분'},
+  {id:'count',ic:'pulse',name:'횟수·개수',desc:'몇 번, 몇 개 했는지',ex:'스쿼트 30 / 50회'},
+  {id:'free',ic:'pencil',name:'메모',desc:'짧은 글로 남기기',ex:'점심: 샐러드'}
+];
+const RW_DAYS=[[1,'월'],[2,'화'],[3,'수'],[4,'목'],[5,'금'],[6,'토'],[0,'일']];
+let rw=null;
+function rwOpen(block){
+  const isFree=block==='free';
+  rw={step:0,isFree,block:isFree?'free':(block||'morning'),name:'',ic:'',type:'check',target:'',unit:'',rec:'daily',days:[1,2,3,4,5],fromPreset:false};
+  let el=document.getElementById('rwRoot');
+  if(!el){el=document.createElement('div');el.id='rwRoot';el.innerHTML=`<div class="obTop"><button type="button" class="obBack" onclick="rwBack()" aria-label="이전"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="obBar"><i id="rwBar"></i></div><button type="button" class="obSkip" onclick="rwClose()">닫기</button></div><div class="obBody" id="rwBody"></div><div class="obFoot" id="rwFoot"></div>`;document.body.appendChild(el);}
+  el.classList.remove('hide');rwRender();
+}
+function rwClose(){document.getElementById('rwRoot')?.classList.add('hide');rw=null;}
+function rwSteps(){return rw.isFree?['name','type']:(rw.fromPreset?['name','when']:['name','type','when']);}
+function rwBack(){if(!rw)return;if(rw.step===0){rwClose();return;}rw.step--;if(rw.step===0)rw.fromPreset=false;rwRender();}
+function rwNext(){
+  if(!rw)return;const st=rwSteps();
+  if(st[rw.step]==='name'){const v=(document.getElementById('rwName')?.value||'').trim();if(!v){document.getElementById('rwName')?.focus();return;}rw.name=v;if(!rw.ic)rw.ic=rwGuessIcon(v);}
+  if(rw.step>=st.length-1){rwSave();return;}
+  rw.step++;rwRender();
+}
+function rwPick(i){
+  const list=rw.isFree?RW_FREE_PRESETS:RW_PRESETS,p=list[i];if(!p)return;
+  Object.assign(rw,{name:p.name,ic:p.ic,type:p.type,target:p.target||'',unit:'',fromPreset:true});
+  if(rw.isFree){rwSave();return;}
+  rw.step=1;rwRender();
+}
+function rwQuick(){ /* 이름만 쓰고 바로 추가: 체크 · 매일 */
+  const v=(document.getElementById('rwName')?.value||'').trim();if(!v){document.getElementById('rwName')?.focus();return;}
+  Object.assign(rw,{name:v,ic:rw.ic||rwGuessIcon(v)});rwSave();
+}
+function rwDetail(){ /* 세부 옵션은 기존 편집 화면에서 */
+  const v=(document.getElementById('rwName')?.value||rw.name||'').trim();const b=rw.block;const snap={...rw,name:v};rwClose();
+  RW_ORIG_OPEN(null,b);
+  if(snap.name){document.getElementById('rName').value=snap.name;document.getElementById('rIcon').value=`⟪${snap.ic||rwGuessIcon(snap.name)}⟫`;try{document.getElementById('rIcon').dispatchEvent(new Event('input'));}catch(e){}}
+}
+function rwSet(k,v){rw[k]=v;const y=document.getElementById('rwBody').scrollTop;rwRender();document.getElementById('rwBody').scrollTop=y;}
+function rwDay(d){const i=rw.days.indexOf(d);if(i>=0)rw.days.splice(i,1);else rw.days.push(d);rwRender();}
+function rwRender(){
+  const st=rwSteps(),key=st[rw.step],body=document.getElementById('rwBody'),foot=document.getElementById('rwFoot');
+  document.getElementById('rwBar').style.width=`${Math.round((rw.step+1)/st.length*100)}%`;
+  let h='',f='';
+  const kind=rw.isFree?'FREE TIME':'루틴';
+  if(key==='name'){
+    const list=rw.isFree?RW_FREE_PRESETS:RW_PRESETS;const have=new Set(loadLifeRoutines().map(r=>String(r.name).trim()));
+    h=`<h1 class="obTitle">어떤 ${rw.isFree?'활동':'루틴'}을\n추가할까요?</h1><p class="obSub">${rw.isFree?'여유 있을 때 고르는 활동이에요.':'추천에서 고르거나 직접 써 주세요.'}</p>
+      <input id="rwName" class="rwInput" maxlength="30" placeholder="직접 입력 (예: ${rw.isFree?'뜨개질':'영어 단어 10개'})" value="${escapeLife(rw.name)}" oninput="rw.name=this.value;rw.ic='';rwIcoPreview()" onkeydown="if(event.key==='Enter'){event.preventDefault();rwNext();}">
+      <div id="rwIcoPreview" class="rwIcoPreview"></div>
+      <div class="obGroup">추천</div><div class="rwChips">${list.map((p,i)=>have.has(p.name)?'':`<button type="button" class="rwChip" onclick="rwPick(${i})"><span class="obPvIc">${obIcon(p.ic)}</span>${p.name}${p.target?` <small>${p.target}분</small>`:''}</button>`).join('')}</div>`;
+    f=`<button type="button" class="obBtn" onclick="rwNext()">다음</button><div class="obNote"><button type="button" class="obLink" onclick="rwQuick()">이름만으로 바로 추가</button> · <button type="button" class="obLink" onclick="rwDetail()">자세히 설정</button></div>`;
+  }else if(key==='type'){
+    h=`<h1 class="obTitle">어떻게 기록할까요?</h1><p class="obSub">${escapeLife(rw.name)}</p><div class="obList">`+
+      RW_TYPES.filter(t=>!rw.isFree||t.id==='check'||t.id==='time').map(t=>`<div class="obItem${rw.type===t.id?' on':''}" role="button" tabindex="0" onclick="rwSet('type','${t.id}')"><span class="obIco">${obIcon(t.ic)}</span><span class="obTxt"><div class="obName">${t.name}</div><div class="obDesc">${t.desc}</div><div class="obEx">예) ${t.ex}</div>
+        ${!rw.isFree&&rw.type===t.id&&t.id==='time'?`<div class="rwInline" onclick="event.stopPropagation()">목표 <input type="number" inputmode="numeric" min="1" value="${escapeLife(rw.target)}" placeholder="없음" oninput="rw.target=this.value"> 분</div>`:''}
+        ${rw.type===t.id&&t.id==='count'?`<div class="rwInline" onclick="event.stopPropagation()">목표 <input type="number" inputmode="numeric" min="1" value="${escapeLife(rw.target)}" placeholder="30" oninput="rw.target=this.value"> <input class="rwUnit" maxlength="4" value="${escapeLife(rw.unit)}" placeholder="회" oninput="rw.unit=this.value"></div>`:''}
+        </span><span class="obChk">${OB_CHECK}</span></div>`).join('')+`</div>`;
+    f=`<button type="button" class="obBtn" onclick="rwNext()">${rw.isFree?'추가하기':'다음'}</button>`;
+  }else{
+    const blocks=lifeBlockDefs();
+    h=`<h1 class="obTitle">언제 할까요?</h1><p class="obSub">${escapeLife(rw.name)}${rw.type==='time'&&rw.target?` · ${escapeLife(rw.target)}분`:''}</p>
+      <div class="obGroup">시간대</div><div class="rwChips">${blocks.map(b=>`<button type="button" class="rwChip${rw.block===b.id?' on':''}" onclick="rwSet('block','${b.id}')">${escapeLife(b.name)} <small>${escapeLife(b.sub)}</small></button>`).join('')}</div>
+      <div class="obGroup">반복</div><div class="rwChips"><button type="button" class="rwChip${rw.rec==='daily'?' on':''}" onclick="rwSet('rec','daily')">매일</button><button type="button" class="rwChip${rw.rec==='weekdays'?' on':''}" onclick="rwSet('rec','weekdays')">요일 고르기</button></div>
+      ${rw.rec==='weekdays'?`<div class="rwDays">${RW_DAYS.map(([d,l])=>`<button type="button" class="${rw.days.includes(d)?'on':''}" onclick="rwDay(${d})">${l}</button>`).join('')}</div>`:''}
+      <p class="obSub" style="margin-top:18px">격주·매달 같은 반복은 '자세히 설정'에서 할 수 있어요.</p>`;
+    f=`<button type="button" class="obBtn" onclick="rwNext()">추가하기</button><div class="obNote"><button type="button" class="obLink" onclick="rwDetail()">자세히 설정</button></div>`;
+  }
+  body.innerHTML=`<div class="obPane">${h}</div>`;foot.innerHTML=f;
+  if(key==='name'){rwIcoPreview();setTimeout(()=>{const i=document.getElementById('rwName');if(i&&!rw.name)i.focus();},50);}
+}
+function rwIcoPreview(){const el=document.getElementById('rwIcoPreview');if(!el)return;const n=(rw.name||'').trim();el.innerHTML=n?`<span class="obPvIc">${obIcon(rw.ic||rwGuessIcon(n))}</span> 아이콘은 이름을 보고 골랐어요`:'';}
+function rwSave(){
+  const r=rw;if(!r||!r.name)return;
+  if(!r.isFree&&r.rec==='weekdays'&&!r.days.length){r.rec='daily';}
+  rwClose();
+  RW_ORIG_OPEN(null,r.block);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  set('rName',r.name);set('rIcon',`⟪${r.ic||rwGuessIcon(r.name)}⟫`);
+  set('rType',r.type);set('rBlock',r.block);
+  set('rRecurrence',r.isFree?'free':r.rec);
+  document.querySelectorAll('input[name="rDay"]').forEach(x=>x.checked=r.rec==='weekdays'&&r.days.includes(Number(x.value)));
+  set('rTarget',r.type==='time'?(r.target||''):'');set('rCountTarget',r.type==='count'?(r.target||''):'');set('rCountUnit',r.type==='count'?(r.unit||'회'):'');
+  try{toggleRoutineDays();toggleRoutineTypeFields();}catch(e){}
+  saveRoutineFromModal();
+  try{appToast?appToast(`'${r.name}' 추가했어요`):null;}catch(e){}
+}
+const RW_ORIG_OPEN=openRoutineModal;
+openRoutineModal=function(id,block){if(!id){rwOpen(block);return;}return RW_ORIG_OPEN.apply(this,arguments);};
 function photoAdd(){} /* 판매용 v1: 사진 추가 막기 */
 /* 다른 폰에서 쓰던 기록이 있으면: 안내를 닫고 바로 불러오기 화면으로 */
 function obRestore(){
