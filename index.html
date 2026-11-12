@@ -4719,17 +4719,17 @@ const ROUTINE_CLEANUP_V5_KEY = "routineCleanupV5";
 
 const LIFE_DEFAULT_ROUTINES = [
   {id:"breakfast_brush",name:"양치",icon:"⟪tooth⟫",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
-  {id:"breakfast_water",name:"물 한 잔",icon:"💧",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
-  {id:"breakfast_meal",name:"아침식사",icon:"🍳",type:"free",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
+  {id:"breakfast_water",name:"물 한 잔",icon:"⟪drop⟫",type:"check",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
+  {id:"breakfast_meal",name:"아침식사",icon:"⟪egg⟫",type:"free",block:"breakfast",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
   {id:"morning_stretch",name:"스트레칭",icon:"⟪pulse⟫",type:"time",block:"morning",recurrence:"daily",days:[],target:10,unit:"분",maxDuration:10,enabled:true,order:10},
-  {id:"lunch_meal",name:"점심식사",icon:"🍚",type:"check",block:"lunch",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
-  {id:"lunch_walk",name:"식후 걷기",icon:"🚶",type:"time",block:"lunch",recurrence:"daily",days:[],target:20,unit:"분",maxDuration:20,enabled:true,order:20},
-  {id:"afternoon_work",name:"업무 / 공부",icon:"💻",type:"check",block:"afternoon",recurrence:"weekday",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
-  {id:"evening_dinner",name:"저녁식사",icon:"🥗",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"lunch_meal",name:"점심식사",icon:"⟪bowl⟫",type:"check",block:"lunch",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"lunch_walk",name:"식후 걷기",icon:"⟪shoe⟫",type:"time",block:"lunch",recurrence:"daily",days:[],target:20,unit:"분",maxDuration:20,enabled:true,order:20},
+  {id:"afternoon_work",name:"업무 / 공부",icon:"⟪laptop⟫",type:"check",block:"afternoon",recurrence:"weekday",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
+  {id:"evening_dinner",name:"저녁식사",icon:"⟪salad⟫",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
   {id:"evening_exercise",name:"운동",icon:"⟪dumbbell⟫",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
-  {id:"free_read",name:"독서",icon:"📚",type:"time",block:"free",recurrence:"free",days:[],target:null,unit:"분",maxDuration:null,enabled:true,order:10},
-  {id:"free_exercise",name:"운동",icon:"🏋️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
-  {id:"free_rest",name:"그냥 쉬기",icon:"☁️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:40}
+  {id:"free_read",name:"독서",icon:"⟪book⟫",type:"time",block:"free",recurrence:"free",days:[],target:null,unit:"분",maxDuration:null,enabled:true,order:10},
+  {id:"free_exercise",name:"운동",icon:"⟪dumbbell⟫",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
+  {id:"free_rest",name:"그냥 쉬기",icon:"⟪cloud⟫",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:40}
 ];
 
 
@@ -10669,7 +10669,7 @@ function appIconSvg(name){const x=APP_ICON_MAP[name];if(!x)return '';return `<sv
 (function(){
   const TOK=/⟪([a-z0-9_]+)⟫/g,SKIP=/^(SCRIPT|STYLE|TEXTAREA|OPTION|TITLE)$/;
   const EMO2IC={'🪥':'brush','🦠':'germ','🍳':'egg','✨':'sparkle','🍋':'lemon','📝':'pencil','🔤':'pencil','✏️':'pencil','🗣️':'speak','🍚':'bowl','🚶':'shoe','👟':'shoe','💊':'pill','💻':'laptop','🥗':'salad','🥦':'broccoli','💆':'facecare','🧖':'facemask','🌹':'rose','💃':'poledance','🪢':'flame','📚':'book','📖':'book','📘':'book','🧶':'yarn','🌳':'leaf','🌿':'leaf','🎲':'dice','🎮':'gamepad','☁️':'cloud','🧴':'bottle','🍎':'apple','🍏':'apple','🥩':'meal','🍽️':'meal','💧':'drop','💤':'bed','😴':'bed','⚖️':'scale','📏':'scale','🫁':'wind','🕒':'clock','⏱️':'timer','⏰':'clock','🙂':'smile','😊':'smile','❤️':'heart','🏠':'home','⭐':'star','🔥':'flame','🌙':'moon','☀️':'sun','🏋️':'dumbbell','🚴':'bike','📷':'camera','🎨':'palette','🎵':'music','☕':'coffee','🍪':'cookie','🥤':'cup','🍞':'bread','🦷':'tooth','📱':'phone','🐶':'paw','🐱':'paw','🧀':'cheese','🐟':'fish','🥜':'nut','🥛':'cup','🍙':'bowl','🍜':'bowl','🍷':'cup','🍺':'cup','🎬':'cinema','🚿':'shower','🇯🇵':'japan','🇨🇳':'china','🇺🇸':'usa'};
-  const EMO_SEL='.calendarRoutineChip,.rIco,.dcIco,.freeEmoji,.olChip,#oneOffQuickRow button,.oneOffSettingRow,.freeChip .ico';
+  const EMO_SEL='.calendarRoutineChip,.rIco,.dcIco,.freeEmoji,.olChip,#oneOffQuickRow button,.oneOffSettingRow,.freeChip .ico,.routineManagerName,.manageRow .manageName';
   const EMO_RE=/^(\s*)(\p{Regional_Indicator}{2}|\p{Extended_Pictographic}\uFE0F?)/u;
   function emojiPass(root){
     if(!root||!root.querySelectorAll)return;
