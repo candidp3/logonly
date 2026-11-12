@@ -3763,10 +3763,9 @@ function renderCustomDailyCare(){
 
     const v=dailyCareNumericValue(activeDateKey,d.id)??0;
     const target=Number(d.target)||0,left=Math.max(0,target-v);
+    /* 판매용: 카드 폭에 맞게 한 줄 표기 (현재 / 목표 단위) */
     const meta=target
-      ?(v>=target
-        ?`${formatDailyCareNumber(v)}${escapeLife(d.unit||'')} · 오늘 기준 ${formatDailyCareNumber(target)}${escapeLife(d.unit||'')}`
-        :`${formatDailyCareNumber(v)}${escapeLife(d.unit||'')} · ${formatDailyCareNumber(left)}${escapeLife(d.unit||'')} 남음`)
+      ?`${formatDailyCareNumber(v)} / ${formatDailyCareNumber(target)}${escapeLife(d.unit||'')}`
       :`${formatDailyCareNumber(v)}${escapeLife(d.unit||'')}`;
     const quick=Array.isArray(d.quickValues)?d.quickValues:[];
     const count=Math.max(1,Math.min(4,quick.length));
@@ -4152,7 +4151,7 @@ function renderProtein(){
   const target=dailyCareTarget("protein",getProteinTarget(state.mode||"base"));
   const left=Math.max(0,target-g);
   const el=document.getElementById("proteinTrackText");
-  if(el) el.textContent=g>=target?`${g}g · 오늘 기준 ${target}g`:`${g}g · ${left}g 남음`;
+  if(el) el.textContent=`${g} / ${target}g`;
   const hintEl=document.getElementById("proteinHint");
   if(hintEl) hintEl.textContent="";
 }
@@ -4174,7 +4173,7 @@ function renderWater(){
   const target=dailyCareTarget("water",WATER_TARGET);
   const left=Math.max(0,target-ml);
   const el=document.getElementById("waterText");
-  if(el) el.textContent=ml>=target?`${ml.toLocaleString()}ml · 오늘 기준 ${target.toLocaleString()}ml`:`${ml.toLocaleString()}ml · ${left.toLocaleString()}ml 남음`;
+  if(el) el.textContent=`${ml.toLocaleString()} / ${target.toLocaleString()}ml`;
 }
 
 function nOrNull(v){
@@ -11599,6 +11598,7 @@ function rrTm(t){return String(t).replace(/./g,c=>c===':'?'<u>:</u>':`<b>${c}</b
 <style>
 #obRoot{position:fixed;inset:0;z-index:2000;background:var(--rc-bg,#f5f7f5);color:var(--rc-tx,#1d2420);display:flex;flex-direction:column;font-family:inherit}
 #obRoot.hide{display:none}
+#viewToday .dailyCareItemCard .dailyCareMeta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;font-size:min(.65625rem,12.5px)!important;letter-spacing:-.2px}
 .photoMini,#todayPhotoBtn{display:none!important} /* 판매용 v1: 사진 기능 제외 */
 #obRoot *{box-sizing:border-box}
 #obRoot .obTitle,#obRoot .obSub{text-align:left}
