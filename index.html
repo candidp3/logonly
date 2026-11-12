@@ -4673,7 +4673,6 @@ const LIFE_DEFAULT_ROUTINES = [
   {id:"evening_dinner",name:"저녁식사",icon:"🥗",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:10},
   {id:"evening_exercise",name:"운동",icon:"🏋️",type:"check",block:"evening",recurrence:"daily",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:20},
   {id:"free_read",name:"독서",icon:"📚",type:"time",block:"free",recurrence:"free",days:[],target:null,unit:"분",maxDuration:null,enabled:true,order:10},
-  {id:"free_walk",name:"산책",icon:"🌳",type:"time",block:"free",recurrence:"free",days:[],target:null,unit:"분",maxDuration:null,enabled:true,order:20},
   {id:"free_exercise",name:"운동",icon:"🏋️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:30},
   {id:"free_rest",name:"그냥 쉬기",icon:"☁️",type:"check",block:"free",recurrence:"free",days:[],target:null,unit:"",maxDuration:null,enabled:true,order:40}
 ];
@@ -8951,7 +8950,7 @@ function bookRegKey(b,idx){
     if(localStorage.getItem('fontScaleMigrated_v2')==='done')return;
     const v=localStorage.getItem(FONT_SIZE_KEY);
     const map={normal:'small',large:'normal',small:'small'};
-    localStorage.setItem(FONT_SIZE_KEY,v&&map[v]?map[v]:'small');
+    localStorage.setItem(FONT_SIZE_KEY,v&&map[v]?map[v]:'normal'); /* 판매용: 새 사용자는 기본 크기 */
     localStorage.setItem('fontScaleMigrated_v2','done');
   }catch(e){}
   try{applyFontSizeSetting();}catch(e){}
@@ -11662,7 +11661,7 @@ const OB_CARE=[
 const OB_ROUTINE_IC={breakfast_brush:'brush',breakfast_water:'drop',breakfast_meal:'egg',morning_stretch:'yoga',lunch_meal:'bowl',lunch_walk:'shoe',afternoon_work:'laptop',evening_dinner:'salad',evening_exercise:'pulse'};
 const OB_BLOCK_NAME={breakfast:'아침',morning:'오전',lunch:'점심',afternoon:'오후',evening:'저녁'};
 const OB_FEATURES=[
-  {id:'freetime',ic:'timer',name:'취미 타이머',desc:'독서·산책처럼 여유 있을 때 하는 활동 기록'},
+  {id:'freetime',ic:'timer',name:'취미 타이머',desc:'독서·운동처럼 여유 있을 때 하는 활동 기록'},
   {id:'quicklog',ic:'pencil',name:'빠른 기록',desc:'간식·체중·컨디션을 필요할 때만 한 줄로'},
   {id:'project',ic:'calendar',name:'프로젝트',desc:'할 일과 마감일을 단계별로 관리'},
   {id:'period',ic:'heart',name:'생리주기',desc:'기간을 기록하면 다음 시작일을 예측'},
