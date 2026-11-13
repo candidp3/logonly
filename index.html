@@ -10849,6 +10849,11 @@ APP_ICONS.push(
 );
 const APP_ICONS_LEGACY=[["toothbrush", "칫솔", "M3 14h10v3H3zM13 12.500h8v5h-8zM14.800 10v2.500M17 10v2.500M19.200 10v2.500"], ["meat", "고기", "M20.500 8.500c0 3.600-3 6.500-6.600 6.500-1.200 0-2.300-.3-3.200-.9L8 16.800 7.200 16l1.200-2.200C7.800 12.800 7.500 11.800 7.500 10.700 7.500 7 10.300 3.500 14 3.500c3.600 0 6.500 2.200 6.500 5zM7.500 16l-2.200 2.200a1.700 1.700 0 1 0 2.400 2.400L9.900 18.500M5.300 18.200a1.700 1.700 0 1 0-2.400-2.400 1.700 1.700 0 0 0 2.400 2.400zM11.500 7.500c1.200-.8 3-.8 4.300.3"], ["teddy", "곰인형", "M4.800 6.800a2 2 0 1 0 4 0 2 2 0 0 0-4 0zM15.200 6.800a2 2 0 1 0 4 0 2 2 0 0 0-4 0zM12 6.500c-3.300 0-6 2.500-6 5.800s2.700 6.200 6 6.200 6-2.900 6-6.200-2.700-5.800-6-5.800zM9.500 11.500h.01M14.500 11.500h.01M10.500 15c.9.7 2.100.7 3 0"], ["bodyweight", "맨몸운동", "M3 4h18M9 4l1 5M15 4l-1 5M12 4.800a1.700 1.700 0 1 0 .01 0zM9.500 9h5M12 9v6M12 15l-2.500 5.500M12 15l2.500 5.500"], ["milk", "우유", "M7 8h10v13H7zM7 8l2.500-5h5L17 8M10 13h4M10 16.500h4"], ["muscle", "근육", "M3 19h14a3.500 3.500 0 0 0 3.500-3.500V5.500a2 2 0 0 0-4 0V9M16.500 9c-2-1.500-5-1.500-7 .5C7 12 4.500 12 3 14v5"], ["yoga", "요가", "M12 3.500a2 2 0 1 0 .01 0zM12 8v5M7 12.500l5-1.500 5 1.500M5.500 19c3.500-3.500 9.500-3.500 13 0"]];
 const APP_ICON_MAP=Object.fromEntries(APP_ICONS.concat(APP_ICONS_LEGACY).map(x=>[x[0],x]));
+/* 공개용: 아이콘 고르기 목록에 없는 예전 아이콘은 목록 안의 비슷한 아이콘으로 보여 줌 */
+(function(){const A={toothbrush:'tooth',meat:'meal',teddy:'heart',bodyweight:'pulse',milk:'cup',muscle:'dumbbell',yoga:'pulse'};
+  Object.entries(A).forEach(([k,v])=>{const t=APP_ICON_MAP[v];if(t)APP_ICON_MAP[k]=[k,t[1],t[2]];});})();
+/* 공개용: 아이콘 세트에 없는 이모지는 이름으로 추측한 세트 아이콘으로 (못 찾으면 별) */
+function emoFallbackIc(rest){try{return typeof rwGuessIcon==='function'?rwGuessIcon(String(rest||'').replace(/[^\p{L}\p{N} ]/gu,' ').trim()):'star';}catch(e){return 'star';}}
 function appIconSvg(name){const x=APP_ICON_MAP[name];if(!x)return '';return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${x[2]}"/></svg>`;}
 (function(){
   const TOK=/⟪([a-z0-9_]+)⟫/g,SKIP=/^(SCRIPT|STYLE|TEXTAREA|OPTION|TITLE)$/;
@@ -10863,7 +10868,7 @@ function appIconSvg(name){const x=APP_ICON_MAP[name];if(!x)return '';return `<sv
       list.forEach(n=>{
         if(n.parentNode.closest('textarea,script,style,.appIco'))return;
         const m=EMO_RE.exec(n.nodeValue);if(!m)return;
-        const ic=EMO2IC[m[2]]||EMO2IC[m[2].replace(/\uFE0F/g,'')];if(!ic||!APP_ICON_MAP[ic])return;
+        const ic=EMO2IC[m[2]]||EMO2IC[m[2].replace(/\uFE0F/g,'')]||(typeof emoFallbackIc==='function'?emoFallbackIc(n.nodeValue.slice(m[0].length).trim()||(h.closest('[data-routine-id]')||h).textContent):'');if(!ic||!APP_ICON_MAP[ic])return;
         n.nodeValue=n.nodeValue.slice(m[0].length);
         const sp=document.createElement('span');sp.className='appIco';sp.setAttribute('role','img');sp.setAttribute('aria-label',APP_ICON_MAP[ic][1]);sp.innerHTML=appIconSvg(ic);
         n.parentNode.insertBefore(sp,n);
@@ -12800,7 +12805,7 @@ const SW_DEFS={
     presets:()=>{const have=new Set(loadDailyCareDefinitions().filter(x=>x.enabled!==false).map(x=>String(x.name).trim()));return [
       {name:'커피',ic:'coffee',type:'cumulative',unit:'잔',target:'',step:1,tag:'잔'},{name:'체중',ic:'scale',type:'numeric',unit:'kg',target:'',tag:'kg'},
       {name:'걸음 수',ic:'shoe',type:'numeric',unit:'걸음',target:6000,tag:'걸음'},{name:'영양제',ic:'pill',type:'cumulative',unit:'개',target:1,step:1,tag:'개'},
-      {name:'낮잠',ic:'bed',type:'duration',target:'',tag:'시간'},{name:'스트레칭',ic:'yoga',type:'cumulative',unit:'분',target:10,step:5,tag:'분'}
+      {name:'낮잠',ic:'bed',type:'duration',target:'',tag:'시간'},{name:'스트레칭',ic:'pulse',type:'cumulative',unit:'분',target:10,step:5,tag:'분'}
     ].map(p=>({...p,hide:have.has(p.name)}));},
     afterPreset:()=>2,
     steps:d=>[
