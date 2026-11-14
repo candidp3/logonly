@@ -1,4 +1,4 @@
-const CACHE='rc-store-v43';
+const CACHE='rc-store-v44';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./pretendard-sub.woff2'];
 
 self.addEventListener('install',e=>{
