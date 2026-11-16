@@ -1,0 +1,88 @@
+name: 안드로이드 앱 만들기
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - sw.js
+      - manifest.json
+      - native/**
+      - .github/workflows/android.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: native/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: 웹 파일을 앱 안으로 복사
+        working-directory: native
+        run: |
+          npm ci
+          npm run sync
+
+      - name: 테스트용 앱(APK) 만들기
+        working-directory: native/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/logonly-test.apk"
+
+      - name: 스토어 업로드용 앱(AAB) 만들기 (서명 키가 등록된 경우만)
+        working-directory: native/android
+        env:
+          KEYSTORE_B64: ${{ secrets.UPLOAD_KEYSTORE_B64 }}
+          UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+          UPLOAD_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "서명 키가 아직 없어서 스토어용 파일은 건너뜁니다."
+            exit 0
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          export UPLOAD_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks"
+          ./gradlew bundleRelease --no-daemon
+          cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/logonly-store.aab"
+
+      - name: 내려받기 페이지에 올리기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=android-test
+          NOTE="테스트용 로그온리 앱입니다. 버전 $VERSION_NAME · $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') 기준"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --title "로그온리 테스트 앱" --notes "$NOTE"
+          gh release edit "$TAG" --notes "$NOTE"
+          gh release upload "$TAG" logonly-test.apk --clobber
+          if [ -f logonly-store.aab ]; then gh release upload "$TAG" logonly-store.aab --clobber; fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: logonly-android
+          path: |
+            logonly-test.apk
+            logonly-store.aab
+          if-no-files-found: warn

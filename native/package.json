@@ -1,0 +1,15 @@
+{
+  "name": "logonly-native",
+  "version": "1.0.0",
+  "private": true,
+  "description": "로그온리 안드로이드 앱 껍데기 (웹 파일은 저장소 맨 위 폴더에 있음)",
+  "scripts": {
+    "web": "node copy-web.js",
+    "sync": "node copy-web.js && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  }
+}

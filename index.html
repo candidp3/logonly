@@ -8510,7 +8510,8 @@ window.addEventListener("focus", () => { render(); });
 setInterval(()=>{ if(document.hidden)return; renderFasting(); renderActivityTimerBanner(); const tv=document.getElementById('viewToday'); if(tv&&tv.offsetParent!==null&&loadActivityTimer()){const m=Math.floor(Date.now()/60000);if(window.__lgMin!==m){window.__lgMin=m;renderLifeGuide();}} }, 1000);
 
 // PWA
-if("serviceWorker" in navigator){
+/* 안드로이드 앱 안에서는 파일이 앱에 들어 있어서 서비스워커를 쓰지 않음(업데이트가 한 박자 늦게 보이는 것 방지) */
+if("serviceWorker" in navigator && !(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())){
   window.addEventListener("load", ()=>{ navigator.serviceWorker.register("./sw.js").catch(()=>{}); });
 }
 
