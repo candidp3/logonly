@@ -12684,6 +12684,10 @@ button.tdsLn:active{background:var(--rc-soft)}
 #cbBox .cbBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #cbBox>button{margin-top:8px}
 #routineActionSheet{z-index:2060!important}
+
+/* 누를 때 큰 상자 전체가 테마색으로 깜빡이는 기본 터치 강조 끄기 (2026-11-18) */
+html,body,*{-webkit-tap-highlight-color:transparent!important}
+.tdHero .thAllBtn:active,.tdJ3 button:active{opacity:.55}
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
