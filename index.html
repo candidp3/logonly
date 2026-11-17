@@ -12665,6 +12665,25 @@ button.tdsLn:active{background:var(--rc-soft)}
 
 /* 알림창은 시작 안내 화면보다 위에 */
 #appDialog{z-index:2100!important}
+
+/* 구글 자동 백업: 보관 위치 고르기 · 백업 화면 상태 (2026-11-17) */
+#cbWhere{position:fixed;inset:0;z-index:2050;background:rgba(20,26,23,.42);display:flex;align-items:flex-end;justify-content:center}
+#cbWhere .cbCard{width:min(100%,520px);background:var(--rc-card,#fff);border-radius:24px 24px 0 0;padding:24px 18px calc(22px + env(safe-area-inset-bottom));box-sizing:border-box}
+#cbWhere .cbT{font-size:var(--fs-4,20px);font-weight:700;color:var(--rc-tx);margin:0 4px 16px}
+#cbWhere .cbOpt{display:block;width:100%;text-align:left;border:1.5px solid var(--rc-line);background:var(--rc-card);border-radius:16px;padding:14px 16px;margin:0 0 10px;font:inherit;color:var(--rc-tx);cursor:pointer}
+#cbWhere .cbOpt.rec{border-color:var(--rc-g);background:var(--rc-gl)}
+#cbWhere .cbOpt b{display:block;font-size:var(--fs-3);margin-bottom:4px}
+#cbWhere .cbOpt b em{font-style:normal;font-size:var(--fs-1);font-weight:600;color:#fff;background:var(--rc-g);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+#cbWhere .cbOpt span{display:block;font-size:var(--fs-1);color:var(--rc-mu);line-height:1.5}
+#cbWhere .cbOpt span.warn{color:var(--rc-tx2)}
+#cbWhere .cbNote{font-size:var(--fs-1);color:var(--rc-mu);margin:6px 4px 0}
+#cbWhere.busy .cbCard{opacity:.6;pointer-events:none}
+#cbBox .cbStat{font-size:var(--fs-2);border-radius:12px;padding:10px 12px;margin:6px 0 10px;line-height:1.5}
+#cbBox .cbStat.on{background:var(--rc-gl);color:var(--rc-tx)}
+#cbBox .cbStat.warn{background:var(--rc-pl,#fbe9ee);color:var(--rc-tx)}
+#cbBox .cbBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#cbBox>button{margin-top:8px}
+#routineActionSheet{z-index:2060!important}
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -12719,7 +12738,7 @@ function obRender(){
     h=`<div class="obHero"><div class="obHeroIco">${obIcon('sparkle')}</div>
       <h1 class="obTitle">하루의 최소한만,\n가볍게 남겨요</h1>
       <p class="obSub">못 한 날이 있어도 괜찮아요.\n꼭 필요한 것만 골라서 시작해 볼게요.</p></div>`;
-    next.textContent='시작하기';note.innerHTML='1분이면 끝나요 · <button type="button" class="obLink" onclick="obRestore()">백업 파일로 불러오기</button>';
+    next.textContent='시작하기';note.innerHTML='1분이면 끝나요 · <button type="button" class="obLink" onclick="obRestore()">백업 파일로 불러오기</button>'+((window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())?'<br><button type="button" class="obLink" onclick="cbRestoreFromDrive()">구글 계정 백업에서 불러오기</button>':'');
   }else if(key==='care'){
     h=`<h1 class="obTitle">매일 가볍게 챙길 것을\n골라주세요</h1><p class="obSub">필요한 것만 켜세요. 목표는 대략 정해도 돼요.</p><div class="obList">`+
       OB_CARE.map(c=>{const s=obSel.care[c.id];const v=c.id==='water'?Number(s.target).toLocaleString():s.target;
@@ -14726,6 +14745,188 @@ function pjTapTask(e,pid,tid){
     }catch(e){try{C.Plugins.App.minimizeApp();}catch(_){}}
   }
   try{C.Plugins.App.addListener('backButton',onBack);}catch(e){}
+})();
+
+/* ===== 안드로이드 앱 전용 (2026-11-17): 구글 계정(드라이브 앱 전용 숨김 폴더) 자동 백업 · 새 폰에서 불러오기 · 보관 위치 고르기 ===== */
+(function(){
+  const C=window.Capacitor;
+  if(!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform()))return;
+  const KEY='cloudBackup_v1',API='https://www.googleapis.com/drive/v3',UP='https://www.googleapis.com/upload/drive/v3';
+  const LATEST='logonly-latest.json',KEEP=7,AUTO_GAP=6*3600e3;
+  try{BACKUP_EXCLUDED_KEYS.add(KEY);}catch(e){}
+  const st=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){return {};}};
+  const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(Object.assign(st(),o)));}catch(e){}};
+  const nonEmpty=v=>{try{const x=JSON.parse(localStorage.getItem(v)||'null');if(Array.isArray(x))return x.length>0;if(x&&typeof x==='object')return Object.values(x).some(d=>Array.isArray(d)?d.length>0:!!d);return false;}catch(e){return false;}};
+  const hasData=()=>[LIFE_LOGS_KEY,BOOKS_KEY,SNACK_RECORDS_KEY,PROJECTS_KEY,'oneOffLogs_v1',READING_LOGS_KEY].some(nonEmpty);
+  function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return s.length+':'+h;}
+  const fmt=t=>{if(!t)return '';const d=new Date(t);return `${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+
+  /* --- 구글 권한 (네이티브) --- */
+  let seq=0;const wait={};
+  window.__lgAuthCb=(id,tok,err)=>{const w=wait[id];if(!w)return;delete wait[id];tok?w.ok(tok):w.no(new Error(err||'auth'));};
+  function auth(interactive){
+    return new Promise((ok,no)=>{
+      if(!window.LogonlyAuth)return no(new Error('no_native'));
+      const id='a'+(++seq);wait[id]={ok,no};
+      setTimeout(()=>{if(wait[id]){delete wait[id];no(new Error('timeout'));}},interactive?180000:30000);
+      LogonlyAuth.authorize(id,!!interactive);
+    });
+  }
+  async function g(tok,url,opt){
+    const r=await fetch(url,Object.assign({},opt||{},{headers:Object.assign({Authorization:'Bearer '+tok},(opt&&opt.headers)||{})}));
+    if(!r.ok)throw new Error('drive '+r.status);
+    return r;
+  }
+  async function list(tok){
+    const q=new URLSearchParams({spaces:'appDataFolder',fields:'files(id,name,modifiedTime,size)',orderBy:'modifiedTime desc',pageSize:'100'});
+    return ((await (await g(tok,`${API}/files?${q}`)).json()).files)||[];
+  }
+  async function put(tok,name,data,id){
+    if(id){await g(tok,`${UP}/files/${id}?uploadType=media`,{method:'PATCH',headers:{'Content-Type':'application/json; charset=UTF-8'},body:data});return;}
+    const b='lgb'+Date.now();
+    const body=`--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name,parents:['appDataFolder']})}\r\n--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${data}\r\n--${b}--`;
+    await g(tok,`${UP}/files?uploadType=multipart`,{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body});
+  }
+  const getFile=async(tok,id)=>JSON.parse(await (await g(tok,`${API}/files/${id}?alt=media`)).text());
+
+  /* --- 백업 올리기 --- */
+  let busy=false;
+  async function backupNow(o){
+    o=o||{};const s=st();
+    if(busy)return 'busy';
+    if(s.mode!=='drive'&&!o.force)return 'off';
+    if(!hasData())return 'empty';             /* 빈 상태로 좋은 백업을 덮어쓰지 않음 */
+    busy=true;
+    try{
+      const p=await buildFullBackupPayload();
+      const sig=hash(JSON.stringify(p.localStorage)+'|'+Object.keys(p.bookCovers||{}).join(','));
+      if(!o.manual&&sig===s.lastSig)return 'same';
+      if(!o.manual&&s.lastAt&&Date.now()-s.lastAt<AUTO_GAP)return 'soon';
+      let tok;
+      try{tok=await auth(!!o.interactive);}catch(e){save({needReconnect:true});renderBox();return 'auth';}
+      const data=JSON.stringify(p),files=await list(tok),day='logonly-'+getLocalDateKey(new Date())+'.json';
+      await put(tok,LATEST,data,(files.find(f=>f.name===LATEST)||{}).id);
+      await put(tok,day,data,(files.find(f=>f.name===day)||{}).id);
+      const days=files.filter(f=>/^logonly-\d{4}-\d{2}-\d{2}\.json$/.test(f.name)&&f.name!==day).map(f=>f).sort((a,b)=>a.name<b.name?1:-1);
+      for(const f of days.slice(KEEP-1)){try{await g(tok,`${API}/files/${f.id}`,{method:'DELETE'});}catch(e){}}
+      save({mode:'drive',lastAt:Date.now(),lastSig:sig,needReconnect:false,lastErr:''});
+      try{renderBackupNudge();}catch(e){}
+      return 'ok';
+    }catch(e){save({lastErr:String(e&&e.message||e)});return 'err';}
+    finally{busy=false;renderBox();}
+  }
+  window.cbBackupNow=async function(){
+    const r=await backupNow({manual:true,interactive:true});
+    if(r==='ok')appToast('구글 계정에 백업했어요');
+    else if(r==='empty')appToast('아직 백업할 기록이 없어요');
+    else if(r==='auth')appAlert('구글 계정 연결이 안 됐어요. 다시 시도해 주세요.');
+    else if(r==='err')appAlert('백업하지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.');
+  };
+  window.cbTurnOn=async function(){
+    let tok;
+    try{tok=await auth(true);}catch(e){appAlert('구글 계정 연결을 마치지 못했어요. 다시 시도해 주세요.');return false;}
+    save({mode:'drive',needReconnect:false,chosen:Date.now()});
+    /* 이 계정에 예전 백업이 있고 지금 폰에 기록이 없으면 불러올지 먼저 물어봄 */
+    if(!hasData()){try{const fs=await list(tok);if(fs.some(f=>/^logonly-/.test(f.name))){await restoreFlow(tok);return true;}}catch(e){}}
+    const r=await backupNow({manual:true,interactive:false});
+    appToast(r==='ok'?'자동 백업을 켰어요':'자동 백업을 켰어요. 기록이 생기면 백업해요');
+    renderBox();try{renderBackupNudge();}catch(e){}
+    return true;
+  };
+  window.cbTurnOff=async function(){
+    if(!await appConfirm('자동 백업을 끌까요?\n앞으로는 기록이 이 폰에만 남아요. 폰을 잃어버리거나 앱을 지우면 되살리지 못할 수 있어요.',{ok:'끄기'}))return;
+    save({mode:'local',needReconnect:false,localSince:Date.now()});renderBox();try{renderBackupNudge();}catch(e){}
+  };
+
+  /* --- 불러오기 --- */
+  async function restoreFlow(tok){
+    let files;
+    try{files=(await list(tok)).filter(f=>/^logonly-/.test(f.name));}catch(e){appAlert('구글 드라이브에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.');return;}
+    if(!files.length){appAlert('이 구글 계정에는 로그온리 백업이 없어요.\n예전에 백업을 켰던 계정인지 확인해 주세요.');return;}
+    const latest=files.find(f=>f.name===LATEST)||files[0];
+    const days=files.filter(f=>f.name!==LATEST);
+    const pick=await new Promise(res=>{
+      const acts=[{label:`가장 최근 백업 · ${fmt(latest.modifiedTime)}`,kind:'primary',run:()=>res(latest)}];
+      days.slice(0,KEEP).forEach(f=>acts.push({label:`${f.name.slice(8,18).replace(/-/g,'.')} 백업 · ${fmt(f.modifiedTime)}`,run:()=>res(f)}));
+      try{showRoutineActionSheet('어느 백업을 불러올까요?',acts);}catch(e){res(latest);}
+    });
+    if(!pick)return;
+    let p;
+    try{p=await getFile(tok,pick.id);}catch(e){appAlert('백업을 내려받지 못했어요. 다시 시도해 주세요.');return;}
+    if(validateBackupPayload(p)!=='v2'){appAlert('이 백업은 사용할 수 없어요.');return;}
+    if(hasData()&&!await appConfirm('지금 이 폰의 기록이 고른 백업 내용으로 바뀌어요. 불러올까요?',{ok:'불러오기'}))return;
+    try{applyLocalStorageSnapshot(p.localStorage);}catch(e){appAlert('불러오기에 실패했어요.');return;}
+    try{await restoreBookCoverPayload(p.bookCovers||{});}catch(e){}
+    save({mode:'drive',needReconnect:false,lastAt:Date.now(),lastSig:''});
+    location.reload();
+  }
+  window.cbRestoreFromDrive=async function(){
+    let tok;
+    try{tok=await auth(true);}catch(e){appAlert('구글 계정 연결을 마치지 못했어요. 다시 시도해 주세요.');return;}
+    await restoreFlow(tok);
+  };
+
+  /* --- 보관 위치 고르기 --- */
+  window.cbAskWhere=function(){
+    if(document.getElementById('cbWhere'))return;
+    const o=document.createElement('div');o.id='cbWhere';
+    o.innerHTML=`<div class="cbCard" role="dialog" aria-modal="true">
+      <div class="cbT">기록을 어디에 보관할까요?</div>
+      <button type="button" class="cbOpt rec" onclick="cbWherePick('drive')"><b>구글 계정에 자동 백업 <em>추천</em></b><span>폰을 잃어버리거나 바꿔도 같은 구글 계정으로 되살릴 수 있어요.<br>기록은 내 구글 드라이브의 숨은 전용 폴더에만 저장돼요.</span></button>
+      <button type="button" class="cbOpt" onclick="cbWherePick('local')"><b>이 폰에만 보관</b><span class="warn">⚠ 폰을 잃어버리거나 앱을 지우면 기록을 되살리지 못할 수 있어요.</span></button>
+      <div class="cbNote">설정 → 백업에서 언제든 바꿀 수 있어요.</div></div>`;
+    document.body.appendChild(o);
+  };
+  window.cbWherePick=async function(m){
+    const o=document.getElementById('cbWhere');
+    if(m==='drive'){o&&o.classList.add('busy');const ok=await cbTurnOn();if(ok)o&&o.remove();else o&&o.classList.remove('busy');return;}
+    save({mode:'local',localSince:Date.now(),chosen:Date.now()});o&&o.remove();renderBox();try{renderBackupNudge();}catch(e){}
+    appToast('이 폰에만 보관해요. 가끔 백업 파일을 폰 밖에 저장해 주세요');
+  };
+  /* 아직 안 골랐으면: 시작 안내가 끝난 뒤 한 번 물어봄 */
+  function maybeAsk(){
+    if(st().mode)return;
+    const busyEl=['obRoot','coachRoot','cuRoot','swRoot','tplEdRoot'].map(id=>document.getElementById(id)).find(el=>el&&getComputedStyle(el).display!=='none'&&el.getClientRects().length);
+    if(busyEl||document.querySelector('.lifeModal:not(.hide),.routineActionOverlay:not(.hide)')){setTimeout(maybeAsk,1500);return;}
+    if(document.getElementById('appDialog')&&!document.getElementById('appDialog').classList.contains('hide')){setTimeout(maybeAsk,1500);return;}
+    cbAskWhere();
+  }
+  setTimeout(maybeAsk,2500);
+
+  /* --- 설정 → 백업 화면 맨 위 상태 --- */
+  function renderBox(){
+    const sec=document.querySelector('#backupDataModal .setModalSec');if(!sec)return;
+    let b=document.getElementById('cbBox');
+    if(!b){b=document.createElement('div');b.id='cbBox';b.className='backupPart';sec.insertBefore(b,sec.firstChild);}
+    const s=st();let h='<div class="backupSubTitle">구글 계정 자동 백업</div>';
+    if(s.mode==='drive'&&s.needReconnect)h+=`<div class="cbStat warn">연결이 풀렸어요. 다시 연결해야 자동 백업이 이어져요.</div><button class="backupPrimary uiWideAction" onclick="cbTurnOn()">다시 연결하기</button>`;
+    else if(s.mode==='drive')h+=`<div class="cbStat on">켜짐 · ${s.lastAt?'마지막 백업 '+fmt(s.lastAt):'기록이 생기면 백업해요'}</div><div class="cbBtns"><button class="backupSecondary" onclick="cbBackupNow()">지금 백업</button><button class="backupSecondary" onclick="cbRestoreFromDrive()">백업에서 불러오기</button></div><button class="backupDangerText" onclick="cbTurnOff()">자동 백업 끄기</button>`;
+    else h+=`<div class="cbStat warn">⚠ 이 폰에만 보관 중이에요. 폰을 잃어버리거나 앱을 지우면 기록을 되살리지 못할 수 있어요.</div><button class="backupPrimary uiWideAction" onclick="cbTurnOn()">구글 계정 자동 백업 켜기</button><button class="backupSecondary" onclick="cbRestoreFromDrive()">구글 백업에서 불러오기</button>`;
+    b.innerHTML=h;
+  }
+  window.cbRenderBox=renderBox;
+  const ob=openBackupData;openBackupData=function(){const r=ob.apply(this,arguments);try{renderBox();}catch(e){}return r;};
+
+  /* --- TODAY 백업 알림: 자동 백업이 잘 되고 있으면 숨김, 이 폰에만 보관이면 그 안내로 --- */
+  const nd=backupNudgeDays;
+  backupNudgeDays=function(){const s=st();if(s.mode==='drive'&&!s.needReconnect&&s.lastAt&&Date.now()-s.lastAt<4*86400e3)return -1;return nd.apply(this,arguments);};
+  const rn=renderBackupNudge;
+  renderBackupNudge=function(){
+    const r=rn.apply(this,arguments);
+    try{
+      const el=document.getElementById('backupNudge');if(!el||el.classList.contains('hide'))return r;
+      const s=st(),t=document.getElementById('backupNudgeText'),go=el.querySelector('.go');
+      if(s.mode==='drive'&&s.needReconnect){t.textContent='구글 백업 연결이 풀렸어요';go.textContent='다시 연결';go.onclick=()=>cbTurnOn();}
+      else if(s.mode!=='drive'){t.textContent='기록이 이 폰에만 있어요. 잃어버리면 되살릴 수 없어요';go.textContent='자동 백업 켜기';go.onclick=()=>cbTurnOn();}
+    }catch(e){}
+    return r;
+  };
+  try{renderBackupNudge();}catch(e){}
+
+  /* --- 자동으로 올리기: 시작 후, 앱을 내릴 때, 30분마다 (바뀐 게 있고 6시간 지났을 때만) --- */
+  const auto=()=>{if(st().mode==='drive')backupNow({interactive:false});};
+  setTimeout(auto,8000);setInterval(auto,30*60e3);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')auto();});
 })();
 </script>
 
