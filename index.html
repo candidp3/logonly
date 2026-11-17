@@ -14657,6 +14657,76 @@ function pjTapTask(e,pid,tid){
     return al.apply(this,arguments);
   };
 })();
+
+/* ===== 안드로이드 앱 전용 (2026-11-17): 위·아래 바 색을 화면 바탕색에 맞춤 · 뒤로가기는 열린 창부터 닫기 ===== */
+(function(){
+  const C=window.Capacitor;
+  if(!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform()))return;
+  /* --- 위·아래 바 색 --- */
+  const cv=document.createElement('canvas');cv.width=cv.height=1;const cx=cv.getContext('2d',{willReadFrequently:true});
+  function rgba(css){/* 어떤 CSS 색이든 rgba 숫자로 */
+    if(!css||css==='transparent')return [0,0,0,0];
+    try{cx.clearRect(0,0,1,1);cx.fillStyle='#000';cx.fillStyle=css;cx.fillRect(0,0,1,1);const d=cx.getImageData(0,0,1,1).data;return [d[0],d[1],d[2],d[3]/255];}catch(e){return [0,0,0,0];}
+  }
+  function bgAt(x,y){
+    let el=document.elementFromPoint(x,y);const layers=[];
+    while(el&&el.nodeType===1){const c=rgba(getComputedStyle(el).backgroundColor);if(c[3]>0){layers.push(c);if(c[3]>=.99)break;}el=el.parentElement;}
+    let base=rgba(getComputedStyle(document.body).backgroundColor);if(base[3]<.99)base=rgba(getComputedStyle(document.documentElement).backgroundColor);if(base[3]<.99)base=[245,247,245,1];
+    let r=base[0],g=base[1],b=base[2];
+    for(let i=layers.length-1;i>=0;i--){const [lr,lg,lb,la]=layers[i];r=lr*la+r*(1-la);g=lg*la+g*(1-la);b=lb*la+b*(1-la);}
+    return [Math.round(r),Math.round(g),Math.round(b)];
+  }
+  const hex=c=>'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('');
+  const dark=c=>(0.299*c[0]+0.587*c[1]+0.114*c[2])<140;
+  let last='';
+  function syncBars(){
+    try{
+      if(!window.LogonlyBars||!document.body)return;
+      const w=innerWidth;const t=bgAt(w/2,1),b=bgAt(w/2,innerHeight-1);
+      const k=hex(t)+hex(b);if(k===last)return;last=k;
+      LogonlyBars.setBars(hex(t),hex(b),dark(t),dark(b));
+    }catch(e){}
+  }
+  window.lgSyncBars=syncBars;
+  setInterval(syncBars,600);
+  ['load','resize','visibilitychange','click','transitionend'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(syncBars,30),true));
+  try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{last='';setTimeout(syncBars,60);});}catch(e){}
+  setTimeout(syncBars,0);
+
+  /* --- 뒤로가기: 알림창 → 열린 창(시트·팝업·새 창) → TODAY 탭 → 앱 내리기(끄지 않음, 타이머 유지) --- */
+  const shown=el=>{if(!el||!el.isConnected)return false;const s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&el.getClientRects().length>0;};
+  const OVERLAYS='#appDialog,.lifeModal,.routineActionOverlay,#historyPickerSheet,#iconPickerPopup,.photoViewer,.tdsScreen,#tplEdRoot,#cuRoot,#swRoot,.subSelShade';
+  const CLOSERS='.appDialogCancel,.lifeClose,.tdsBack,[aria-label="닫기"],[aria-label="뒤로"],.subSelShade';
+  function topOverlay(){
+    let best=null,bz=-1;
+    document.querySelectorAll(OVERLAYS).forEach(el=>{if(el.classList.contains('hide')||!shown(el))return;const z=parseInt(getComputedStyle(el).zIndex)||0;if(z>=bz){bz=z;best=el;}});
+    return best;
+  }
+  function closeTop(){
+    const o=topOverlay();if(!o)return false;
+    if(o.classList.contains('subSelShade')){o.click();return true;}
+    const btn=[...o.querySelectorAll(CLOSERS)].find(shown)||(o.id==='appDialog'?o.querySelector('.appDialogOk'):null);
+    if(btn){btn.click();return true;}
+    if(/^(cuRoot|swRoot|tplEdRoot)$/.test(o.id)){
+      const t=[...o.querySelectorAll('button')].find(b=>shown(b)&&/^(취소|닫기|×|‹|건너뛰기)$/.test(b.textContent.trim()));
+      if(t){t.click();return true;}
+      return true; /* 닫을 버튼이 없는 전체 화면: 아무것도 하지 않음 */
+    }
+    o.dispatchEvent(new MouseEvent('click',{bubbles:true})); /* 바깥 눌러 닫기와 같음 */
+    return true;
+  }
+  function onBack(){
+    try{
+      if(document.querySelector('.staticScreen:not(.hide)')&&shown(document.querySelector('.staticScreen:not(.hide)')))return; /* 숨참기 훈련 중엔 무시 */
+      if(document.getElementById('obRoot')&&shown(document.getElementById('obRoot'))){C.Plugins.App.minimizeApp();return;}
+      if(closeTop())return;
+      const today=document.getElementById('navToday');
+      if(today&&!today.classList.contains('on')){today.click();return;}
+      C.Plugins.App.minimizeApp();
+    }catch(e){try{C.Plugins.App.minimizeApp();}catch(_){}}
+  }
+  try{C.Plugins.App.addListener('backButton',onBack);}catch(e){}
+})();
 </script>
 
 </body>
