@@ -12735,6 +12735,13 @@ html,body,*{-webkit-tap-highlight-color:transparent!important}
 .settingLinkRow>div:first-child{flex:1 1 auto;min-width:0}
 .settingLinkRow>button{flex:none}
 .settingLinkRow .backupHint{word-break:keep-all;text-wrap:pretty}
+
+/* 알림 설정 (2026-11-18) */
+#notiList .ntGroup{font-size:var(--fs-1);font-weight:600;color:var(--rc-mu);letter-spacing:.04em;margin:18px 4px 2px}
+#notiList .ntGroup:first-child{margin-top:4px}
+#notiList .ntSub{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:0 4px 12px;font-size:var(--fs-1);color:var(--rc-mu)}
+#notiList .ntSub span{margin-right:auto}
+#notiList .ntSub input,#notiList .ntSub select{font:inherit;font-size:var(--fs-2);color:var(--rc-tx);background:var(--rc-soft);border:1px solid var(--rc-line);border-radius:10px;padding:6px 10px;min-height:0}
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -15113,19 +15120,22 @@ try{qlFabSync();}catch(e){}
     try{
       const n=N();if(!n)return;
       const t=loadActivityTimer();
-      if(!t||!t.startedAt){if(last!=='off'){n.clearTimer();last='off';}return;}
+      const off=!(window.notiTimerBarOn&&window.notiTimerBarOn());
+      if(!t||!t.startedAt||off){if(last!=='off'){n.clearTimer();last='off';}return;}
       const r=loadLifeRoutines().find(x=>x.id===t.routineId);
       const name=(r&&r.name)||'활동';const start=Date.parse(t.startedAt)||Date.now();
       const key=name+'|'+start;if(key===last)return;
       n.showTimer(`${name} 타이머`,'진행 중이에요 · 눌러서 로그온리 열기',start);last=key;
     }catch(e){}
   }
-  window.lgTimerNotiSync=sync;
+  window.lgTimerNotiSync=f=>{if(f)last='';sync();};
   async function askOnce(){
     try{
-      const n=N();if(!n||n.canNotify()||localStorage.getItem(ASKED))return;
+      const n=N();if(!n||localStorage.getItem(ASKED))return;
+      if(n.canNotify()){localStorage.setItem(ASKED,'1');return;}
       localStorage.setItem(ASKED,'1');
-      if(await appConfirm('타이머가 돌아가는 동안 폰 알림바에 시간을 보여드릴까요?\n다른 앱을 쓰다가도 바로 확인할 수 있어요.',{ok:'보여주기',cancel:'괜찮아요'})){
+      if(await appConfirm('타이머가 돌아가는 동안 폰 알림바에 시간을 보여드릴까요?\n다른 앱을 쓰다가도 바로 확인할 수 있어요.\n설정 → 알림에서 언제든 끌 수 있어요.',{ok:'보여주기',cancel:'괜찮아요'})){
+        try{const q=JSON.parse(localStorage.getItem('notiPrefs_v1')||'{}')||{};q.timerBar=true;localStorage.setItem('notiPrefs_v1',JSON.stringify(q));window.notiRender&&window.notiRender();}catch(e){}
         n.askPermission();let k=0;const iv=setInterval(()=>{last='';sync();if(++k>15||n.canNotify())clearInterval(iv);},1000);
       }
     }catch(e){}
@@ -15134,6 +15144,134 @@ try{qlFabSync();}catch(e){}
   renderActivityTimerBanner=function(){const r=rb.apply(this,arguments);try{sync();const t=loadActivityTimer();if(t&&t.startedAt)askOnce();}catch(e){}return r;};
   setTimeout(sync,800);
   document.addEventListener('visibilitychange',()=>{last='';sync();});
+})();
+
+/* ===== 안드로이드 앱 전용 (2026-11-18): 알림 설정 — 모두 기본 꺼짐
+   타이머 알림바 · 안부 인사(기록하라는 말 없이) · 시간대 시작 · 진행 중인 프로젝트 · 데일리케어(항목별) · 생리 예정 3일 전
+   알림 내용은 앱을 열거나 내릴 때마다 새로 계산해서 앞으로 며칠치를 다시 예약 ===== */
+(function(){
+  const C=window.Capacitor;
+  const native=!!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform());
+  const KEY='notiPrefs_v1';
+  const LN=()=>C&&C.Plugins&&C.Plugins.LocalNotifications;
+  const P=()=>{let p={};try{p=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+    p.hello=Object.assign({on:false,time:'21:00'},p.hello);p.block=Object.assign({on:false},p.block);
+    p.project=Object.assign({on:false,time:'09:00',freq:'mon'},p.project);p.period=Object.assign({on:false,time:'09:00'},p.period);
+    p.care=p.care||{};p.timerBar=!!p.timerBar;return p;};
+  const save=p=>{try{localStorage.setItem(KEY,JSON.stringify(p));}catch(e){}};
+  window.notiPrefs=P;
+  const HELLO=['오늘도 재밌게 보내고 있나요? 🌿','토닥토닥, 오늘도 수고 많았어요','잘 지내고 있나요? 잠깐 숨 고르고 가요','오늘 하루는 어땠어요? 천천히 쉬어요','따뜻한 물 한 잔 어때요? 오늘도 고생했어요','토닥토닥 🌙 오늘도 충분히 잘했어요','바쁜 하루였죠? 잠깐 쉬어가도 괜찮아요','오늘도 나답게 보냈다면 그걸로 충분해요'];
+  const hm=t=>{const m=String(t||'').match(/^(\d{1,2}):(\d{2})$/);return m?[+m[1],+m[2]]:[9,0];};
+  const at=(k,t)=>{const [h,m]=hm(t);const d=new Date(k+'T00:00:00');d.setHours(h,m,0,0);return d;};
+  const nf=n=>{try{return formatDailyCareNumber(n);}catch(e){return String(n);}};
+
+  /* --- 타이머 알림바 켜기/끄기 --- */
+  window.notiTimerBarOn=()=>P().timerBar;
+
+  /* --- 예약할 알림 만들기 --- */
+  function build(){
+    const p=P(),out=[],now=Date.now()+60e3,today=getLocalDateKey(new Date());
+    const add=(id,title,body,when)=>{if(when.getTime()>now)out.push({id,title,body,schedule:{at:when,allowWhileIdle:true},isExactNotification:false,channelId:'reminder',smallIcon:'ic_stat_logonly',iconColor:'#3F9C7C'});};
+    if(p.hello.on)for(let i=0;i<21;i++){const k=periodAddDays(today,i);add(1000+i,'로그온리',HELLO[(new Date(k).getDate()+i)%HELLO.length],at(k,p.hello.time));}
+    if(p.block.on){try{
+      const defs=lifeBlockDefs(),hs=lbHours(),rs=loadLifeRoutines().filter(r=>r.enabled!==false);
+      for(let i=0;i<7;i++){const k=periodAddDays(today,i);
+        defs.forEach((b,j)=>{const h=hs[b.id];if(!h)return;
+          const names=rs.filter(r=>r.block===b.id&&(()=>{try{return scheduleApplies(r,k,{allowFree:false});}catch(e){return true;}})()).sort((a,c)=>(a.order||0)-(c.order||0)).map(r=>r.name);
+          if(!names.length)return;
+          const d=new Date(k+'T00:00:00');d.setHours(h[0],0,0,0);
+          add(2000+i*20+j,`${b.name} 시간이에요`,names.slice(0,4).join(' · ')+(names.length>4?` 외 ${names.length-4}개`:''),d);});}
+    }catch(e){}}
+    if(p.project.on){try{
+      const n=pjLoad().filter(x=>x&&x.status!=='done'&&x.status!=='archived').length;
+      if(n)for(let i=0;i<21;i++){const k=periodAddDays(today,i);if(p.project.freq==='mon'&&new Date(k+'T12:00').getDay()!==1)continue;add(3000+i,'로그온리',n>1?`진행 중인 프로젝트 ${n}개가 있어요`:'진행 중인 프로젝트가 있어요',at(k,p.project.time));}
+    }catch(e){}}
+    try{
+      const defs=loadDailyCareDefinitions();
+      defs.forEach((d0,j)=>{const c=p.care[d0.id];if(!c||!c.on)return;const d=normalizeDailyCareDefinition(d0);
+        for(let i=0;i<7;i++){const k=periodAddDays(today,i);let body='';
+          const pt=i===0?dailyCareStoredPoint(d,k):{recorded:false,value:null};
+          const unit=d.unit||'',tg=Number(d.target)||0;
+          if(d.type==='duration')body=pt.recorded&&pt.value!=null?`오늘 ${Math.floor(pt.value/60)}시간 ${pt.value%60?pt.value%60+'분':''} 기록했어요`.trim():'아직 기록 전이에요';
+          else{const v=pt.recorded&&pt.value!=null?pt.value:0;body=tg?`오늘 ${nf(v)} / ${nf(tg)}${unit}`:(pt.recorded?`오늘 ${nf(v)}${unit}`:'아직 기록 전이에요');}
+          add(4000+j*10+i,d.name||'DAILY CARE',body,at(k,c.time||'15:00'));}
+      });
+    }catch(e){}
+    if(p.period.on){try{if(periodEnabled()){const pr=periodPrediction();if(pr&&pr.ready){const k=periodAddDays(pr.next,-3);const dd=new Date(pr.next+'T12:00');add(5000,'로그온리',`생리 예정일이 3일 남았어요 (${dd.getMonth()+1}.${dd.getDate()}쯤)`,at(k,p.period.time));}}}catch(e){}}
+    return out;
+  }
+  let busy=false,again=false;
+  async function resched(){
+    if(!native||!LN())return;
+    if(busy){again=true;return;}busy=true;
+    try{
+      const ln=LN();
+      try{const pend=await ln.getPending();const ids=(pend.notifications||[]).map(n=>({id:n.id}));if(ids.length)await ln.cancel({notifications:ids});}catch(e){}
+      const list=build();
+      if(list.length){
+        try{const perm=await ln.checkPermissions();if(perm.display!=='granted')return;}catch(e){}
+        await ln.schedule({notifications:list});
+      }
+    }catch(e){}finally{busy=false;if(again){again=false;setTimeout(resched,300);}}
+  }
+  window.notiResched=resched;
+  async function ensurePerm(){
+    try{const ln=LN();let p=await ln.checkPermissions();if(p.display==='granted')return true;p=await ln.requestPermissions();return p.display==='granted';}catch(e){return false;}
+  }
+  if(native){
+    setTimeout(async()=>{try{await LN().createChannel({id:'reminder',name:'알림',description:'설정에서 켠 알림',importance:3,visibility:1});}catch(e){}resched();},2000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')resched();});
+  }
+
+  /* --- 설정 화면 --- */
+  function row(id,name,desc,on){return `<div class="svRow${on?' on':''}" role="switch" aria-checked="${on}" tabindex="0" onclick="notiToggle('${id}')"><div class="svTxt"><div class="svName">${name}</div><div class="svDesc">${desc}</div></div><span class="svState">${on?'켜짐':'꺼짐'}</span><span class="svSw" aria-hidden="true"></span></div>`;}
+  const tm=(path,v)=>`<div class="ntSub"><span>알림 시간</span><input type="time" value="${v}" onchange="notiSet('${path}',this.value)"></div>`;
+  function render(){
+    const el=document.getElementById('notiList');if(!el)return;const p=P();let h='';
+    h+=`<div class="ntGroup">타이머</div>`+row('timerBar','타이머 알림바','타이머가 도는 동안 폰 알림바에 흐르는 시간을 보여줘요',p.timerBar);
+    h+=`<div class="ntGroup">하루</div>`+row('hello','안부 인사','정한 시간에 "오늘도 수고 많았어요" 같은 짧은 인사를 보내요',p.hello.on)+(p.hello.on?tm('hello.time',p.hello.time):'');
+    h+=row('block','시간대 시작','아침·점심처럼 시간대가 시작될 때 그 시간 루틴을 알려줘요',p.block.on);
+    let hasPj=true;try{hasPj=secVisOn('project');}catch(e){}
+    if(hasPj)h+=row('project','프로젝트','"진행 중인 프로젝트가 있어요" 정도로만 알려줘요',p.project.on)+(p.project.on?`<div class="ntSub"><span>알림</span><select onchange="notiSet('project.freq',this.value)"><option value="mon"${p.project.freq==='mon'?' selected':''}>매주 월요일</option><option value="daily"${p.project.freq==='daily'?' selected':''}>매일</option></select><input type="time" value="${p.project.time}" onchange="notiSet('project.time',this.value)"></div>`:'');
+    let defs=[];try{defs=loadDailyCareDefinitions();}catch(e){}
+    if(defs.length){h+=`<div class="ntGroup">DAILY CARE</div>`;defs.forEach(d=>{const c=p.care[d.id]||{};h+=row('care.'+d.id,escapeLife(d.name||''),'정한 시간에 오늘 얼마나 했는지 알려줘요',!!c.on)+(c.on?tm('care.'+d.id+'.time',c.time||'15:00'):'');});}
+    let per=false;try{per=periodEnabled();}catch(e){}
+    if(per)h+=`<div class="ntGroup">생리주기</div>`+row('period','생리 예정 3일 전','예측이 준비되면 예정일 3일 전에 알려줘요',p.period.on)+(p.period.on?tm('period.time',p.period.time):'');
+    el.innerHTML=h;
+    const sum=document.getElementById('notiSummary');
+    if(sum){const n=[p.timerBar,p.hello.on,p.block.on,p.project.on,p.period.on].filter(Boolean).length+Object.values(p.care).filter(c=>c&&c.on).length;sum.textContent=n?`${n}개 켜짐`:'모두 꺼짐';}
+  }
+  window.notiRender=render;
+  window.notiToggle=async function(id){
+    const p=P();let turnOn;
+    if(id==='timerBar'){turnOn=!p.timerBar;p.timerBar=turnOn;}
+    else if(id.startsWith('care.')){const k=id.slice(5);p.care[k]=Object.assign({time:'15:00'},p.care[k]);turnOn=!p.care[k].on;p.care[k].on=turnOn;}
+    else{turnOn=!p[id].on;p[id].on=turnOn;}
+    if(turnOn){
+      let ok=true;
+      if(id==='timerBar'){const n=window.LogonlyNotify;if(n&&!n.canNotify()){n.askPermission();ok=await new Promise(r=>{let k=0;const iv=setInterval(()=>{if(n.canNotify()){clearInterval(iv);r(true);}else if(++k>40){clearInterval(iv);r(false);}},500);});}}
+      else ok=await ensurePerm();
+      if(!ok){appAlert('폰에서 로그온리 알림이 꺼져 있어요.\n폰 설정 → 애플리케이션 → 로그온리 → 알림에서 켜 주세요.');return;}
+    }
+    save(p);render();resched();try{window.lgTimerNotiSync&&window.lgTimerNotiSync(true);}catch(e){}
+  };
+  window.notiSet=function(path,v){const p=P();const a=path.split('.');let o=p;for(let i=0;i<a.length-1;i++){o[a[i]]=o[a[i]]||{};o=o[a[i]];}o[a[a.length-1]]=v;save(p);render();resched();};
+  window.openNoti=function(){render();document.getElementById('notiModal').classList.remove('hide');};
+  window.closeNoti=function(){document.getElementById('notiModal').classList.add('hide');};
+  if(native){
+    try{
+      const m=document.createElement('div');m.id='notiModal';m.className='lifeModal hide';m.setAttribute('onclick','if(event.target===this)closeNoti()');
+      m.innerHTML=`<div class="lifeSheet"><div class="lifeSheetHead"><b>알림</b><button class="lifeClose" type="button" onclick="closeNoti()">×</button></div><div class="calendarChipSelectHint">알림은 모두 기본으로 꺼져 있어요. 필요한 것만 켜 주세요.</div><div id="notiList" class="pjManageList"></div></div>`;
+      document.body.appendChild(m);
+      const sec=[...document.querySelectorAll('.backupCardTitle')].find(t=>t.textContent.trim()==='FEATURES');
+      if(sec&&!document.getElementById('notiRow')){
+        const r=document.createElement('div');r.id='notiRow';r.className='backupPart settingLinkRow tapRow';r.setAttribute('role','button');r.tabIndex=0;r.setAttribute('onclick','openNoti()');
+        r.innerHTML=`<div><div class="backupSubTitle">알림</div><div class="backupHint" id="notiSummary">모두 꺼짐</div></div><span class="manageChev" aria-hidden="true">›</span>`;
+        sec.parentElement.appendChild(r);
+      }
+      render();
+    }catch(e){}
+  }
 })();
 </script>
 
