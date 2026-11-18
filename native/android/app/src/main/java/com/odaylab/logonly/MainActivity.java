@@ -19,6 +19,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.widget.RemoteViews;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import androidx.core.view.WindowCompat;
@@ -83,6 +85,12 @@ public class MainActivity extends BridgeActivity {
                     runOnUiThread(() -> NotificationManagerCompat.from(MainActivity.this).cancel(TIMER_NOTI_ID));
                 }
                 @JavascriptInterface
+                public String takeAction() {
+                    String a = pendingTimerAction;
+                    pendingTimerAction = null;
+                    return a == null ? "" : a;
+                }
+                @JavascriptInterface
                 public boolean canNotify() {
                     return Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
                 }
@@ -94,6 +102,7 @@ public class MainActivity extends BridgeActivity {
                 }
             }, "LogonlyNotify");
         }
+        handleTimerIntent(getIntent());
     }
 
     private static final int TIMER_NOTI_ID = 4401;
@@ -111,22 +120,56 @@ public class MainActivity extends BridgeActivity {
             }
             Intent open = new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             PendingIntent pi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            RemoteViews rv = new RemoteViews(getPackageName(), R.layout.noti_timer);
+            rv.setTextViewText(R.id.noti_name, title);
+            long base = SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - startMs);
+            rv.setChronometer(R.id.noti_chrono, base, null, true);
             NotificationCompat.Builder b = new NotificationCompat.Builder(this, TIMER_CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_logonly)
                 .setContentTitle(title)
                 .setContentText(text)
+                .setCustomContentView(rv)
+                .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setWhen(startMs)
-                .setShowWhen(true)
-                .setUsesChronometer(true)
+                .setShowWhen(false)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setSilent(true)
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setColor(0xFF3F9C7C)
-                .setContentIntent(pi);
+                .setContentIntent(pi)
+                .addAction(0, "종료하고 기록", actionIntent("stop", 11))
+                .addAction(0, "취소", actionIntent("cancel", 12));
             NotificationManagerCompat.from(this).notify(TIMER_NOTI_ID, b.build());
         } catch (Exception ignored) {}
+    }
+
+    private String pendingTimerAction;
+
+    private PendingIntent actionIntent(String action, int code) {
+        Intent i = new Intent(this, MainActivity.class)
+            .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            .putExtra("timerAction", action);
+        return PendingIntent.getActivity(this, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    /** 알림의 '종료하고 기록'·'취소'를 눌러 앱이 열렸을 때: 화면(웹)에 전달 */
+    private void handleTimerIntent(Intent intent) {
+        if (intent == null) return;
+        String a = intent.getStringExtra("timerAction");
+        if (a == null) return;
+        intent.removeExtra("timerAction");
+        pendingTimerAction = a;
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().evaluateJavascript("window.lgTimerAction&&window.lgTimerAction()", null);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleTimerIntent(intent);
     }
 
     private static final int RC_AUTH = 9101;
