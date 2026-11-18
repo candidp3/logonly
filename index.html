@@ -12730,6 +12730,11 @@ html,body,*{-webkit-tap-highlight-color:transparent!important}
 
 /* 새 창 오른쪽 위 버튼들('전체 보기'·+) 가운데 맞춤 (2026-11-18) */
 .tdsTopAct{display:flex!important;align-items:center!important}
+
+/* 설정 줄: 설명이 버튼에 밀려 한 글자만 떨어지지 않게 (2026-11-18) */
+.settingLinkRow>div:first-child{flex:1 1 auto;min-width:0}
+.settingLinkRow>button{flex:none}
+.settingLinkRow .backupHint{word-break:keep-all;text-wrap:pretty}
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -15091,6 +15096,44 @@ function tdsDateRender(){
   };
   const op=tdsOpen;
   tdsOpen=function(){const r=op.apply(this,arguments);try{tdsDateRender();}catch(e){}return r;};
+})();
+
+/* QUICK LOG 떠 있는 + 버튼 없앰 (위쪽 QUICK LOG 버튼과 겹침) (2026-11-18) */
+qlFabSync=function(){const f=document.getElementById('qlFab');if(f)f.remove();document.body.classList.remove('qlFabOn');};
+try{qlFabSync();}catch(e){}
+
+/* ===== 안드로이드 앱 전용 (2026-11-18): 타이머가 돌아가는 동안 알림바에 흐르는 시간 표시 ===== */
+(function(){
+  const C=window.Capacitor;
+  if(!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform()))return;
+  const N=()=>window.LogonlyNotify;
+  const ASKED='timerNotiAsked_v1';
+  let last='';
+  function sync(){
+    try{
+      const n=N();if(!n)return;
+      const t=loadActivityTimer();
+      if(!t||!t.startedAt){if(last!=='off'){n.clearTimer();last='off';}return;}
+      const r=loadLifeRoutines().find(x=>x.id===t.routineId);
+      const name=(r&&r.name)||'활동';const start=Date.parse(t.startedAt)||Date.now();
+      const key=name+'|'+start;if(key===last)return;
+      n.showTimer(`${name} 타이머`,'진행 중이에요 · 눌러서 로그온리 열기',start);last=key;
+    }catch(e){}
+  }
+  window.lgTimerNotiSync=sync;
+  async function askOnce(){
+    try{
+      const n=N();if(!n||n.canNotify()||localStorage.getItem(ASKED))return;
+      localStorage.setItem(ASKED,'1');
+      if(await appConfirm('타이머가 돌아가는 동안 폰 알림바에 시간을 보여드릴까요?\n다른 앱을 쓰다가도 바로 확인할 수 있어요.',{ok:'보여주기',cancel:'괜찮아요'})){
+        n.askPermission();let k=0;const iv=setInterval(()=>{last='';sync();if(++k>15||n.canNotify())clearInterval(iv);},1000);
+      }
+    }catch(e){}
+  }
+  const rb=renderActivityTimerBanner;
+  renderActivityTimerBanner=function(){const r=rb.apply(this,arguments);try{sync();const t=loadActivityTimer();if(t&&t.startedAt)askOnce();}catch(e){}return r;};
+  setTimeout(sync,800);
+  document.addEventListener('visibilitychange',()=>{last='';sync();});
 })();
 </script>
 

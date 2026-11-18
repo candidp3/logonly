@@ -7,7 +7,17 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -62,7 +72,61 @@ public class MainActivity extends BridgeActivity {
                     runOnUiThread(() -> startAuthorize(cbId, interactive));
                 }
             }, "LogonlyAuth");
+            // 알림: 타이머가 돌아가는 동안 알림바에 흐르는 시간 표시
+            getBridge().getWebView().addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public void showTimer(final String title, final String text, final double startMs) {
+                    runOnUiThread(() -> showTimerNotification(title, text, (long) startMs));
+                }
+                @JavascriptInterface
+                public void clearTimer() {
+                    runOnUiThread(() -> NotificationManagerCompat.from(MainActivity.this).cancel(TIMER_NOTI_ID));
+                }
+                @JavascriptInterface
+                public boolean canNotify() {
+                    return Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+                }
+                @JavascriptInterface
+                public void askPermission() {
+                    runOnUiThread(() -> {
+                        if (Build.VERSION.SDK_INT >= 33) ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 7301);
+                    });
+                }
+            }, "LogonlyNotify");
         }
+    }
+
+    private static final int TIMER_NOTI_ID = 4401;
+    private static final String TIMER_CHANNEL = "timer";
+
+    private void showTimerNotification(String title, String text, long startMs) {
+        try {
+            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
+            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT >= 26 && nm.getNotificationChannel(TIMER_CHANNEL) == null) {
+                NotificationChannel ch = new NotificationChannel(TIMER_CHANNEL, "타이머", NotificationManager.IMPORTANCE_LOW);
+                ch.setDescription("타이머가 돌아가는 동안 알림바에 시간을 보여줘요");
+                ch.setShowBadge(false);
+                nm.createNotificationChannel(ch);
+            }
+            Intent open = new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent pi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            NotificationCompat.Builder b = new NotificationCompat.Builder(this, TIMER_CHANNEL)
+                .setSmallIcon(R.drawable.ic_stat_logonly)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setWhen(startMs)
+                .setShowWhen(true)
+                .setUsesChronometer(true)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setSilent(true)
+                .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setColor(0xFF3F9C7C)
+                .setContentIntent(pi);
+            NotificationManagerCompat.from(this).notify(TIMER_NOTI_ID, b.build());
+        } catch (Exception ignored) {}
     }
 
     private static final int RC_AUTH = 9101;
