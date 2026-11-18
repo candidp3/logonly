@@ -124,11 +124,14 @@ public class MainActivity extends BridgeActivity {
             rv.setTextViewText(R.id.noti_name, title);
             long base = SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - startMs);
             rv.setChronometer(R.id.noti_chrono, base, null, true);
+            rv.setOnClickPendingIntent(R.id.noti_stop, actionIntent("stop", 11));
+            rv.setOnClickPendingIntent(R.id.noti_cancel, actionIntent("cancel", 12));
             NotificationCompat.Builder b = new NotificationCompat.Builder(this, TIMER_CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_logonly)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setCustomContentView(rv)
+                .setCustomBigContentView(rv)
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setWhen(startMs)
                 .setShowWhen(false)
@@ -138,9 +141,7 @@ public class MainActivity extends BridgeActivity {
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setColor(0xFF3F9C7C)
-                .setContentIntent(pi)
-                .addAction(0, "종료하고 기록", actionIntent("stop", 11))
-                .addAction(0, "취소", actionIntent("cancel", 12));
+                .setContentIntent(actionIntent("open", 10));
             NotificationManagerCompat.from(this).notify(TIMER_NOTI_ID, b.build());
         } catch (Exception ignored) {}
     }
