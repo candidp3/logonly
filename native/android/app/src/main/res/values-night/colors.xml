@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="appBg">#121615</color>
+    <color name="notiAccent">#8FD9BC</color>
+    <color name="notiAccentBg">#297FD0B0</color>
+    <color name="notiMuted">#97A69E</color>
 </resources>

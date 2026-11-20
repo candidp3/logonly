@@ -78,11 +78,19 @@ public class MainActivity extends BridgeActivity {
             getBridge().getWebView().addJavascriptInterface(new Object() {
                 @JavascriptInterface
                 public void showTimer(final String title, final String text, final double startMs) {
-                    runOnUiThread(() -> showTimerNotification(title, text, (long) startMs));
+                    runOnUiThread(() -> showTimerNotification("routine", title, (long) startMs, "기록하기", "취소"));
+                }
+                @JavascriptInterface
+                public void showTimerEx(final String slot, final String title, final double startMs, final String primary, final String cancel) {
+                    runOnUiThread(() -> showTimerNotification(slot, title, (long) startMs, primary, cancel));
                 }
                 @JavascriptInterface
                 public void clearTimer() {
-                    runOnUiThread(() -> NotificationManagerCompat.from(MainActivity.this).cancel(TIMER_NOTI_ID));
+                    runOnUiThread(() -> NotificationManagerCompat.from(MainActivity.this).cancel(notiIdOf("routine")));
+                }
+                @JavascriptInterface
+                public void clearTimerEx(final String slot) {
+                    runOnUiThread(() -> NotificationManagerCompat.from(MainActivity.this).cancel(notiIdOf(slot)));
                 }
                 @JavascriptInterface
                 public String takeAction() {
@@ -108,7 +116,13 @@ public class MainActivity extends BridgeActivity {
     private static final int TIMER_NOTI_ID = 4401;
     private static final String TIMER_CHANNEL = "timer";
 
-    private void showTimerNotification(String title, String text, long startMs) {
+    /** 알림 자리: routine(일상 루틴·FREE TIME 타이머) = 4401, care:항목(데일리케어 시간 기록) = 4410~4489 */
+    private static int notiIdOf(String slot) {
+        if (slot == null || slot.equals("routine")) return TIMER_NOTI_ID;
+        return 4410 + (Math.abs(slot.hashCode()) % 80);
+    }
+
+    private void showTimerNotification(String slot, String title, long startMs, String primary, String cancel) {
         try {
             if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
             NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -118,18 +132,25 @@ public class MainActivity extends BridgeActivity {
                 ch.setShowBadge(false);
                 nm.createNotificationChannel(ch);
             }
-            Intent open = new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent pi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            int id = notiIdOf(slot);
+            int rc = (id - 4400) * 10;
             RemoteViews rv = new RemoteViews(getPackageName(), R.layout.noti_timer);
             rv.setTextViewText(R.id.noti_name, title);
             long base = SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - startMs);
             rv.setChronometer(R.id.noti_chrono, base, null, true);
-            rv.setOnClickPendingIntent(R.id.noti_stop, actionIntent("stop", 11));
-            rv.setOnClickPendingIntent(R.id.noti_cancel, actionIntent("cancel", 12));
+            rv.setTextViewText(R.id.noti_stop, primary == null || primary.isEmpty() ? "기록하기" : primary);
+            rv.setOnClickPendingIntent(R.id.noti_stop, actionIntent("stop", slot, rc + 1));
+            if (cancel == null || cancel.isEmpty()) {
+                rv.setViewVisibility(R.id.noti_cancel, android.view.View.GONE);
+            } else {
+                rv.setViewVisibility(R.id.noti_cancel, android.view.View.VISIBLE);
+                rv.setTextViewText(R.id.noti_cancel, cancel);
+                rv.setOnClickPendingIntent(R.id.noti_cancel, actionIntent("cancel", slot, rc + 2));
+            }
             NotificationCompat.Builder b = new NotificationCompat.Builder(this, TIMER_CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_logonly)
                 .setContentTitle(title)
-                .setContentText(text)
+                .setContentText("진행 중")
                 .setCustomContentView(rv)
                 .setCustomBigContentView(rv)
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
@@ -141,17 +162,18 @@ public class MainActivity extends BridgeActivity {
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setColor(0xFF3F9C7C)
-                .setContentIntent(actionIntent("open", 10));
-            NotificationManagerCompat.from(this).notify(TIMER_NOTI_ID, b.build());
+                .setContentIntent(actionIntent("open", slot, rc));
+            NotificationManagerCompat.from(this).notify(id, b.build());
         } catch (Exception ignored) {}
     }
 
     private String pendingTimerAction;
 
-    private PendingIntent actionIntent(String action, int code) {
+    private PendingIntent actionIntent(String action, String slot, int code) {
         Intent i = new Intent(this, MainActivity.class)
             .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            .putExtra("timerAction", action);
+            .putExtra("timerAction", action)
+            .putExtra("timerSlot", slot == null ? "routine" : slot);
         return PendingIntent.getActivity(this, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
@@ -160,8 +182,10 @@ public class MainActivity extends BridgeActivity {
         if (intent == null) return;
         String a = intent.getStringExtra("timerAction");
         if (a == null) return;
+        String slot = intent.getStringExtra("timerSlot");
         intent.removeExtra("timerAction");
-        pendingTimerAction = a;
+        intent.removeExtra("timerSlot");
+        pendingTimerAction = a + "|" + (slot == null ? "routine" : slot);
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().evaluateJavascript("window.lgTimerAction&&window.lgTimerAction()", null);
         }

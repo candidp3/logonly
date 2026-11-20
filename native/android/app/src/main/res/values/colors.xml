@@ -2,4 +2,8 @@
 <resources>
     <!-- 앱 바탕색: 상태바·하단 바 뒤쪽과 시작 화면에 쓰임 -->
     <color name="appBg">#F5F7F5</color>
+    <!-- 알림바 타이머: 차분한 초록 글씨 + 아주 연한 초록 바탕 -->
+    <color name="notiAccent">#2F7F64</color>
+    <color name="notiAccentBg">#173F9C7C</color>
+    <color name="notiMuted">#7B8981</color>
 </resources>

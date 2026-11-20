@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 타이머 알림: 왼쪽 시간(위에 활동 이름) · 오른쪽 버튼 -->
+<!-- 타이머 알림: 왼쪽 작은 이름 + 흐르는 시간 · 오른쪽 글자 버튼(취소) + 연한 초록 버튼(기록) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -17,39 +19,40 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:textSize="12sp"
-            android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+            android:textColor="@color/notiMuted" />
         <Chronometer
             android:id="@+id/noti_chrono"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
             android:includeFontPadding="false"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            android:textSize="22sp"
+            android:fontFamily="sans-serif-medium"
             android:fontFeatureSettings="tnum"
+            android:letterSpacing="0.02"
             android:textAppearance="@style/TextAppearance.Compat.Notification.Title" />
     </LinearLayout>
     <TextView
         android:id="@+id/noti_cancel"
         android:layout_width="wrap_content"
-        android:layout_height="34dp"
+        android:layout_height="32dp"
         android:gravity="center"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp"
-        android:background="@drawable/noti_btn_soft"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:text="취소"
         android:textSize="13sp"
-        android:textAppearance="@style/TextAppearance.Compat.Notification.Title" />
+        android:textColor="@color/notiMuted" />
     <TextView
         android:id="@+id/noti_stop"
         android:layout_width="wrap_content"
-        android:layout_height="34dp"
-        android:layout_marginStart="8dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
         android:gravity="center"
         android:paddingStart="14dp"
         android:paddingEnd="14dp"
         android:background="@drawable/noti_btn_primary"
-        android:text="종료하고 기록"
-        android:textColor="#FFFFFF"
+        android:text="기록하기"
         android:textSize="13sp"
-        android:textStyle="bold" />
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/notiAccent" />
 </LinearLayout>
