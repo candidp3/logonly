@@ -24,6 +24,8 @@ import android.widget.RemoteViews;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.auth.api.identity.AuthorizationRequest;
 import com.google.android.gms.auth.api.identity.AuthorizationResult;
 import com.google.android.gms.auth.api.identity.Identity;
@@ -57,6 +59,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        watchKeyboard();
         // 폰의 글자 크기 설정과 상관없이 앱 안 글자 크기는 앱 설정(작게·기본·크게)만 따르게 고정
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().getSettings().setTextZoom(100);
@@ -111,6 +114,32 @@ public class MainActivity extends BridgeActivity {
             }, "LogonlyNotify");
         }
         handleTimerIntent(getIntent());
+    }
+
+    /** 키보드가 웹 화면을 얼마나 가리는지(CSS px) 웹에 알려줌 → 아래쪽 입력칸이 키보드 위로 보이게 */
+    private int lastKbPx = -1;
+    private void watchKeyboard() {
+        final View decor = getWindow().getDecorView();
+        decor.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            try {
+                if (getBridge() == null || getBridge().getWebView() == null) return;
+                WindowInsetsCompat wi = ViewCompat.getRootWindowInsets(decor);
+                if (wi == null) return;
+                int ime = wi.isVisible(WindowInsetsCompat.Type.ime()) ? wi.getInsets(WindowInsetsCompat.Type.ime()).bottom : 0;
+                View wv = getBridge().getWebView();
+                int[] loc = new int[2];
+                wv.getLocationOnScreen(loc);
+                int[] dloc = new int[2];
+                decor.getLocationOnScreen(dloc);
+                int kbTop = dloc[1] + decor.getHeight() - ime;
+                int overlap = ime > 0 ? Math.max(0, loc[1] + wv.getHeight() - kbTop) : 0;
+                float d = getResources().getDisplayMetrics().density;
+                int css = Math.round(overlap / d);
+                if (css == lastKbPx) return;
+                lastKbPx = css;
+                getBridge().getWebView().evaluateJavascript("window.__lgKb&&window.__lgKb(" + css + ")", null);
+            } catch (Exception ignored) {}
+        });
     }
 
     private static final int TIMER_NOTI_ID = 4401;
