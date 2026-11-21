@@ -12838,6 +12838,22 @@ html .lifeModal{bottom:var(--kb,0px)!important;top:0!important;height:auto!impor
 
 #sleepManualDateNote b,#dailyCareDurationDateNote b{font-weight:600;color:var(--rc-tx)}
 
+/* 처음 알림 제안 (2026-11-21) */
+#ntOffer{position:fixed;inset:0;z-index:2050;background:rgba(20,26,23,.42);display:flex;align-items:flex-end;justify-content:center}
+#ntOffer .cbCard{width:min(100%,520px);background:var(--rc-card,#fff);border-radius:24px 24px 0 0;padding:24px 18px calc(22px + env(safe-area-inset-bottom));box-sizing:border-box}
+#ntOffer .cbT{font-size:var(--fs-4,20px);font-weight:700;color:var(--rc-tx);margin:0 4px 16px}
+#ntOffer .noRow{display:flex;align-items:center;gap:12px;padding:12px 4px}
+#ntOffer .noRow+.noRow{border-top:1px solid var(--rc-line)}
+#ntOffer .noIc{flex:none;width:38px;height:38px;border-radius:12px;background:var(--rc-gl);color:var(--rc-gd);display:flex;align-items:center;justify-content:center}
+#ntOffer .noIc svg{width:20px;height:20px}
+#ntOffer .noRow b{display:block;font-size:var(--fs-3);font-weight:600;color:var(--rc-tx)}
+#ntOffer .noRow div>span{display:block;font-size:var(--fs-1);color:var(--rc-mu);margin-top:2px}
+#ntOffer .noBtns{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin:18px 0 0}
+#ntOffer .noBtns button{height:50px;border:0;border-radius:14px;font:inherit;font-size:var(--fs-3);font-weight:600}
+#ntOffer .noNo{background:var(--rc-soft);color:var(--rc-tx2)}
+#ntOffer .noYes{background:var(--rc-solid);color:#fff}
+#ntOffer .cbNote{font-size:var(--fs-1);color:var(--rc-mu);margin:12px 4px 0;text-align:center}
+
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -16091,6 +16107,56 @@ saveCustomDailyCareDurationManual=function(){
     try{if(document.getElementById('sleepManualModal')?.classList.contains('hide')&&k&&k!==activeDateKey)appToast(`${dcDayLabel(k)} 수면을 저장했어요`);}catch(e){}
     return r;
   };
+})();
+
+/* ===== 안드로이드 앱 전용 (2026-11-21): 처음 시작할 때 알림 한 번 제안
+   온보딩을 마치고 사용법 안내·백업 위치 고르기까지 끝나면 한 번만 물어봄.
+   '받아볼게요' → 저녁 안부 인사 + 타이머 알림바만 켬. 나머지는 꺼진 그대로 ===== */
+(function(){
+  const C=window.Capacitor;
+  if(!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform()))return;
+  const K='notiOffer_v1';
+  try{if(typeof BACKUP_EXCLUDED_KEYS!=='undefined'&&BACKUP_EXCLUDED_KEYS.add)BACKUP_EXCLUDED_KEYS.add(K);}catch(e){}
+  const of=obFinish;
+  obFinish=function(){try{if(!(typeof obPreviewOnly!=='undefined'&&obPreviewOnly))localStorage.setItem(K,'pending');}catch(e){}return of.apply(this,arguments);};
+  function busy(){
+    const vis=el=>el&&getComputedStyle(el).display!=='none'&&el.getClientRects().length;
+    if(['obRoot','coachRoot','cbWhere','cuRoot','swRoot','tplEdRoot','ntOffer'].some(id=>vis(document.getElementById(id))))return true;
+    if(vis(document.getElementById('appDialog'))&&!document.getElementById('appDialog').classList.contains('hide'))return true;
+    if(document.querySelector('.lifeModal:not(.hide)'))return true;
+    return document.visibilityState!=='visible';
+  }
+  function show(){
+    const o=document.createElement('div');o.id='ntOffer';
+    o.innerHTML=`<div class="cbCard" role="dialog" aria-modal="true">
+      <div class="cbT">가볍게 알림 받아볼까요?</div>
+      <div class="noRow"><span class="noIc">${appIconSvg('moon')}</span><div><b>저녁 9시 안부 인사</b><span>기록하라는 말 없이, 짧은 인사 한마디</span></div></div>
+      <div class="noRow"><span class="noIc">${appIconSvg('timer')||appIconSvg('clock')}</span><div><b>타이머 알림바</b><span>타이머가 도는 동안 알림바에 시간이 보여요</span></div></div>
+      <div class="noBtns"><button type="button" class="noNo" onclick="ntOfferPick(false)">괜찮아요</button><button type="button" class="noYes" onclick="ntOfferPick(true)">받아볼게요</button></div>
+      <div class="cbNote">설정 → 알림에서 언제든 바꿀 수 있어요.</div></div>`;
+    document.body.appendChild(o);
+  }
+  window.ntOfferPick=async function(yes){
+    try{localStorage.setItem(K,'done');}catch(e){}
+    document.getElementById('ntOffer')?.remove();
+    if(!yes)return;
+    try{
+      const p=notiPrefs();
+      if(!p.hello.on)await notiToggle('hello');
+      if(!notiPrefs().timerBar)await notiToggle('timerBar');
+      if(notiPrefs().hello.on)appToast('저녁 9시에 안부 인사를 보낼게요');
+    }catch(e){}
+  };
+  let n=0;
+  const iv=setInterval(()=>{
+    let st='';try{st=localStorage.getItem(K)||'';}catch(e){}
+    if(st!=='pending'){clearInterval(iv);return;}
+    let chosen=true;try{chosen=!!(JSON.parse(localStorage.getItem('cloudBackup_v1')||'{}')||{}).mode;}catch(e){}
+    if(++n>400){clearInterval(iv);return;}
+    if(!chosen&&n<60)return; /* 백업 위치를 먼저 고르게 */
+    if(busy())return;
+    clearInterval(iv);setTimeout(()=>{if(!busy())show();else localStorage.setItem(K,'pending');},600);
+  },1500);
 })();
 
 </script>
