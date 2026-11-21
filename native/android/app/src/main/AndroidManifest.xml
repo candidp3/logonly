@@ -40,7 +40,12 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- 정확한 알람 권한은 쓰지 않음 (알림은 몇 분 오차가 있어도 되는 부드러운 알림이라). 플레이 정책 신고 대상에서 빼기 -->
     <!-- 알림이 정해진 시간에 울리도록. 사용자가 폰 설정 '알람 및 리마인더'에서 허용해야 쓰임(안 하면 늦게 울릴 수 있음) -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- 숨참기 음성 안내: 폰의 음성 엔진(TTS)을 찾을 수 있게 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
 </manifest>

@@ -16159,6 +16159,32 @@ saveCustomDailyCareDurationManual=function(){
   },1500);
 })();
 
+/* ===== 안드로이드 앱 전용 (2026-11-21): 숨참기 음성 안내 · 화면 켜짐 유지
+   앱 화면(WebView)에는 브라우저 음성 기능이 없어서 폰의 음성 엔진(TTS)으로 읽어 줌 ===== */
+(function(){
+  const T=window.LogonlyTTS;if(!T)return;
+  try{T.prepare();}catch(e){}
+  stSay=function(t){try{T.speak(String(t));}catch(e){}};
+  const fin=stFinish;
+  stFinish=function(){try{T.stop();}catch(e){}return fin.apply(this,arguments);};
+  stWake=async function(){try{T.keepScreen(true);}catch(e){}};
+  stSleep=function(){try{T.keepScreen(false);}catch(e){}};
+  const os=openStatic;
+  openStatic=function(){try{T.prepare();}catch(e){}return os.apply(this,arguments);};
+  stVoiceTest=function(){
+    let st='';try{T.prepare();st=T.status();}catch(e){}
+    if(st==='fail'){
+      appConfirm('폰에 음성 엔진(TTS)이 없거나 꺼져 있어요.\n폰 설정에서 음성 출력(텍스트 음성 변환)을 확인해 주세요.',{ok:'설정 열기',cancel:'닫기'}).then(ok=>{if(ok)try{T.openTtsSettings();}catch(e){}});
+      return;
+    }
+    stSay('breathe');setTimeout(()=>stSay('hold'),1300);
+    setTimeout(()=>{let s2='';try{s2=T.status();}catch(e){}
+      if(s2==='nolang')appToast('영어 음성이 없어 폰 기본 음성으로 읽어요. 설정 → 텍스트 음성 변환에서 영어를 받을 수 있어요');
+      else if(s2==='fail')appToast('음성 엔진을 쓸 수 없어요. 폰 설정에서 텍스트 음성 변환을 확인해 주세요');
+      else appToast('"breathe", "hold" 소리가 나는지 확인해 주세요. 미디어 볼륨으로 나와요');},1800);
+  };
+})();
+
 </script>
 
 </body>

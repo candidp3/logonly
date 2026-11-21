@@ -23,6 +23,10 @@ import android.os.SystemClock;
 import android.widget.RemoteViews;
 import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.speech.tts.TextToSpeech;
+import android.media.AudioAttributes;
+import android.view.WindowManager;
+import java.util.Locale;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -63,6 +67,43 @@ public class MainActivity extends BridgeActivity {
         // 폰의 글자 크기 설정과 상관없이 앱 안 글자 크기는 앱 설정(작게·기본·크게)만 따르게 고정
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().getSettings().setTextZoom(100);
+            // 숨참기 끝 알림음(웹 오디오)이 터치 없이도 나도록
+            getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
+            // 숨참기 음성 안내: 폰의 음성 엔진으로 읽어 줌 (앱 화면에서는 브라우저 음성 기능이 없어서)
+            getBridge().getWebView().addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public String status() { return ttsStatus; }
+                @JavascriptInterface
+                public void prepare() { runOnUiThread(() -> initTts()); }
+                @JavascriptInterface
+                public void speak(final String text) {
+                    runOnUiThread(() -> {
+                        if (tts == null) { initTts(); pendingSay = text; return; }
+                        if (!"ok".equals(ttsStatus) && !"nolang".equals(ttsStatus)) { pendingSay = text; return; }
+                        Bundle b = new Bundle();
+                        b.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1f);
+                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, b, "st" + SystemClock.elapsedRealtime());
+                    });
+                }
+                @JavascriptInterface
+                public void stop() { runOnUiThread(() -> { if (tts != null) tts.stop(); }); }
+                @JavascriptInterface
+                public void keepScreen(final boolean on) {
+                    runOnUiThread(() -> {
+                        if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    });
+                }
+                @JavascriptInterface
+                public void openTtsSettings() {
+                    runOnUiThread(() -> {
+                        try { startActivity(new Intent("com.android.settings.TTS_SETTINGS")); }
+                        catch (Exception e) {
+                            try { startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS)); } catch (Exception ignored) {}
+                        }
+                    });
+                }
+            }, "LogonlyTTS");
             // 화면(웹) 쪽에서 지금 바탕색을 알려주면 위·아래 바 색을 맞춤 (앱 안 밝게/어둡게 설정도 따라감)
             getBridge().getWebView().addJavascriptInterface(new Object() {
                 @JavascriptInterface
@@ -137,6 +178,36 @@ public class MainActivity extends BridgeActivity {
             }, "LogonlyNotify");
         }
         handleTimerIntent(getIntent());
+    }
+
+    /** 음성 엔진: 처음 쓸 때 준비. 영어(미국) 음성이 없으면 폰 기본 언어로 읽음 */
+    private TextToSpeech tts;
+    private String ttsStatus = "none";
+    private String pendingSay;
+    private void initTts() {
+        if (tts != null) return;
+        ttsStatus = "init";
+        tts = new TextToSpeech(getApplicationContext(), st -> {
+            if (st != TextToSpeech.SUCCESS) { ttsStatus = "fail"; return; }
+            try {
+                tts.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
+            } catch (Exception ignored) {}
+            int r = tts.setLanguage(Locale.US);
+            ttsStatus = (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) ? "nolang" : "ok";
+            tts.setSpeechRate(1.0f);
+            if (pendingSay != null) {
+                String t = pendingSay; pendingSay = null;
+                tts.speak(t, TextToSpeech.QUEUE_FLUSH, null, "st0");
+            }
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        try { if (tts != null) { tts.stop(); tts.shutdown(); tts = null; } } catch (Exception ignored) {}
+        super.onDestroy();
     }
 
     /** 키보드가 웹 화면을 얼마나 가리는지(CSS px) 웹에 알려줌 → 아래쪽 입력칸이 키보드 위로 보이게 */
