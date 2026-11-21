@@ -96,6 +96,29 @@ public class MainActivity extends BridgeActivity {
                     runOnUiThread(() -> NotificationManagerCompat.from(MainActivity.this).cancel(notiIdOf(slot)));
                 }
                 @JavascriptInterface
+                public boolean canExact() {
+                    if (Build.VERSION.SDK_INT < 31) return true;
+                    try {
+                        android.app.AlarmManager am = (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
+                        return am != null && am.canScheduleExactAlarms();
+                    } catch (Exception e) { return true; }
+                }
+                @JavascriptInterface
+                public void openExactSettings() {
+                    runOnUiThread(() -> {
+                        try {
+                            if (Build.VERSION.SDK_INT >= 31) {
+                                Intent i = new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, android.net.Uri.parse("package:" + getPackageName()));
+                                startActivity(i);
+                            }
+                        } catch (Exception e) {
+                            try {
+                                startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + getPackageName())));
+                            } catch (Exception ignored) {}
+                        }
+                    });
+                }
+                @JavascriptInterface
                 public String takeAction() {
                     String a = pendingTimerAction;
                     pendingTimerAction = null;
