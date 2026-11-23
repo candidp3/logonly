@@ -10,4 +10,7 @@
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/widget_routines"
     android:description="@string/widget_desc"
-    android:widgetCategory="home_screen" />
+    android:widgetCategory="home_screen"
+    android:configure="com.odaylab.logonly.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:previewLayout="@layout/widget_routines" />

@@ -12,4 +12,5 @@
     <color name="widgetMuted">#8A958F</color>
     <color name="widgetLine">#D3DBD6</color>
     <color name="widgetAccent">#3F9C7C</color>
+    <color name="cfgChipOnBg">#1F3F9C7C</color>
 </resources>

@@ -7,8 +7,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
+import android.util.TypedValue;
+import android.view.View;
 import android.widget.RemoteViews;
 
 import org.json.JSONArray;
@@ -19,29 +22,59 @@ import java.util.Calendar;
 import java.util.Locale;
 
 /**
- * 홈 화면 위젯: '지금 시간대'의 루틴을 보여주고 바로 체크 (2026-11-23)
- * - 앱(TODAY)이 그려질 때마다 오늘의 시간대별 루틴을 넘겨줌(LogonlyWidget.update)
- * - 위젯은 지금 시각에 맞는 시간대를 골라 보여줌
- * - 체크형은 누르면 바로 체크(누른 시각을 기억해 두었다가 앱이 반영), 시간·횟수형은 앱을 열어 그 루틴으로
+ * 홈 화면 위젯 '지금 할 일' (2026-11-24 v2)
+ * 잘 만든 할 일 위젯(Todoist·TickTick·MS To Do)처럼: 위젯마다 테마·배경 투명도·글씨 크기·보여줄 범위·다 한 항목 숨기기,
+ * 위젯 오른쪽 위 설정 버튼, 설정 화면 맨 위에 미리보기.
  */
 public class RoutineWidgetProvider extends AppWidgetProvider {
     static final String PREFS = "logonly_widget";
     static final String KEY_DATA = "data";
     static final String KEY_OPEN = "open";
     static final String ACTION_TAP = "com.odaylab.logonly.WIDGET_TAP";
+    static final String[] WD = {"일", "월", "화", "수", "목", "금", "토"};
 
-    static String todayKey(Context ctx) {
-        Calendar c = Calendar.getInstance();
-        try {
-            JSONObject d = new JSONObject(ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_DATA, "{}"));
-            int ds = d.optInt("dayStart", 0);
-            if (c.get(Calendar.HOUR_OF_DAY) < ds) c.add(Calendar.DATE, -1);
-        } catch (Exception ignored) {}
-        return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(c.getTime());
+    /* ---------- 설정 ---------- */
+    static JSONObject cfg(Context ctx, int id) {
+        try { return new JSONObject(ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("cfg_" + id, "{}")); }
+        catch (Exception e) { return new JSONObject(); }
+    }
+    static void saveCfg(Context ctx, int id, JSONObject c) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("cfg_" + id, c.toString()).apply();
+    }
+    static boolean dark(Context ctx, JSONObject c) {
+        String t = c.optString("theme", "system");
+        if ("light".equals(t)) return false;
+        if ("dark".equals(t)) return true;
+        return (ctx.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+    }
+    /** {배경, 글자, 흐린 글자, 선, 강조} */
+    static int[] colors(Context ctx, JSONObject c) {
+        return dark(ctx, c)
+            ? new int[]{0xFF1C2321, 0xFFE6ECE9, 0xFF8E9C95, 0xFF4A5752, 0xFF5FBF9B}
+            : new int[]{0xFFFFFFFF, 0xFF26302B, 0xFF8A958F, 0xFFC9D3CE, 0xFF3F9C7C};
+    }
+    static float[] sizes(JSONObject c) {
+        String f = c.optString("font", "m"); /* 제목, 항목, 작은 글씨 */
+        if ("s".equals(f)) return new float[]{14, 13, 11};
+        if ("l".equals(f)) return new float[]{17, 16, 13};
+        return new float[]{15, 14, 12};
     }
 
+    /* ---------- 데이터 ---------- */
+    static JSONObject data(Context ctx) {
+        try { return new JSONObject(ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_DATA, "{}")); }
+        catch (Exception e) { return new JSONObject(); }
+    }
+    static Calendar logicalDay(JSONObject d) {
+        Calendar c = Calendar.getInstance();
+        if (c.get(Calendar.HOUR_OF_DAY) < d.optInt("dayStart", 0)) c.add(Calendar.DATE, -1);
+        return c;
+    }
+    static String todayKey(Context ctx) {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(logicalDay(data(ctx)).getTime());
+    }
     /** 앱의 thBlockNow()와 같은 규칙 */
-    static JSONObject currentBlock(Context ctx, JSONObject data) {
+    static JSONObject currentBlock(JSONObject data) {
         JSONArray blocks = data.optJSONArray("blocks");
         if (blocks == null || blocks.length() == 0) return null;
         int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
@@ -55,38 +88,149 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
             if (pick.equals(b.optString("id"))) found = b;
             if (fb != null && fb.equals(b.optString("id"))) fallback = b;
         }
-        if (found != null) return found;
-        if (fallback != null) return fallback;
-        return blocks.optJSONObject(0);
+        return found != null ? found : fallback != null ? fallback : blocks.optJSONObject(0);
+    }
+    /** 위젯에 보일 줄 목록 (전체 보기면 시간대 제목 줄 포함) */
+    static JSONArray rows(Context ctx, JSONObject c) {
+        JSONArray out = new JSONArray();
+        JSONObject d = data(ctx);
+        if (!todayKey(ctx).equals(d.optString("date"))) return out;
+        boolean hide = c.optBoolean("hideDone", false);
+        try {
+            if ("all".equals(c.optString("scope", "now"))) {
+                JSONArray blocks = d.optJSONArray("blocks");
+                JSONObject now = currentBlock(d);
+                for (int i = 0; blocks != null && i < blocks.length(); i++) {
+                    JSONObject b = blocks.optJSONObject(i);
+                    JSONArray its = b.optJSONArray("items");
+                    JSONArray keep = new JSONArray();
+                    int dn = 0, n = its == null ? 0 : its.length();
+                    for (int k = 0; k < n; k++) { JSONObject it = its.optJSONObject(k); if (it.optBoolean("done")) dn++; if (!(hide && it.optBoolean("done"))) keep.put(it); }
+                    if (keep.length() == 0) continue;
+                    JSONObject h = new JSONObject();
+                    h.put("header", true);
+                    h.put("name", b.optString("label") + (now != null && b.optString("id").equals(now.optString("id")) ? " · 지금" : ""));
+                    h.put("meta", dn + "/" + n);
+                    out.put(h);
+                    for (int k = 0; k < keep.length(); k++) out.put(keep.get(k));
+                }
+            } else {
+                JSONObject b = currentBlock(d);
+                JSONArray its = b == null ? null : b.optJSONArray("items");
+                for (int k = 0; its != null && k < its.length(); k++) {
+                    JSONObject it = its.optJSONObject(k);
+                    if (!(hide && it.optBoolean("done"))) out.put(it);
+                }
+            }
+        } catch (Exception ignored) {}
+        return out;
     }
 
+    /* ---------- 그리기 ---------- */
     static void refresh(Context ctx) {
         AppWidgetManager m = AppWidgetManager.getInstance(ctx);
         int[] ids = m.getAppWidgetIds(new ComponentName(ctx, RoutineWidgetProvider.class));
         if (ids == null || ids.length == 0) return;
-        for (int id : ids) m.updateAppWidget(id, build(ctx, id));
+        for (int id : ids) m.updateAppWidget(id, build(ctx, id, cfg(ctx, id), false));
         m.notifyAppWidgetViewDataChanged(ids, R.id.widgetList);
     }
 
-    static RemoteViews build(Context ctx, int widgetId) {
+    static RemoteViews itemView(Context ctx, JSONObject it, JSONObject c) {
+        int[] col = colors(ctx, c);
+        float[] sz = sizes(c);
+        if (it.optBoolean("header")) {
+            RemoteViews h = new RemoteViews(ctx.getPackageName(), R.layout.widget_header_row);
+            h.setTextViewText(R.id.widgetHeadName, it.optString("name"));
+            h.setTextViewText(R.id.widgetHeadMeta, it.optString("meta"));
+            h.setTextColor(R.id.widgetHeadName, col[2]);
+            h.setTextColor(R.id.widgetHeadMeta, col[2]);
+            h.setTextViewTextSize(R.id.widgetHeadName, TypedValue.COMPLEX_UNIT_SP, sz[2]);
+            h.setTextViewTextSize(R.id.widgetHeadMeta, TypedValue.COMPLEX_UNIT_SP, sz[2]);
+            return h;
+        }
+        RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_item);
+        boolean done = it.optBoolean("done");
+        v.setTextViewText(R.id.widgetItemName, it.optString("name"));
+        String meta = it.optString("meta", "");
+        if (meta.isEmpty() && "open".equals(it.optString("kind")) && !done) meta = "기록 ›";
+        v.setTextViewText(R.id.widgetItemMeta, meta);
+        v.setViewVisibility(R.id.widgetItemMeta, meta.isEmpty() ? View.GONE : View.VISIBLE);
+        v.setImageViewResource(R.id.widgetItemCheck, done ? R.drawable.widget_check_on : R.drawable.widget_check_off);
+        if (!done) v.setInt(R.id.widgetItemCheck, "setColorFilter", col[3]);
+        else v.setInt(R.id.widgetItemCheck, "setColorFilter", 0);
+        v.setTextColor(R.id.widgetItemName, done ? col[2] : col[1]);
+        v.setTextColor(R.id.widgetItemMeta, col[2]);
+        v.setTextViewTextSize(R.id.widgetItemName, TypedValue.COMPLEX_UNIT_SP, sz[1]);
+        v.setTextViewTextSize(R.id.widgetItemMeta, TypedValue.COMPLEX_UNIT_SP, sz[2]);
+        return v;
+    }
+
+    static RemoteViews build(Context ctx, int widgetId, JSONObject c, boolean preview) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_routines);
-        String title = "지금 할 일", count = "";
-        boolean fresh = false;
+        int[] col = colors(ctx, c);
+        float[] sz = sizes(c);
+        int alpha = Math.max(0, Math.min(100, c.optInt("opacity", 100)));
+        v.setInt(R.id.widgetBgImg, "setColorFilter", col[0]);
+        v.setInt(R.id.widgetBgImg, "setImageAlpha", Math.round(alpha * 2.55f));
+
+        JSONObject d = data(ctx);
+        boolean fresh = todayKey(ctx).equals(d.optString("date"));
+        boolean all = "all".equals(c.optString("scope", "now"));
+        String title = all ? "오늘 할 일" : "지금 할 일";
+        int n = 0, done = 0;
         try {
-            JSONObject data = new JSONObject(ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_DATA, "{}"));
-            fresh = todayKey(ctx).equals(data.optString("date"));
-            JSONObject b = fresh ? currentBlock(ctx, data) : null;
-            if (b != null) {
-                title = "지금은 " + b.optString("label");
-                JSONArray items = b.optJSONArray("items");
-                int n = items == null ? 0 : items.length(), done = 0;
-                for (int i = 0; i < n; i++) if (items.optJSONObject(i).optBoolean("done")) done++;
-                count = n > 0 ? done + "/" + n : "";
+            if (fresh) {
+                if (all) {
+                    JSONArray blocks = d.optJSONArray("blocks");
+                    for (int i = 0; blocks != null && i < blocks.length(); i++) {
+                        JSONArray its = blocks.optJSONObject(i).optJSONArray("items");
+                        for (int k = 0; its != null && k < its.length(); k++) { n++; if (its.optJSONObject(k).optBoolean("done")) done++; }
+                    }
+                } else {
+                    JSONObject b = currentBlock(d);
+                    if (b != null) {
+                        title = "지금은 " + b.optString("label");
+                        JSONArray its = b.optJSONArray("items");
+                        for (int k = 0; its != null && k < its.length(); k++) { n++; if (its.optJSONObject(k).optBoolean("done")) done++; }
+                    }
+                }
             }
         } catch (Exception ignored) {}
+        Calendar day = logicalDay(d);
+        String sub = (day.get(Calendar.MONTH) + 1) + "." + day.get(Calendar.DATE) + " " + WD[day.get(Calendar.DAY_OF_WEEK) - 1] + (n > 0 ? "  ·  " + done + "/" + n : "");
         v.setTextViewText(R.id.widgetTitle, title);
-        v.setTextViewText(R.id.widgetCount, count);
-        v.setTextViewText(R.id.widgetEmpty, fresh ? "이 시간대에는 할 일이 없어요" : "앱을 한 번 열면 오늘 루틴이 보여요");
+        v.setTextViewText(R.id.widgetSub, sub);
+        v.setTextColor(R.id.widgetTitle, col[1]);
+        v.setTextColor(R.id.widgetSub, col[2]);
+        v.setTextViewTextSize(R.id.widgetTitle, TypedValue.COMPLEX_UNIT_SP, sz[0]);
+        v.setTextViewTextSize(R.id.widgetSub, TypedValue.COMPLEX_UNIT_SP, sz[2]);
+        v.setInt(R.id.widgetGear, "setColorFilter", col[2]);
+        v.setProgressBar(R.id.widgetProgress, Math.max(1, n), done, false);
+        v.setViewVisibility(R.id.widgetProgress, n > 0 ? View.VISIBLE : View.INVISIBLE);
+        String empty = !fresh ? "앱을 한 번 열면 오늘 루틴이 보여요"
+            : (n > 0 && done == n) ? (all ? "오늘 할 일을 다 했어요" : "이 시간대는 다 했어요") : "이 시간대에는 할 일이 없어요";
+        v.setTextViewText(R.id.widgetEmpty, empty);
+        v.setTextColor(R.id.widgetEmpty, col[2]);
+        v.setTextViewTextSize(R.id.widgetEmpty, TypedValue.COMPLEX_UNIT_SP, sz[1] - 1);
+
+        if (preview) {
+            /* 설정 화면 미리보기: 목록을 직접 그림 */
+            v.setViewVisibility(R.id.widgetList, View.GONE);
+            v.removeAllViews(R.id.widgetPreviewList);
+            JSONArray rs = rows(ctx, c);
+            if (rs.length() == 0 && !fresh) {
+                /* 아직 데이터가 없으면 예시로 */
+                try {
+                    String[][] ex = {{"물 한 잔", "1"}, {"스트레칭", "0"}, {"독서", "0"}};
+                    for (String[] e : ex) { JSONObject o = new JSONObject(); o.put("name", e[0]); o.put("done", "1".equals(e[1])); o.put("kind", "check"); rs.put(o); }
+                    v.setTextViewText(R.id.widgetTitle, "지금은 저녁");
+                } catch (Exception ignored) {}
+            }
+            for (int i = 0; i < Math.min(rs.length(), 6); i++) v.addView(R.id.widgetPreviewList, itemView(ctx, rs.optJSONObject(i), c));
+            v.setViewVisibility(R.id.widgetPreviewList, rs.length() > 0 ? View.VISIBLE : View.GONE);
+            v.setViewVisibility(R.id.widgetEmpty, rs.length() > 0 ? View.GONE : View.VISIBLE);
+            return v;
+        }
 
         Intent svc = new Intent(ctx, RoutineWidgetService.class)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
@@ -100,15 +244,28 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
 
         Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent po = PendingIntent.getActivity(ctx, 7701, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        v.setOnClickPendingIntent(R.id.widgetHead, po);
+        v.setOnClickPendingIntent(R.id.widgetHeadText, po);
         v.setOnClickPendingIntent(R.id.widgetEmpty, po);
+
+        Intent conf = new Intent(ctx, WidgetConfigActivity.class)
+            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+        conf.setData(Uri.parse("logonly://widget/" + widgetId));
+        v.setOnClickPendingIntent(R.id.widgetGear, PendingIntent.getActivity(ctx, 7800 + widgetId, conf, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
         return v;
     }
 
     @Override
     public void onUpdate(Context ctx, AppWidgetManager m, int[] ids) {
-        for (int id : ids) m.updateAppWidget(id, build(ctx, id));
+        for (int id : ids) m.updateAppWidget(id, build(ctx, id, cfg(ctx, id), false));
         m.notifyAppWidgetViewDataChanged(ids, R.id.widgetList);
+    }
+
+    @Override
+    public void onDeleted(Context ctx, int[] ids) {
+        SharedPreferences.Editor e = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit();
+        for (int id : ids) e.remove("cfg_" + id);
+        e.apply();
     }
 
     @Override
@@ -127,9 +284,8 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
             return;
         }
         try {
-            JSONObject data = new JSONObject(wp.getString(KEY_DATA, "{}"));
+            JSONObject data = data(ctx);
             String date = data.optString("date");
-            /* 화면에 바로 반영 (앱이 나중에 진짜로 저장) */
             JSONArray blocks = data.optJSONArray("blocks");
             if (blocks != null) for (int i = 0; i < blocks.length(); i++) {
                 JSONArray items = blocks.optJSONObject(i).optJSONArray("items");
