@@ -15611,7 +15611,7 @@ try{qlFabSync();}catch(e){}
     }catch(e){}}
     try{
       const defs=loadDailyCareDefinitions();
-      defs.forEach((d0,j)=>{const c=p.care[d0.id];if(!c||!c.on)return;const d=normalizeDailyCareDefinition(d0);
+      defs.forEach((d0,j)=>{const c=p.care[d0.id];if(!c||!c.on||d0.oneOff||d0.enabled===false)return;const d=normalizeDailyCareDefinition(d0);
         for(let i=0;i<7;i++){const k=periodAddDays(today,i);if(window.restOn&&restOn(k))continue;let body='';
           const pt=i===0?dailyCareStoredPoint(d,k):{recorded:false,value:null};
           const unit=d.unit||'',tg=Number(d.target)||0;
@@ -15636,7 +15636,7 @@ try{qlFabSync();}catch(e){}
       if(!sl&&(p.bed.on||p.grp.sleep)){p.bed.on=false;p.grp.sleep=false;ch=true;}
       let pj=true;try{pj=secVisOn('project');}catch(e){}
       if(!pj&&p.project.on){p.project.on=false;ch=true;}
-      let ids=null;try{ids=new Set(loadDailyCareDefinitions().filter(d=>d&&d.enabled!==false).map(d=>d.id));}catch(e){}
+      let ids=null;try{ids=new Set(loadDailyCareDefinitions().filter(d=>d&&d.enabled!==false&&!d.oneOff).map(d=>d.id));}catch(e){}
       if(ids)Object.keys(p.care).forEach(k=>{if(!ids.has(k)&&p.care[k]&&p.care[k].on){p.care[k].on=false;ch=true;}});
       if(ch){save(p);try{render();}catch(e){}}
     }catch(e){}
@@ -15677,7 +15677,7 @@ try{qlFabSync();}catch(e){}
     G.push({id:'day',name:'하루',desc:'인사 · 시간대 · 프로젝트',items:day});
     let hasSleep=false;try{const sd=dailyCareDef('sleep');hasSleep=!!sd&&sd.enabled!==false;}catch(e){}
     if(hasSleep)G.push({id:'sleep',name:'취침 알림',desc:window.lgBedHint?lgBedHint():'',single:{k:'bed',time:'bed.time',val:window.lgBedTime?lgBedTime():'23:00'}});
-    let defs=[];try{defs=loadDailyCareDefinitions().filter(d=>d&&d.enabled!==false);}catch(e){}
+    let defs=[];try{defs=loadDailyCareDefinitions().filter(d=>d&&d.enabled!==false&&!d.oneOff);}catch(e){} /* QUICK LOG 수치 항목은 빼고, 지금 쓰는 DAILY CARE만 */
     if(defs.length)G.push({id:'care',name:'DAILY CARE',desc:'오늘 얼마나 했는지 알려 줘요',items:defs.map(d=>({k:'care.'+d.id,name:escapeLife(d.name||''),time:'care.'+d.id+'.time'}))});
     let per=false;try{per=periodEnabled();}catch(e){}
     if(per)G.push({id:'period',name:'생리 예정 3일 전',desc:'',single:{k:'period',time:'period.time',val:p.period.time}});
@@ -15756,7 +15756,7 @@ try{qlFabSync();}catch(e){}
   window.notiAllTime=function(v){
     if(!/^\d{1,2}:\d{2}$/.test(v||''))return;const p=P();
     p.hello.time=v;p.project.time=v;p.period.time=v;
-    try{loadDailyCareDefinitions().forEach(d=>{p.care[d.id]=Object.assign({on:false},p.care[d.id],{time:v});});}catch(e){}
+    try{loadDailyCareDefinitions().filter(d=>d&&!d.oneOff).forEach(d=>{p.care[d.id]=Object.assign({on:false},p.care[d.id],{time:v});});}catch(e){}
     save(p);render();resched();appToast(`취침 말고 알림 시간을 모두 ${v}로 바꿨어요`);
   };
   window.notiSet=function(path,v){const p=P();const a=path.split('.');let o=p;for(let i=0;i<a.length-1;i++){o[a[i]]=o[a[i]]||{};o=o[a[i]];}o[a[a.length-1]]=v;save(p);render();resched();appToast(`${v}에 알려 드릴게요`);};
