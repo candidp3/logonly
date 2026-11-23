@@ -4,4 +4,10 @@
     <color name="notiAccent">#8FD9BC</color>
     <color name="notiAccentBg">#297FD0B0</color>
     <color name="notiMuted">#97A69E</color>
+    <!-- 홈 화면 위젯 -->
+    <color name="widgetBg">#1C2321</color>
+    <color name="widgetText">#E6ECE9</color>
+    <color name="widgetMuted">#8E9C95</color>
+    <color name="widgetLine">#3A4642</color>
+    <color name="widgetAccent">#5FBF9B</color>
 </resources>

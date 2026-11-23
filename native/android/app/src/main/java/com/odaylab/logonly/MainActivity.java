@@ -104,6 +104,23 @@ public class MainActivity extends BridgeActivity {
                     });
                 }
             }, "LogonlyTTS");
+            // 홈 화면 위젯: 오늘 시간대별 루틴을 넘겨받아 위젯을 새로 그림
+            getBridge().getWebView().addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public void update(String json) {
+                    android.content.SharedPreferences p = getSharedPreferences(RoutineWidgetProvider.PREFS, MODE_PRIVATE);
+                    if (json != null && json.equals(p.getString(RoutineWidgetProvider.KEY_DATA, ""))) return;
+                    p.edit().putString(RoutineWidgetProvider.KEY_DATA, json == null ? "{}" : json).apply();
+                    try { RoutineWidgetProvider.refresh(MainActivity.this); } catch (Exception ignored) {}
+                }
+                @JavascriptInterface
+                public String takeOpen() {
+                    android.content.SharedPreferences p = getSharedPreferences(RoutineWidgetProvider.PREFS, MODE_PRIVATE);
+                    String v = p.getString(RoutineWidgetProvider.KEY_OPEN, "");
+                    if (!v.isEmpty()) p.edit().remove(RoutineWidgetProvider.KEY_OPEN).apply();
+                    return v;
+                }
+            }, "LogonlyWidget");
             // 화면(웹) 쪽에서 지금 바탕색을 알려주면 위·아래 바 색을 맞춤 (앱 안 밝게/어둡게 설정도 따라감)
             getBridge().getWebView().addJavascriptInterface(new Object() {
                 @JavascriptInterface
