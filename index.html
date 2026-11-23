@@ -13188,6 +13188,14 @@ body.tdPastMode #tdHero{box-shadow:inset 0 0 0 1.5px var(--rc-pastl)}
 
 .rr-numeric-card .rrBodyDot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
 
+/* 키보드가 올라오면 가운데 카드 창도 키보드 위 공간 안에서 스크롤되게 (2026-11-24) */
+html .routineActionOverlay{bottom:var(--kb,0px)!important;top:0!important;height:auto!important}
+.routineActionOverlay>.routineInputCard,.routineActionOverlay>.routineActionCard{max-height:calc(100% - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+html.kbOpen .routineActionOverlay{align-items:center!important}
+/* DAILY CARE: '기록 없음'은 목표와 같은 크기, 목표와 버튼 사이 조금 더 */
+#viewToday .dailyCareItemCard .dcVal.dcNone{font-size:.6875rem!important;line-height:1.5}
+#viewToday .dailyCareItemCard .dailyCareMeta.dcTwo{margin-bottom:7px!important}
+
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -17687,7 +17695,8 @@ function lgWidgetData(){
       else if(done&&lg&&Number(lg.count)>0)meta=`${lg.count}${r.unit||'회'}`;
       return {id,name:String(r.name||''),done,kind,meta};
     });
-    return {id:b.id,label:LG_WG_LABEL[b.id]||b.name,items};
+    let hr=null;try{hr=lbHours()[b.id]||null;}catch(e){}
+    return {id:b.id,label:LG_WG_LABEL[b.id]||b.name,name:b.name,hours:hr,items};
   }).filter(b=>b.items.length);
   let ds=0;try{ds=dayStartHour();}catch(e){}
   return {date:k,dayStart:ds,blocks};

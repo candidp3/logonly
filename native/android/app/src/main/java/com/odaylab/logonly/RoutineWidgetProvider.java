@@ -73,22 +73,31 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
     static String todayKey(Context ctx) {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(logicalDay(data(ctx)).getTime());
     }
-    /** 앱의 thBlockNow()와 같은 규칙 */
+    /** 앱 TODAY와 같은 규칙 (lbNowState):
+     *  1) 정한 시간 안 → 그 시간대 (now)  2) 시간대 사이 빈 시간 → 다음 시간대 (next)
+     *  3) 마지막 시간대가 끝난 뒤 ~ 하루가 바뀌기 전 → 그날 마지막 시간대 (late) */
+    static String nowMode = "now";
     static JSONObject currentBlock(JSONObject data) {
+        nowMode = "now";
         JSONArray blocks = data.optJSONArray("blocks");
         if (blocks == null || blocks.length() == 0) return null;
-        int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        if (h < data.optInt("dayStart", 0)) h = 23;
-        String pick = h < 6 ? "dawn" : h < 9 ? "breakfast" : h < 12 ? "morning" : h < 14 ? "lunch" : h < 18 ? "afternoon" : h < 22 ? "evening" : "night";
-        String fb = "dawn".equals(pick) ? "breakfast" : "night".equals(pick) ? "evening" : null;
-        JSONObject found = null, fallback = null;
+        int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY), ds = data.optInt("dayStart", 0);
+        JSONObject hit = null, next = null, last = null;
+        int nextStart = 99, lastEnd = -1;
         for (int i = 0; i < blocks.length(); i++) {
             JSONObject b = blocks.optJSONObject(i);
-            if (b == null) continue;
-            if (pick.equals(b.optString("id"))) found = b;
-            if (fb != null && fb.equals(b.optString("id"))) fallback = b;
+            JSONArray hr = b == null ? null : b.optJSONArray("hours");
+            if (hr == null || hr.length() < 2) continue;
+            int s0 = hr.optInt(0), e0 = hr.optInt(1);
+            if (hit == null && h >= s0 && h < e0) hit = b;
+            if (s0 > h && s0 < nextStart) { nextStart = s0; next = b; }
+            if (e0 > lastEnd) { lastEnd = e0; last = b; }
         }
-        return found != null ? found : fallback != null ? fallback : blocks.optJSONObject(0);
+        if (hit != null) return hit;
+        if (h < ds && last != null) { nowMode = "late"; return last; }
+        if (next != null) { nowMode = "next"; return next; }
+        if (last != null) { nowMode = "late"; return last; }
+        return blocks.optJSONObject(0);
     }
     /** 위젯에 보일 줄 목록 (전체 보기면 시간대 제목 줄 포함) */
     static JSONArray rows(Context ctx, JSONObject c) {
@@ -109,7 +118,8 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
                     if (keep.length() == 0) continue;
                     JSONObject h = new JSONObject();
                     h.put("header", true);
-                    h.put("name", b.optString("label") + (now != null && b.optString("id").equals(now.optString("id")) ? " · 지금" : ""));
+                    String tag = "next".equals(nowMode) ? " · 다음" : "late".equals(nowMode) ? " · 마무리" : " · 지금";
+                    h.put("name", b.optString("label") + (now != null && b.optString("id").equals(now.optString("id")) ? tag : ""));
                     h.put("meta", dn + "/" + n);
                     out.put(h);
                     for (int k = 0; k < keep.length(); k++) out.put(keep.get(k));
@@ -189,7 +199,8 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
                 } else {
                     JSONObject b = currentBlock(d);
                     if (b != null) {
-                        title = "지금은 " + b.optString("label");
+                        String lb = b.optString("label");
+                        title = "next".equals(nowMode) ? "곧 " + lb : "late".equals(nowMode) ? "하루 마무리" : "지금은 " + lb;
                         JSONArray its = b.optJSONArray("items");
                         for (int k = 0; its != null && k < its.length(); k++) { n++; if (its.optJSONObject(k).optBoolean("done")) done++; }
                     }
