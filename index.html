@@ -13037,6 +13037,111 @@ body.tdPastMode #tdHero{box-shadow:inset 0 0 0 1.5px var(--rc-pastl)}
 .oneOffQuickRow .snackQuickBtn .qMeta{display:block;font-size:var(--fs-1);color:var(--rc-tx2);line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ftTodayLogs{margin-top:10px}
 
+/* 독서 책 고르기 아래 작은 글자 (2026-11-23) */
+#readingBookModal .rbLinks{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 6px;margin-top:6px}
+#readingBookModal .rbLinks button{border:0;background:transparent;padding:8px 6px;font:inherit;font-size:var(--fs-2);color:var(--rc-tx2)}
+#readingBookModal .rbLinks .rbSkip{color:var(--rc-mu)}
+#readingBookModal .rbLinks i{font-style:normal;color:var(--rc-line2)}
+#readingBookModal .rbEmpty{padding:14px 0 4px;text-align:center;font-size:var(--fs-2);color:var(--rc-mu)}
+/* 캡슐: 이름 아래 아주 작은 글씨 */
+.oneOffTodayLogs .olChip{display:inline-flex!important;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;line-height:1.25;padding-top:7px!important;padding-bottom:7px!important;height:auto!important;min-height:0!important}
+.oneOffTodayLogs .olChip>span{display:block;font-size:.6875rem!important;color:var(--rc-mu)!important;margin:0!important;max-width:11rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 목록 시트(기록 여러 개 중 고르기): 한 상자 안에 줄로만 */
+.routineActionCard .routineActionButtons.rasNew .rasList{border:1px solid var(--rc-line)!important;border-radius:14px!important;background:var(--rc-card)!important;overflow:hidden;gap:0!important}
+.routineActionCard .routineActionButtons.rasNew .rasList .rasItem{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;min-height:50px!important;height:auto!important;padding:0 14px!important;margin:0!important;color:var(--rc-tx)!important;font-weight:400!important}
+.routineActionCard .routineActionButtons.rasNew .rasList .rasItem+.rasItem{border-top:1px solid var(--rc-line)!important}
+.routineActionCard .routineActionButtons.rasNew .rasList .rasItem:active{background:var(--rc-soft)!important}
+/* 칸 오른쪽 아래 색 점 (요약 점과 같은 색) */
+.freeChip,.oneOffQuickRow .snackQuickBtn{position:relative}
+.freeChip .ftDot,.oneOffQuickRow .snackQuickBtn .ftDot{position:absolute;right:9px;bottom:9px;width:6px;height:6px;border-radius:50%;opacity:.9;pointer-events:none}
+/* 책 정보 창: 버튼이 맨 아래에 붙게 */
+#bookModal .modalBox.bookModalBox{padding-bottom:0!important}
+#bookModal #bookModalFooter{position:sticky!important;bottom:0!important;background:var(--rc-card)!important;padding-bottom:calc(14px + env(safe-area-inset-bottom))!important;margin-bottom:0!important;z-index:2}
+
+/* 프리다이빙 기록 목록(오늘 기록 보기)도 한 상자 + 줄 */
+#stLogList{border:1px solid var(--rc-line);border-radius:14px;background:var(--rc-card);overflow:hidden}
+#stLogList .oneOffSettingRow.pjManageRow{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;min-height:52px;padding:8px 8px 8px 14px!important}
+#stLogList .oneOffSettingRow.pjManageRow+.oneOffSettingRow.pjManageRow{border-top:1px solid var(--rc-line)!important}
+#stLogList .pjName{font-weight:400!important;color:var(--rc-tx)!important}
+#stLogList .pjEmpty{border:0}
+
+#stLogList .oneOffSettingRow.pjManageRow{min-height:0!important;height:auto!important;padding:13px 6px 13px 14px!important;align-items:center!important}
+#stLogList .pjManageMain{gap:1px!important}
+#stLogList .pjManageMeta{font-size:.6875rem!important;color:var(--rc-mu)!important}
+#stLogList button{width:30px!important;height:30px!important;min-height:0!important;background:transparent!important;border:0!important;color:var(--rc-mu)!important;font-size:.875rem!important;padding:0!important}
+
+/* ===== 첫 실행 안내 새 디자인 (2026-11-23) ===== */
+#obRoot{background:var(--rc-bg,#f5f7f5)}
+#obRoot[data-step="welcome"]{background:radial-gradient(120% 60% at 50% 0%,var(--rc-gl,#e2f4ec) 0%,var(--rc-bg,#f5f7f5) 70%)}
+#obRoot[data-step="welcome"] .obBar{visibility:hidden}
+.obPane.obIn{animation:obIn .38s cubic-bezier(.2,.8,.2,1) both}
+@keyframes obIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.obEyebrow{font-size:12px;font-weight:700;letter-spacing:1.6px;color:var(--rc-solid,#3f9c7c);margin:2px 0 10px}
+.obEyebrow i{font-style:normal;color:var(--rc-mu,#8a938e);font-weight:600}
+.obTitle{font-size:26px;letter-spacing:-.6px}
+.obItem{border-color:transparent;box-shadow:0 1px 2px rgba(20,40,30,.04)}
+.obItem.on{border-color:var(--rc-solid,#3f9c7c);background:var(--rc-card,#fff);box-shadow:0 6px 18px rgba(47,107,85,.10)}
+.obItem:active{transform:scale(.985)}
+.obItem.on .obChk{animation:obPop .28s ease}
+@keyframes obPop{0%{transform:scale(.6)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+.obGroup{text-transform:none;font-size:12px;letter-spacing:.4px}
+/* 첫 화면 */
+.obWel{display:flex;flex-direction:column;min-height:100%}
+.obBrand{font-size:12px;font-weight:800;letter-spacing:3.2px;color:var(--rc-gd,#2f6b55);opacity:.8;margin:0 0 8px}
+.obStage{position:relative;height:292px;margin:4px 0 22px;display:flex;align-items:center;justify-content:center}
+.obMock{position:relative;z-index:1;width:84%;max-width:300px;background:var(--rc-card,#fff);border-radius:24px;padding:16px 16px 8px;box-shadow:0 18px 40px rgba(30,70,55,.14),0 2px 6px rgba(30,70,55,.06);transform:rotate(-2deg);animation:obFl 6s ease-in-out infinite}
+.obMkHead{display:flex;align-items:baseline;gap:8px;margin:0 2px 8px}
+.obMkHead b{font-size:17px;font-weight:800;letter-spacing:.2px}
+.obMkHead small{font-size:11px;color:var(--rc-mu,#8a938e);letter-spacing:.6px}
+.obMkRow,.obTry{display:flex;align-items:center;gap:11px;padding:9px 2px;border-top:1px solid var(--rc-line,#e3e8e5)}
+.obMkRow:first-of-type{border-top:0}
+.obMkIc{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.obMkIc svg{width:18px;height:18px}
+.obMkTx{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left}
+.obMkTx b{font-size:14px;font-weight:600}
+.obMkTx small{font-size:11px;color:var(--rc-mu,#8a938e);margin-top:1px}
+.obMkChk{width:26px;height:26px;border-radius:50%;border:1.8px solid var(--rc-line2,#cfd8d3);display:flex;align-items:center;justify-content:center;color:#fff;flex:0 0 auto}
+.obMkChk svg{width:14px;height:14px;opacity:0}
+.obMkRow .obMkChk{animation:obChk 6s ease-in-out infinite}
+.obMkRow .obMkChk svg{animation:obChkS 6s ease-in-out infinite;animation-delay:inherit}
+@keyframes obChk{0%,8%{background:transparent;border-color:var(--rc-line2,#cfd8d3);transform:scale(1)}12%{transform:scale(1.18)}15%,88%{background:var(--rc-solid,#3f9c7c);border-color:var(--rc-solid,#3f9c7c);transform:scale(1)}96%,100%{background:transparent;border-color:var(--rc-line2,#cfd8d3)}}
+@keyframes obChkS{0%,8%{opacity:0}15%,88%{opacity:1}96%,100%{opacity:0}}
+.obFloat{position:absolute;z-index:2;display:flex;align-items:center;gap:7px;background:var(--rc-card,#fff);border-radius:99px;padding:8px 13px;font-size:12px;font-weight:600;color:var(--rc-tx2,#4a544f);box-shadow:0 10px 24px rgba(30,70,55,.12);white-space:nowrap}
+.obF1{top:4px;right:2%;transform:rotate(3deg);animation:obFl 5s ease-in-out infinite .6s}
+.obF2{bottom:-4px;left:0;transform:rotate(-3deg);animation:obFl 5.5s ease-in-out infinite 1.2s}
+.obDot{width:7px;height:7px;border-radius:50%}
+@keyframes obFl{0%,100%{translate:0 0}50%{translate:0 -6px}}
+.obTitle.obBig{font-size:30px;line-height:1.32;letter-spacing:-.8px;margin-bottom:12px}
+.obTitle em{font-style:normal;background:linear-gradient(transparent 62%,var(--rc-gl,#e2f4ec) 62%);color:var(--rc-gd,#2f6b55)}
+.obPromise{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:4px}
+.obPromise span{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--rc-tx2,#4a544f);background:color-mix(in srgb,var(--rc-card,#fff) 75%,transparent);border:1px solid var(--rc-line,#e3e8e5);border-radius:99px;padding:6px 11px 6px 9px}
+.obPromise svg{width:14px;height:14px;color:var(--rc-solid,#3f9c7c)}
+.obPDot{width:5px;height:5px;border-radius:50%;background:var(--rc-solid,#3f9c7c)}
+#obRoot[data-step="welcome"] .obSub{margin-bottom:22px}
+/* 마지막: 첫 체크 해보기 */
+.obPv{border:0;box-shadow:0 14px 34px rgba(30,70,55,.12);border-radius:24px;padding:18px 16px 10px}
+.obTryBox{margin:0 0 10px}
+.obTry{width:100%;border:0;border-top:1px solid var(--rc-line,#e3e8e5);background:transparent;font:inherit;color:inherit;padding:11px 2px;text-align:left}
+.obTry:first-child{border-top:0}
+.obTry .obMkChk{transition:background .15s,border-color .15s}
+.obTry .obMkChk.on{background:var(--rc-solid,#3f9c7c);border-color:var(--rc-solid,#3f9c7c);animation:obPop .3s ease}
+.obTry .obMkChk.on svg{opacity:1}
+.obTry.on .obMkTx b{color:var(--rc-mu,#8a938e)}
+.obTryMsg{font-size:12px;color:var(--rc-solid,#3f9c7c);text-align:center;padding:6px 0 2px}
+.obNoCoach{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--rc-tx2,#4a544f);margin-top:2px;cursor:pointer}
+.obNoCoach input{position:absolute;opacity:0;pointer-events:none}
+.obNoCoach span{width:18px;height:18px;border-radius:6px;border:1.5px solid var(--rc-line2,#cfd8d3);display:flex;align-items:center;justify-content:center;color:#fff}
+.obNoCoach span svg{width:12px;height:12px;opacity:0}
+.obNoCoach input:checked+span{background:var(--rc-solid,#3f9c7c);border-color:var(--rc-solid,#3f9c7c)}
+.obNoCoach input:checked+span svg{opacity:1}
+.obNoCoachHint{font-size:11px;color:var(--rc-mu,#8a938e);margin-top:4px}
+.obNote{text-align:center}
+/* 말풍선 안내: 전체 건너뛰기 */
+#coachRoot .coachNav .coachAll{background:transparent;color:var(--rc-mu,#8a938e);padding:9px 0;font-size:13px}
+#coachRoot .coachNav>div{display:flex;align-items:center;gap:10px}
+#coachRoot .coachCnt{font-style:normal;font-size:12px;color:var(--rc-mu,#8a938e)}
+@media (prefers-reduced-motion:reduce){.obMock,.obFloat,.obMkRow .obMkChk,.obMkRow .obMkChk svg,.obPane.obIn{animation:none!important}}
+
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -14882,7 +14987,7 @@ function tdJFit(){
       const base=tdsBase||lifeLogKey(),days=[];for(let i=0;i<7;i++)days.push(periodAddDays(base,-i));
       const ids=new Set([...document.querySelectorAll('#tdsMain .freeChipWrap')].map(w=>w.dataset.routineId));
       const rows=days.map(k=>{
-        const ln=id==='freetime'?ftLines(k,ids):quickLogItems(k,false).map(x=>({n:String(x.n||'').replace(/⟪[a-z0-9_]+⟫\s*/g,''),s:'',v:x.t||'',tap:x.c||'',col:''})) /* FREE TIME처럼 색 점 + 이름 */;
+        const ln=id==='freetime'?ftLines(k,ids):quickLogItems(k,false).map(x=>({n:String(x.n||'').replace(/⟪[a-z0-9_]+⟫\s*/g,''),s:'',v:x.t||'',tap:x.c||'',col:(()=>{try{return qlColorByName(String(x.n||'').replace(/⟪[a-z0-9_]+⟫\s*/g,''))||'';}catch(e){return '';}})()})) /* FREE TIME처럼 항목마다 색 점 + 이름 */;
         return ln.length?`<div class="tdsDay tdsDayL"><div class="tdsDayK">${tdsDayLabel(k)}</div><div class="tdsDayLs">${ln.map(lineHTML).join('')}</div></div>`:'';
       }).join('');
       if(rows){const head=box.querySelector('.tdsSecT');box.innerHTML=(head?head.outerHTML:'<div class="tdsSecT">최근 7일</div>')+rows;}
@@ -17068,6 +17173,211 @@ function ftTodayChips(){
   const tl=renderOneOffTodayLogs;
   renderOneOffTodayLogs=function(){const r=tl.apply(this,arguments);try{qlMarkDone();}catch(e){}return r;};
   try{ftTodayChips();qlMarkDone();}catch(e){}
+})();
+
+/* ===== 안드로이드 앱 전용 (2026-11-23): 알림바에서 누른 '기록'·'취소'를 그 시각으로 처리
+   앱을 열지 않고 눌러도 폰이 누른 시각을 기억해 두고, 앱이 열려 있으면 바로·아니면 다음에 열 때 반영 ===== */
+function lgAt(ts,fn){
+  const R=Date;if(!(ts>0))return fn();
+  class F extends R{constructor(...a){if(a.length)super(...a);else super(ts);}static now(){return ts;}}
+  window.Date=F;try{return fn();}finally{window.Date=R;}
+}
+(function(){
+  const N=()=>window.LogonlyNotify;
+  function run(){
+    try{
+      const n=N();if(!n||!n.takePending)return;
+      let arr=[];try{arr=JSON.parse(n.takePending()||'[]');}catch(e){}
+      if(!Array.isArray(arr)||!arr.length)return;
+      arr.forEach(x=>{
+        try{
+          const slot=String(x.slot||'routine'),a=x.a,at=Number(x.at)||Date.now();
+          if(slot.startsWith('care:')){
+            if(a==='stop')lgAt(at,()=>window.lgCareAction&&lgCareAction('stop',slot.slice(5)));
+            return;
+          }
+          const t=loadActivityTimer();if(!t||!t.startedAt)return;
+          if(a==='cancel'){saveActivityTimer(null);try{renderActivityTimerBanner();renderLifeGuide();}catch(e){}appToast('타이머를 취소했어요');return;}
+          if(a==='stop'){
+            const r=loadLifeRoutines().find(z=>z.id===t.routineId),min=Math.max(0,Math.round((at-Date.parse(t.startedAt))/60000));
+            lgAt(at,()=>stopActivityTimer());
+            appToast(`${r?r.name:'활동'} ${formatDurationMin(min)} 기록했어요`);
+          }
+        }catch(e){}
+      });
+      try{window.lgTimerNotiSync&&lgTimerNotiSync(true);}catch(e){}
+    }catch(e){}
+  }
+  window.lgPendingRun=run;
+  setTimeout(run,800);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(run,150);});
+  setInterval(()=>{if(document.visibilityState==='visible')run();},2000);
+})();
+
+/* ===== 독서 타이머 후 책 고르기 (2026-11-23 v2)
+   '읽고있어' 책만 먼저 보여주고, 아래 작은 글자로: 다른 책 · 새 책 추가 · 책 연결 없이 기록 ===== */
+let rbShowAll=false,rbNewFlow=false;
+chooseBookForReadingTimer=function(dateKey,minutes){
+  pendingReadingTimer={dateKey,minutes};readingPickCtx=null;
+  const all=readingBooksSorted(),reading=all.filter(b=>b.status==='읽고있어'),list=rbShowAll?all:reading;
+  document.getElementById('readingBookDuration').textContent=`독서 ${formatDurationMin(minutes)}`;
+  const item=b=>`<button class="readingPickBtn" onclick="linkPendingReading('${b.id}')">⟪book⟫ ${escapeLife(b.title)}<div class="bookAuthor">${escapeLife(b.author||'')}${rbShowAll&&b.status?`${b.author?' · ':''}${escapeLife(b.status)}`:''}</div></button>`;
+  const links=[];
+  if(!rbShowAll&&all.length>reading.length)links.push(`<button type="button" onclick="rbShowAll=true;chooseBookForReadingTimer(pendingReadingTimer.dateKey,pendingReadingTimer.minutes)">다른 책</button>`);
+  links.push(`<button type="button" onclick="rbAddNew()">새 책 추가</button>`);
+  links.push(`<button type="button" class="rbSkip" onclick="closeReadingBookModal()">책 연결 없이 기록</button>`);
+  document.getElementById('readingPickList').innerHTML=(list.length?list.map(item).join(''):`<div class="rbEmpty">읽고 있는 책이 없어요</div>`)
+    +`<div class="rbLinks">${links.join('<i>·</i>')}</div>`;
+  document.getElementById('readingBookModal').classList.remove('hide');
+};
+(function(){
+  const cl=closeReadingBookModal;
+  closeReadingBookModal=function(){rbShowAll=false;return cl.apply(this,arguments);};
+})();
+function rbAddNew(){
+  if(!pendingReadingTimer)return;
+  rbNewFlow=true;document.getElementById('readingBookModal').classList.add('hide');
+  const before=new Set(loadBooks().map(b=>b.id));window.__rbBefore=before;
+  openBookModal();
+}
+(function(){
+  const sv=saveBook;
+  saveBook=function(){
+    const r=sv.apply(this,arguments);
+    const after=()=>{
+      try{
+        if(!rbNewFlow||!pendingReadingTimer)return;
+        if(!document.getElementById('bookModal').classList.contains('hide'))return; /* 저장이 안 됨(필수 칸 등) */
+        rbNewFlow=false;
+        const nb=loadBooks().find(b=>!window.__rbBefore.has(b.id));
+        if(nb){linkPendingReading(nb.id);appToast(`${nb.title}에 연결했어요`);}
+        else chooseBookForReadingTimer(pendingReadingTimer.dateKey,pendingReadingTimer.minutes);
+      }catch(e){}
+    };
+    if(r&&typeof r.then==='function')r.then(after);else setTimeout(after,0);
+    return r;
+  };
+  const cb=closeBookModal;
+  closeBookModal=function(){
+    const r=cb.apply(this,arguments);
+    setTimeout(()=>{try{if(rbNewFlow&&pendingReadingTimer){rbNewFlow=false;chooseBookForReadingTimer(pendingReadingTimer.dateKey,pendingReadingTimer.minutes);}}catch(e){}},0);
+    return r;
+  };
+})();
+
+/* ===== QUICK LOG 색도 FREE TIME처럼 항목마다 돌아가며, 칸 오른쪽 아래에 같은 색 점 (2026-11-23) ===== */
+function qlOrderNames(){return [...document.querySelectorAll('#oneOffQuickRow .snackQuickBtn .qTx')].map(x=>x.textContent.trim());}
+function qlColorByName(n){const i=qlOrderNames().indexOf(String(n||'').trim());return i<0?'':ftHex(ftColorOfIndex(i),'g');}
+function ftDots(){
+  document.querySelectorAll('.freeChipWrap[data-routine-id]').forEach(w=>{
+    const c=w.querySelector('.freeChip');if(!c)return;c.querySelector('.ftDot')?.remove();
+    const col=ftHex(ftColorById(w.dataset.routineId),'g');if(col)c.insertAdjacentHTML('beforeend',`<i class="ftDot" style="background:${col}"></i>`);
+  });
+  document.querySelectorAll('#oneOffQuickRow .snackQuickBtn').forEach((b,i)=>{
+    b.querySelector('.ftDot')?.remove();const col=ftHex(ftColorOfIndex(i),'g');if(col)b.insertAdjacentHTML('beforeend',`<i class="ftDot" style="background:${col}"></i>`);
+  });
+}
+(function(){
+  const lg=renderLifeGuide;renderLifeGuide=function(){const r=lg.apply(this,arguments);try{ftDots();}catch(e){}return r;};
+  const q=renderOneOffQuick;renderOneOffQuick=function(){const r=q.apply(this,arguments);try{ftDots();}catch(e){}return r;};
+  setTimeout(()=>{try{ftDots();}catch(e){}},500);
+})();
+
+(function(){const r=renderStLog;renderStLog=function(){const x=r.apply(this,arguments);try{const h=document.getElementById('stLogHead');h.textContent=h.textContent.replace('숨참기 기록','프리다이빙 · 기록');}catch(e){}return x;};})();
+
+(function(){const r=renderStLog;renderStLog=function(){const x=r.apply(this,arguments);try{const h=document.getElementById('stLogHead');h.textContent=h.textContent.replace('프리다이빙 · 기록 ·','프리다이빙 기록 ·');}catch(e){}return x;};})();
+
+/* ===== 첫 실행 안내 새 디자인 (2026-11-23)
+   - 첫 화면: 살아 있는 TODAY 미리보기 + 약속(계정·광고 없음, 기록은 내 폰에)
+   - 고르는 화면: 단계 표시, 항목마다 다른 색, 고를 때 살짝 튀는 체크
+   - 마지막: 내가 고른 TODAY에서 첫 체크를 직접 해보기
+   - '메뉴별 설명 건너뛰기': 메뉴마다 나오는 첫 안내를 한 번에 끔 (설정 > 처음 안내 다시 보기로 다시 볼 수 있음) ===== */
+const LG_COACH_ALL=['logonly_coach_v1','logonly_coach_calendar','logonly_coach_books','logonly_coach_record','logonly_coach_backup'];
+function lgCoachSkipAll(){
+  try{LG_COACH_ALL.forEach(k=>localStorage.setItem(k,'done'));}catch(e){}
+  try{menuCoach=null;}catch(e){}
+  document.getElementById('coachRoot')?.remove();try{window.scrollTo(0,0);}catch(e){}
+}
+let obNoCoach=false,obTry={};
+function obPal(i){
+  try{const c=ftColorOfIndex(i);let dark=false;try{const m=themeMode();dark=m==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);}catch(e){}
+    const b=THEME_PALETTES[c][dark?'dark':'light'].base;return {bg:b.gl,fg:b.gd,dot:b.g};}catch(e){return {bg:'',fg:'',dot:''};}
+}
+OB_FEATURES.forEach(f=>{if(f.id==='static'){f.name='프리다이빙';f.desc='숨참기 CO2·O2 테이블, 스태틱·다이빙 기록';f.ex='CO2 8세트 · CWT 25m';}});
+(function(){
+  const base=obRender;
+  obRender=function(){
+    base.apply(this,arguments);
+    try{
+      const steps=obSteps(),key=steps[obStep],root=document.getElementById('obRoot'),body=document.getElementById('obBody'),pane=body.querySelector('.obPane');
+      root.dataset.step=key;
+      const note=document.getElementById('obNote');
+      /* 항목마다 다른 색 */
+      pane.querySelectorAll('.obItem').forEach((it,i)=>{const p=obPal(i);const ic=it.querySelector('.obIco');if(ic&&p.bg){ic.style.background=p.bg;ic.style.color=p.fg;}});
+      /* 단계 표시 */
+      const idx={care:1,routine:2,feature:3}[key];
+      if(idx){const t=pane.querySelector('.obTitle');t&&t.insertAdjacentHTML('beforebegin',`<div class="obEyebrow">STEP ${idx} <i>/ 3</i></div>`);}
+      if(key==='welcome'){
+        const ck=n=>`<span class="obMkChk" style="animation-delay:${n}s">${OB_CHECK}</span>`;
+        const row=(ic,i,name,meta,n)=>{const p=obPal(i);return `<div class="obMkRow"><span class="obMkIc" style="background:${p.bg};color:${p.fg}">${obIcon(ic)}</span><span class="obMkTx"><b>${name}</b><small>${meta}</small></span>${ck(n)}</div>`;};
+        pane.innerHTML=`<div class="obWel">
+          <div class="obBrand">LOGONLY</div>
+          <div class="obStage">
+            <div class="obFloat obF1"><span class="obDot" style="background:${obPal(2).dot}"></span>수면 7시간 30분</div>
+            <div class="obMock">
+              <div class="obMkHead"><b>TODAY</b><small>${(()=>{const d=new Date();return `${d.getMonth()+1}.${d.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}`;})()}</small></div>
+              ${row('drop',1,'물 한 잔','아침',0.9)}${row('pulse',0,'스트레칭','10분',1.7)}${row('book',2,'독서','32분',2.5)}
+            </div>
+            <div class="obFloat obF2"><span class="obDot" style="background:${obPal(5).dot}"></span>오늘 컨디션 좋음</div>
+          </div>
+          <h1 class="obTitle obBig">하루의 <em>최소한</em>만,\n가볍게 남겨요</h1>
+          <p class="obSub">못 한 날이 있어도 괜찮아요.\n꼭 필요한 것만 골라서 시작해요.</p>
+          <div class="obPromise"><span>${OB_CHECK}계정 없이</span><span>${OB_CHECK}광고 없이</span><span>${OB_CHECK}기록은 내 폰에</span></div>
+        </div>`;
+        pane.querySelectorAll('.obPromise span').forEach(s=>{if(!s.querySelector('svg'))s.insertAdjacentHTML('afterbegin','<i class="obPDot"></i>');});
+      }
+      if(key==='done'){
+        const t=pane.querySelector('.obTitle'),s=pane.querySelector('.obSub');
+        if(t)t.textContent='준비 끝!\n첫 체크를 해볼까요?';
+        if(s)s.textContent='한 것만 톡 누르면 끝이에요.\n고른 항목은 SETTING에서 언제든 바꿀 수 있어요.';
+        const pv=pane.querySelector('.obPv');
+        const rs=LIFE_DEFAULT_ROUTINES.filter(r=>r.block!=='free'&&obSel.routines[r.id]).slice(0,3);
+        if(pv&&rs.length){
+          const tries=rs.map((r,i)=>{const p=obPal(i);const on=!!obTry[r.id];return `<button type="button" class="obTry${on?' on':''}" onclick="obTryTap('${r.id}')"><span class="obMkIc" style="background:${p.bg};color:${p.fg}">${obIcon(obRoutineIc(r))}</span><span class="obMkTx"><b>${escapeLife(r.name)}</b><small>${OB_BLOCK_NAME[r.block]||''}</small></span><span class="obMkChk${on?' on':''}">${OB_CHECK}</span></button>`;}).join('');
+          const n=Object.values(obTry).filter(Boolean).length;
+          pv.querySelector('.obPvHead')?.insertAdjacentHTML('afterend',`<div class="obTryBox">${tries}<div class="obTryMsg">${n?'잘했어요. 이렇게 한 것만 체크하면 끝이에요':'눌러서 체크해 보세요'}</div></div>`);
+          const rsec=[...pv.querySelectorAll('.obPvSec')].find(x=>/루틴/.test(x.querySelector('.obPvTitle')?.textContent||''));rsec&&rsec.remove();
+        }
+        note.innerHTML=`<label class="obNoCoach"><input type="checkbox" ${obNoCoach?'checked':''} onchange="obNoCoach=this.checked"><span>${OB_CHECK}</span>메뉴별 설명 건너뛰기</label><div class="obNoCoachHint">설정 › 처음 안내 다시 보기에서 언제든 다시 볼 수 있어요</div>`;
+      }
+      pane.classList.add('obIn');
+    }catch(e){console.error(e);}
+  };
+  const fin=obFinish;
+  obFinish=function(skipped){
+    if(obNoCoach||skipped&&false)lgCoachSkipAll();
+    if(obNoCoach&&obPreviewOnly){obPreviewOnly=false;document.getElementById('obRoot').classList.add('hide');try{lifeNavigate('today');}catch(e){}return;}
+    return fin.apply(this,arguments);
+  };
+  const st=obStart;obStart=function(){obTry={};obNoCoach=false;return st.apply(this,arguments);};
+})();
+function obTryTap(id){
+  obTry[id]=!obTry[id];
+  const y=document.getElementById('obBody').scrollTop;obRender();
+  const b=document.getElementById('obBody');b.scrollTop=y;b.querySelector('.obPane')?.classList.remove('obIn');
+  if(obTry[id]){try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}}
+}
+/* 각 메뉴 첫 안내 말풍선: 왼쪽 아래 '전체 설명 건너뛰기' */
+(function(){
+  const inject=()=>{const tip=document.querySelector('#coachRoot .coachTip');if(!tip||tip.querySelector('.coachAll'))return;
+    const nav=tip.querySelector('.coachNav');if(!nav)return;
+    tip.querySelector('.coachSkip')?.remove();
+    const sp=nav.querySelector(':scope>span');const cnt=sp?sp.textContent.trim():'';
+    if(sp)sp.outerHTML=`<button type="button" class="coachAll" onclick="lgCoachSkipAll()">전체 설명 건너뛰기</button>`;
+    if(cnt){const r=nav.querySelector(':scope>div');r&&r.insertAdjacentHTML('afterbegin',`<em class="coachCnt">${cnt}</em>`);}
+  };
+  const mo=new MutationObserver(()=>inject());
+  mo.observe(document.body,{childList:true,subtree:true});
 })();
 
 </script>

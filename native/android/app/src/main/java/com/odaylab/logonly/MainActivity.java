@@ -160,6 +160,13 @@ public class MainActivity extends BridgeActivity {
                     });
                 }
                 @JavascriptInterface
+                public String takePending() {
+                    android.content.SharedPreferences p = getSharedPreferences(TimerActionReceiver.PREFS, MODE_PRIVATE);
+                    String v = p.getString(TimerActionReceiver.KEY_PENDING, "[]");
+                    p.edit().putString(TimerActionReceiver.KEY_PENDING, "[]").apply();
+                    return v;
+                }
+                @JavascriptInterface
                 public String takeAction() {
                     String a = pendingTimerAction;
                     pendingTimerAction = null;
@@ -257,6 +264,10 @@ public class MainActivity extends BridgeActivity {
             }
             int id = notiIdOf(slot);
             int rc = (id - 4400) * 10;
+            getSharedPreferences(TimerActionReceiver.PREFS, MODE_PRIVATE).edit()
+                .putLong("start_" + (slot == null ? "routine" : slot), startMs)
+                .putString("name_" + (slot == null ? "routine" : slot), title == null ? "" : title.split(" · ")[0])
+                .apply();
             RemoteViews rv = new RemoteViews(getPackageName(), R.layout.noti_timer);
             rv.setTextViewText(R.id.noti_name, title);
             long base = SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - startMs);
@@ -293,6 +304,13 @@ public class MainActivity extends BridgeActivity {
     private String pendingTimerAction;
 
     private PendingIntent actionIntent(String action, String slot, int code) {
+        if ("stop".equals(action) || "cancel".equals(action)) {
+            /* 기록·취소는 앱을 열지 않고 처리 */
+            Intent b = new Intent(this, TimerActionReceiver.class)
+                .putExtra("timerAction", action)
+                .putExtra("timerSlot", slot == null ? "routine" : slot);
+            return PendingIntent.getBroadcast(this, code, b, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        }
         Intent i = new Intent(this, MainActivity.class)
             .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP)
             .putExtra("timerAction", action)
