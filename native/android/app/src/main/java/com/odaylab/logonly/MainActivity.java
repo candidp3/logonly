@@ -111,7 +111,7 @@ public class MainActivity extends BridgeActivity {
                     android.content.SharedPreferences p = getSharedPreferences(RoutineWidgetProvider.PREFS, MODE_PRIVATE);
                     if (json != null && json.equals(p.getString(RoutineWidgetProvider.KEY_DATA, ""))) return;
                     p.edit().putString(RoutineWidgetProvider.KEY_DATA, json == null ? "{}" : json).apply();
-                    try { RoutineWidgetProvider.refresh(MainActivity.this); } catch (Exception ignored) {}
+                    try { WidgetKit.refreshAll(MainActivity.this); } catch (Exception ignored) {}
                 }
                 @JavascriptInterface
                 public String takeOpen() {
@@ -338,6 +338,12 @@ public class MainActivity extends BridgeActivity {
     /** 알림의 '종료하고 기록'·'취소'를 눌러 앱이 열렸을 때: 화면(웹)에 전달 */
     private void handleTimerIntent(Intent intent) {
         if (intent == null) return;
+        String wo = intent.getStringExtra("widgetOpen");
+        if (wo != null && !wo.isEmpty()) {
+            /* 위젯 버튼으로 열면 그 화면·루틴으로 (앱이 takeOpen으로 가져감) */
+            getSharedPreferences(RoutineWidgetProvider.PREFS, MODE_PRIVATE).edit().putString(RoutineWidgetProvider.KEY_OPEN, wo).apply();
+            intent.removeExtra("widgetOpen");
+        }
         String a = intent.getStringExtra("timerAction");
         if (a == null) return;
         String slot = intent.getStringExtra("timerSlot");

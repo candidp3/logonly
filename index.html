@@ -17744,6 +17744,7 @@ function lgWidgetCheck(id,date,at){
   const openFromWidget=()=>{
     try{
       const id=window.LogonlyWidget.takeOpen&&window.LogonlyWidget.takeOpen();if(!id)return;
+      if(id.startsWith('screen:')){const sc=id.slice(7);try{if(typeof closeAllLifeModals==='function')closeAllLifeModals();}catch(e){}try{lifeNavigate('today');}catch(e){}setTimeout(()=>{try{tdsOpen(sc);}catch(e){}},250);return;}
       try{if(typeof closeAllLifeModals==='function')closeAllLifeModals();}catch(e){}
       try{lifeNavigate('today');}catch(e){}
       setTimeout(()=>{try{handleRoutineRowTap(null,id);}catch(e){}},250);
@@ -17838,6 +17839,28 @@ function qlMoreDots(){
   const q=renderOneOffQuick;renderOneOffQuick=function(){const r=q.apply(this,arguments);try{qlMoreDots();}catch(e){}return r;};
   const lg=renderLifeGuide;renderLifeGuide=function(){const r=lg.apply(this,arguments);try{qlMoreDots();}catch(e){}return r;};
   setTimeout(()=>{try{qlMoreDots();}catch(e){}},400);
+})();
+
+/* ===== 위젯 4종에 필요한 것 더 넘기기 (2026-11-24): DAILY CARE 요약 · 진행 중 프로젝트 · 화면 바로가기 ===== */
+(function(){
+  const base=lgWidgetData;
+  lgWidgetData=function(){
+    const d=base.apply(this,arguments);
+    try{
+      d.care=[...document.querySelectorAll('#viewToday .dailyCareGrid .dailyCareItemCard[data-daily-care-id]')].slice(0,4).map(c=>{
+        const nm=(c.querySelector('.dailyCareName')?.textContent||'').replace(/\s+/g,' ').trim();
+        const v=c.querySelector('.dcVal')?.textContent.trim()||(c.querySelector('.dailyCareMeta')?.textContent||'').trim();
+        const g=(c.querySelector('.dcGoal')?.textContent||'').trim();
+        return {name:nm,val:v,goal:g};
+      });
+    }catch(e){d.care=[];}
+    try{
+      const ps=pjSorted(pjLoad().filter(p=>p&&p.status!=='done'&&p.status!=='archived'));
+      d.projects=ps.slice(0,3).map(p=>{const t=pjNext(p);let due='';try{due=t&&t.due?String(t.due).slice(5).replace('-','.'):'';}catch(e){}return {name:String(p.name||''),next:t?String(t.text||''):'',due};});
+      d.projectCount=ps.length;
+    }catch(e){d.projects=[];d.projectCount=0;}
+    return d;
+  };
 })();
 
 </script>

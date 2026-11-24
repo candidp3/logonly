@@ -224,6 +224,37 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
         v.setTextColor(R.id.widgetEmpty, col[2]);
         v.setTextViewTextSize(R.id.widgetEmpty, TypedValue.COMPLEX_UNIT_SP, sz[1] - 1);
 
+        /* DAILY CARE 요약 (최대 3개) */
+        int[] cn = {R.id.care1N, R.id.care2N, R.id.care3N}, cv = {R.id.care1V, R.id.care2V, R.id.care3V}, cc = {R.id.care1, R.id.care2, R.id.care3};
+        JSONArray care = fresh ? d.optJSONArray("care") : null;
+        int shown = 0;
+        for (int i = 0; i < 3; i++) {
+            JSONObject x = care != null && i < care.length() ? care.optJSONObject(i) : null;
+            if (x == null) { v.setViewVisibility(cc[i], View.GONE); continue; }
+            shown++;
+            v.setViewVisibility(cc[i], View.VISIBLE);
+            v.setTextViewText(cn[i], x.optString("name"));
+            String val = x.optString("val"), goal = x.optString("goal").replace("목표 ", "");
+            v.setTextViewText(cv[i], goal.isEmpty() ? val : val + " / " + goal);
+            v.setTextColor(cn[i], col[2]); v.setTextColor(cv[i], col[1]);
+            v.setTextViewTextSize(cn[i], TypedValue.COMPLEX_UNIT_SP, sz[2] - 1);
+            v.setTextViewTextSize(cv[i], TypedValue.COMPLEX_UNIT_SP, sz[2] + 1);
+            v.setInt(cc[i], "setBackgroundResource", dark(ctx, c) ? R.drawable.widget_cell_dark : R.drawable.widget_cell_light);
+        }
+        v.setViewVisibility(R.id.widgetCare, shown > 0 ? View.VISIBLE : View.GONE);
+        /* 아래 바로가기: FREE TIME · PROJECTS · QUICK LOG */
+        int[] nv = {R.id.nav1, R.id.nav2, R.id.nav3}, ni = {R.id.nav1I, R.id.nav2I, R.id.nav3I}, nt = {R.id.nav1T, R.id.nav2T, R.id.nav3T};
+        String[] scr = {"freetime", "project", "quicklog"}, lab = {"FREE TIME", "PROJECTS", "QUICK LOG"};
+        for (int i = 0; i < 3; i++) {
+            v.setImageViewResource(ni[i], WidgetKit.iconOf(scr[i]));
+            v.setInt(ni[i], "setColorFilter", col[4]);
+            v.setTextViewText(nt[i], lab[i]);
+            v.setTextColor(nt[i], col[1]);
+            v.setTextViewTextSize(nt[i], TypedValue.COMPLEX_UNIT_SP, sz[2]);
+            v.setInt(nv[i], "setBackgroundResource", dark(ctx, c) ? R.drawable.widget_cell_dark : R.drawable.widget_cell_light);
+            if (!preview) v.setOnClickPendingIntent(nv[i], WidgetKit.openScreen(ctx, scr[i], 8600 + widgetId * 4 + i));
+        }
+
         if (preview) {
             /* 설정 화면 미리보기: 목록을 직접 그림 */
             v.setViewVisibility(R.id.widgetList, View.GONE);
@@ -255,7 +286,7 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
 
         Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent po = PendingIntent.getActivity(ctx, 7701, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        v.setOnClickPendingIntent(R.id.widgetHeadText, po);
+        v.setOnClickPendingIntent(R.id.widgetHeadText, WidgetKit.openScreen(ctx, "routine", 8590 + widgetId));
         v.setOnClickPendingIntent(R.id.widgetEmpty, po);
 
         Intent conf = new Intent(ctx, WidgetConfigActivity.class)
@@ -282,7 +313,10 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context ctx, Intent intent) {
         super.onReceive(ctx, intent);
-        if (!ACTION_TAP.equals(intent.getAction())) return;
+        if (ACTION_TAP.equals(intent.getAction())) handleTap(ctx, intent);
+    }
+
+    static void handleTap(Context ctx, Intent intent) {
         String id = intent.getStringExtra("rid");
         String kind = intent.getStringExtra("kind");
         if (id == null) return;
@@ -290,7 +324,7 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
         if (!"check".equals(kind)) {
             /* 시간·횟수 기록은 앱에서: 앱을 열고 그 루틴으로 */
             wp.edit().putString(KEY_OPEN, id).apply();
-            Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra("widgetOpen", id);
             try { ctx.startActivity(open); } catch (Exception ignored) {}
             return;
         }
@@ -315,6 +349,6 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
             arr.put(o);
             p.edit().putString(TimerActionReceiver.KEY_PENDING, arr.toString()).apply();
         } catch (Exception ignored) {}
-        refresh(ctx);
+        WidgetKit.refreshAll(ctx);
     }
 }

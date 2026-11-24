@@ -14,11 +14,23 @@
         <receiver android:name=".TimerActionReceiver" android:exported="false" />
 
         <!-- 홈 화면 위젯: 지금 시간대 루틴 -->
-        <receiver android:name=".RoutineWidgetProvider" android:exported="false" android:label="로그온리 · 지금 할 일">
+        <receiver android:name=".RoutineWidgetProvider" android:exported="false" android:label="로그온리 · 투데이">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/routine_widget_info" />
+        </receiver>
+        <receiver android:name=".RoutineSmallWidget" android:exported="false" android:label="로그온리 · 루틴 2×1">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_small_info" />
+        </receiver>
+        <receiver android:name=".RoutineBarWidget" android:exported="false" android:label="로그온리 · 루틴 4×1">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_routine_bar_info" />
+        </receiver>
+        <receiver android:name=".ProjectBarWidget" android:exported="false" android:label="로그온리 · 프로젝트 4×1">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_project_bar_info" />
         </receiver>
         <service android:name=".RoutineWidgetService" android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />

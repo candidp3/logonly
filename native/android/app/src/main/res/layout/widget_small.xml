@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <ImageView android:id="@+id/widgetBgImg" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="fitXY" android:src="@drawable/widget_bg" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center_vertical"
+        android:paddingStart="14dp" android:paddingEnd="12dp" android:paddingTop="8dp" android:paddingBottom="8dp">
+        <LinearLayout android:id="@+id/smallHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <TextView android:id="@+id/smallTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:textSize="12sp" android:textColor="@color/widgetMuted" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/smallCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="12sp" android:textColor="@color/widgetMuted" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/smallRow" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="4dp">
+            <ImageView android:id="@+id/smallCheck" android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/widget_check_off" />
+            <TextView android:id="@+id/smallName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:textSize="15sp" android:textColor="@color/widgetText" android:maxLines="1" android:ellipsize="end" />
+        </LinearLayout>
+        <TextView android:id="@+id/smallDone" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" android:textSize="14sp" android:textColor="@color/widgetMuted" android:visibility="gone" />
+    </LinearLayout>
+</FrameLayout>

@@ -4,5 +4,8 @@
     <string name="title_activity_main">로그온리</string>
     <string name="package_name">com.odaylab.logonly</string>
     <string name="custom_url_scheme">com.odaylab.logonly</string>
-    <string name="widget_desc">지금 시간대 루틴을 보고 바로 체크해요</string>
+    <string name="widget_desc">투데이: 지금 시간대 루틴 · DAILY CARE · 바로가기</string>
+    <string name="widget_small_desc">지금 할 루틴 하나를 바로 체크</string>
+    <string name="widget_routine_bar_desc">지금 할 루틴 + FREE TIME · PROJECTS · QUICK LOG 바로가기</string>
+    <string name="widget_project_bar_desc">진행 중 프로젝트 + 루틴 · FREE TIME · QUICK LOG 바로가기</string>
 </resources>

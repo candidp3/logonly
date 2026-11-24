@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp" android:minHeight="40dp"
+    android:targetCellWidth="4" android:targetCellHeight="1"
+    android:minResizeWidth="180dp" android:minResizeHeight="40dp"
+    android:resizeMode="horizontal"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_bar"
+    android:previewLayout="@layout/widget_bar"
+    android:description="@string/widget_routine_bar_desc"
+    android:configure="com.odaylab.logonly.WidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:widgetCategory="home_screen" />
