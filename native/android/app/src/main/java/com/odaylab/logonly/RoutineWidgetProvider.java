@@ -49,9 +49,16 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
     }
     /** {배경, 글자, 흐린 글자, 선, 강조} */
     static int[] colors(Context ctx, JSONObject c) {
-        return dark(ctx, c)
+        boolean dk = dark(ctx, c);
+        int[] col = dk
             ? new int[]{0xFF1C2321, 0xFFE6ECE9, 0xFF8E9C95, 0xFF4A5752, 0xFF5FBF9B}
             : new int[]{0xFFFFFFFF, 0xFF26302B, 0xFF8A958F, 0xFFC9D3CE, 0xFF3F9C7C};
+        /* 앱에서 고른 테마 색 */
+        try {
+            String a = data(ctx).optString(dk ? "accentD" : "accentL", "");
+            if (a.startsWith("#") && a.length() == 7) col[4] = 0xFF000000 | Integer.parseInt(a.substring(1), 16);
+        } catch (Exception ignored) {}
+        return col;
     }
     static float[] sizes(JSONObject c) {
         String f = c.optString("font", "m"); /* 제목, 항목, 작은 글씨 */
