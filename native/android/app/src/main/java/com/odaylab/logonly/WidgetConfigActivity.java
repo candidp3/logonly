@@ -95,7 +95,7 @@ public class WidgetConfigActivity extends Activity {
         sg.setCornerRadius(dp(22));
         stage.setBackground(sg);
         stage.setClipToOutline(true);
-        int ph = kind == WidgetKit.KIND_TODAY ? 300 : 72;
+        int ph = kind == WidgetKit.KIND_TODAY ? 360 : kind == WidgetKit.KIND_SMALL ? 96 : 84;
         stage.setPadding(dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28), dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28));
         preview = new FrameLayout(this);
         int pw = kind == WidgetKit.KIND_SMALL ? dp(240) : ViewGroup.LayoutParams.MATCH_PARENT;

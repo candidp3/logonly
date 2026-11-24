@@ -170,7 +170,7 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
         else v.setInt(R.id.widgetItemCheck, "setColorFilter", 0);
         v.setTextColor(R.id.widgetItemName, done ? col[2] : col[1]);
         v.setTextColor(R.id.widgetItemMeta, col[2]);
-        v.setTextViewTextSize(R.id.widgetItemName, TypedValue.COMPLEX_UNIT_SP, sz[1]);
+        v.setTextViewTextSize(R.id.widgetItemName, TypedValue.COMPLEX_UNIT_SP, sz[1] + 1);
         v.setTextViewTextSize(R.id.widgetItemMeta, TypedValue.COMPLEX_UNIT_SP, sz[2]);
         return v;
     }
@@ -268,7 +268,7 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
                     v.setTextViewText(R.id.widgetTitle, "지금은 저녁");
                 } catch (Exception ignored) {}
             }
-            for (int i = 0; i < Math.min(rs.length(), 6); i++) v.addView(R.id.widgetPreviewList, itemView(ctx, rs.optJSONObject(i), c));
+            for (int i = 0; i < Math.min(rs.length(), 4); i++) v.addView(R.id.widgetPreviewList, itemView(ctx, rs.optJSONObject(i), c));
             v.setViewVisibility(R.id.widgetPreviewList, rs.length() > 0 ? View.VISIBLE : View.GONE);
             v.setViewVisibility(R.id.widgetEmpty, rs.length() > 0 ? View.GONE : View.VISIBLE);
             return v;

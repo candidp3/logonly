@@ -134,7 +134,7 @@ public class WidgetKit {
             v.setTextViewText(R.id.smallCount, (String) n[1]);
             v.setTextColor(R.id.smallTitle, col[2]);
             v.setTextColor(R.id.smallCount, col[2]);
-            ts(v, R.id.smallTitle, sz[2] + 1); ts(v, R.id.smallCount, sz[2]);
+            ts(v, R.id.smallTitle, sz[1]); ts(v, R.id.smallCount, sz[1] - 1);
             int tot = 0, dn = 0;
             try { String[] p = ((String) n[1]).split("/"); dn = Integer.parseInt(p[0]); tot = Integer.parseInt(p[1]); } catch (Exception ignored) {}
             v.setProgressBar(R.id.smallProgress, Math.max(1, tot), dn, false);
@@ -145,7 +145,7 @@ public class WidgetKit {
                 v.setViewVisibility(R.id.smallDone, View.GONE);
                 v.setTextViewText(R.id.smallName, next.optString("name"));
                 v.setTextColor(R.id.smallName, col[1]);
-                ts(v, R.id.smallName, sz[1] + 2);
+                ts(v, R.id.smallName, sz[0] + 3);
                 v.setImageViewResource(R.id.smallIcBg, circleBg(ctx, c));
                 String ic = next.optString("ic");
                 if (!ic.isEmpty()) {
@@ -163,7 +163,7 @@ public class WidgetKit {
                 v.setViewVisibility(R.id.smallDone, View.VISIBLE);
                 v.setTextViewText(R.id.smallDone, !(Boolean) n[3] ? "앱을 한 번 열면 보여요" : ((String) n[1]).isEmpty() ? "이 시간대엔 할 일이 없어요" : "이 시간대는 다 했어요");
                 v.setTextColor(R.id.smallDone, col[1]);
-                ts(v, R.id.smallDone, sz[1] + 1);
+                ts(v, R.id.smallDone, sz[0] + 2);
                 v.setOnClickPendingIntent(R.id.smallDone, openScreen(ctx, "routine", 9100 + widgetId));
             }
             v.setOnClickPendingIntent(R.id.smallHead, openScreen(ctx, "routine", 9200 + widgetId));
@@ -173,7 +173,7 @@ public class WidgetKit {
         bg(ctx, v, c);
         v.setTextColor(R.id.barTitle, col[2]);
         v.setTextColor(R.id.barText, col[1]);
-        ts(v, R.id.barTitle, sz[2]); ts(v, R.id.barText, sz[1] + 1);
+        ts(v, R.id.barTitle, sz[1] - 1); ts(v, R.id.barText, sz[0] + 2);
         String[] nav;
         if (kind == KIND_PROJECT_BAR) {
             nav = new String[]{"routine", "freetime", "quicklog"};
