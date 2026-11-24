@@ -9,11 +9,11 @@
         <LinearLayout android:id="@+id/barMain" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
             android:orientation="vertical" android:gravity="center_vertical">
             <TextView android:id="@+id/barTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:textSize="12sp" android:textColor="@color/widgetMuted" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+                android:textSize="12sp" android:textColor="@color/widgetMuted" android:fontFamily="@font/pretendard_semibold" android:maxLines="1" android:ellipsize="end" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
                 android:gravity="center_vertical" android:layout_marginTop="3dp">
                 <ImageView android:id="@+id/barCheck" android:layout_width="20dp" android:layout_height="20dp" android:layout_marginEnd="8dp" android:src="@drawable/widget_check_off" />
-                <TextView android:id="@+id/barText" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                <TextView android:fontFamily="@font/pretendard_regular" android:id="@+id/barText" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
                     android:textSize="15sp" android:textColor="@color/widgetText" android:maxLines="1" android:ellipsize="end" />
             </LinearLayout>
         </LinearLayout>

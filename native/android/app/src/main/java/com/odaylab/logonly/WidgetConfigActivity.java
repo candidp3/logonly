@@ -98,7 +98,7 @@ public class WidgetConfigActivity extends Activity {
         int ph = kind == WidgetKit.KIND_TODAY ? 300 : 72;
         stage.setPadding(dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28), dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28));
         preview = new FrameLayout(this);
-        int pw = kind == WidgetKit.KIND_SMALL ? dp(170) : ViewGroup.LayoutParams.MATCH_PARENT;
+        int pw = kind == WidgetKit.KIND_SMALL ? dp(240) : ViewGroup.LayoutParams.MATCH_PARENT;
         FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(pw, dp(ph));
         plp.gravity = Gravity.CENTER;
         stage.addView(preview, plp);
@@ -168,7 +168,26 @@ public class WidgetConfigActivity extends Activity {
         root.addView(save, lp);
 
         setContentView(root);
+        applyFont(root);
         render();
+    }
+
+    /** 설정 화면 글씨도 앱 글씨체로 */
+    private void applyFont(View v) {
+        if (android.os.Build.VERSION.SDK_INT < 26) return;
+        try {
+            Typeface reg = getResources().getFont(R.font.pretendard_regular), semi = getResources().getFont(R.font.pretendard_semibold);
+            walk(v, reg, semi);
+        } catch (Exception ignored) {}
+    }
+    private void walk(View v, Typeface reg, Typeface semi) {
+        if (v == preview) return;
+        if (v instanceof TextView) {
+            TextView t = (TextView) v;
+            boolean bold = t.getTypeface() != null && t.getTypeface().isBold();
+            t.setTypeface(bold || t instanceof Button ? semi : reg);
+        }
+        if (v instanceof ViewGroup) { ViewGroup g = (ViewGroup) v; for (int i = 0; i < g.getChildCount(); i++) walk(g.getChildAt(i), reg, semi); }
     }
 
     private LinearLayout card(LinearLayout parent, String name) {

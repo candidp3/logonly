@@ -12,10 +12,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textStyle="bold"
+        android:fontFamily="@font/pretendard_semibold"
         android:textSize="12sp"
         android:textColor="@color/widgetMuted" />
-    <TextView
+    <TextView android:fontFamily="@font/pretendard_regular"
         android:id="@+id/widgetHeadMeta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

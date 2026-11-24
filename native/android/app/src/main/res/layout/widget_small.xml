@@ -5,20 +5,34 @@
         android:scaleType="fitXY" android:src="@drawable/widget_bg" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical" android:gravity="center_vertical"
-        android:paddingStart="14dp" android:paddingEnd="12dp" android:paddingTop="8dp" android:paddingBottom="8dp">
-        <LinearLayout android:id="@+id/smallHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        android:paddingStart="14dp" android:paddingEnd="12dp" android:paddingTop="4dp" android:paddingBottom="4dp">
+        <!-- 1줄: 시간대 문구 · 달성 그래프 · 2/5 -->
+        <LinearLayout android:id="@+id/smallHead" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
             <TextView android:id="@+id/smallTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                android:textSize="12sp" android:textColor="@color/widgetMuted" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+                android:fontFamily="@font/pretendard_regular" android:includeFontPadding="false"
+                android:textSize="13sp" android:textColor="@color/widgetMuted" android:maxLines="1" android:ellipsize="end" />
+            <ProgressBar android:id="@+id/smallProgress" style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="44dp" android:layout_height="4dp" android:layout_marginStart="8dp"
+                android:max="1" android:progress="0" android:progressDrawable="@drawable/widget_progress" />
             <TextView android:id="@+id/smallCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="6dp" android:fontFamily="@font/pretendard_regular" android:includeFontPadding="false"
                 android:textSize="12sp" android:textColor="@color/widgetMuted" />
         </LinearLayout>
+        <!-- 2줄: TODAY의 '다음 할 일'처럼 아이콘 · 이름 · 체크 -->
         <LinearLayout android:id="@+id/smallRow" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="4dp">
-            <ImageView android:id="@+id/smallCheck" android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/widget_check_off" />
+            android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="6dp">
+            <FrameLayout android:layout_width="30dp" android:layout_height="30dp">
+                <ImageView android:id="@+id/smallIcBg" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/widget_circle_light" />
+                <ImageView android:id="@+id/smallIc" android:layout_width="16dp" android:layout_height="16dp" android:layout_gravity="center" />
+            </FrameLayout>
             <TextView android:id="@+id/smallName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                android:layout_marginStart="8dp" android:textSize="15sp" android:textColor="@color/widgetText" android:maxLines="1" android:ellipsize="end" />
+                android:layout_marginStart="10dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
+                android:textSize="16sp" android:textColor="@color/widgetText" android:maxLines="1" android:ellipsize="end" />
+            <ImageView android:id="@+id/smallCheck" android:layout_width="26dp" android:layout_height="26dp" android:layout_marginStart="8dp" android:src="@drawable/widget_check_off" />
         </LinearLayout>
         <TextView android:id="@+id/smallDone" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="4dp" android:textSize="14sp" android:textColor="@color/widgetMuted" android:visibility="gone" />
+            android:layout_marginTop="6dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
+            android:textSize="15sp" android:textColor="@color/widgetText" android:visibility="gone" />
     </LinearLayout>
 </FrameLayout>

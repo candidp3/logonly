@@ -126,27 +126,44 @@ public class WidgetKit {
             RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
             bg(ctx, v, c);
             Object[] n = now(ctx);
-            v.setTextViewText(R.id.smallTitle, (String) n[0]);
+            JSONObject d = RoutineWidgetProvider.data(ctx);
+            JSONObject blk = (Boolean) n[3] ? RoutineWidgetProvider.currentBlock(d) : null;
+            String mode = RoutineWidgetProvider.nowMode;
+            String hi = blk == null ? (String) n[0] : "now".equals(mode) && !blk.optString("hi").isEmpty() ? blk.optString("hi") : (String) n[0];
+            v.setTextViewText(R.id.smallTitle, hi);
             v.setTextViewText(R.id.smallCount, (String) n[1]);
             v.setTextColor(R.id.smallTitle, col[2]);
             v.setTextColor(R.id.smallCount, col[2]);
-            ts(v, R.id.smallTitle, sz[2]); ts(v, R.id.smallCount, sz[2]);
+            ts(v, R.id.smallTitle, sz[2] + 1); ts(v, R.id.smallCount, sz[2]);
+            int tot = 0, dn = 0;
+            try { String[] p = ((String) n[1]).split("/"); dn = Integer.parseInt(p[0]); tot = Integer.parseInt(p[1]); } catch (Exception ignored) {}
+            v.setProgressBar(R.id.smallProgress, Math.max(1, tot), dn, false);
+            v.setViewVisibility(R.id.smallProgress, tot > 0 ? View.VISIBLE : View.GONE);
             JSONObject next = (JSONObject) n[2];
             if (next != null) {
                 v.setViewVisibility(R.id.smallRow, View.VISIBLE);
                 v.setViewVisibility(R.id.smallDone, View.GONE);
                 v.setTextViewText(R.id.smallName, next.optString("name"));
                 v.setTextColor(R.id.smallName, col[1]);
-                ts(v, R.id.smallName, sz[1] + 1);
-                v.setImageViewResource(R.id.smallCheck, R.drawable.widget_check_off);
-                v.setInt(R.id.smallCheck, "setColorFilter", col[3]);
+                ts(v, R.id.smallName, sz[1] + 2);
+                v.setImageViewResource(R.id.smallIcBg, circleBg(ctx, c));
+                String ic = next.optString("ic");
+                if (!ic.isEmpty()) {
+                    try {
+                        byte[] bs = android.util.Base64.decode(ic, android.util.Base64.DEFAULT);
+                        v.setImageViewBitmap(R.id.smallIc, android.graphics.BitmapFactory.decodeByteArray(bs, 0, bs.length));
+                    } catch (Exception e) { v.setImageViewResource(R.id.smallIc, R.drawable.ic_w_routine); }
+                } else v.setImageViewResource(R.id.smallIc, R.drawable.ic_w_routine);
+                v.setInt(R.id.smallIc, "setColorFilter", col[4]);
+                v.setImageViewResource(R.id.smallCheck, R.drawable.widget_check_ring);
+                v.setInt(R.id.smallCheck, "setColorFilter", col[4]);
                 v.setOnClickPendingIntent(R.id.smallRow, tapItem(ctx, RoutineSmallWidget.class, next, 9000 + widgetId));
             } else {
                 v.setViewVisibility(R.id.smallRow, View.GONE);
                 v.setViewVisibility(R.id.smallDone, View.VISIBLE);
-                v.setTextViewText(R.id.smallDone, !(Boolean) n[3] ? "앱을 열면 보여요" : ((String) n[1]).isEmpty() ? "할 일이 없어요" : "다 했어요");
-                v.setTextColor(R.id.smallDone, col[2]);
-                ts(v, R.id.smallDone, sz[1]);
+                v.setTextViewText(R.id.smallDone, !(Boolean) n[3] ? "앱을 한 번 열면 보여요" : ((String) n[1]).isEmpty() ? "이 시간대엔 할 일이 없어요" : "이 시간대는 다 했어요");
+                v.setTextColor(R.id.smallDone, col[1]);
+                ts(v, R.id.smallDone, sz[1] + 1);
                 v.setOnClickPendingIntent(R.id.smallDone, openScreen(ctx, "routine", 9100 + widgetId));
             }
             v.setOnClickPendingIntent(R.id.smallHead, openScreen(ctx, "routine", 9200 + widgetId));
