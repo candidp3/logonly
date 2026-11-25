@@ -196,9 +196,10 @@ public class WidgetKit {
     static RemoteViews buildSmall(Context ctx, int widgetId, JSONObject c) {
         int[] col = RoutineWidgetProvider.colors(ctx, c);
         int[] tn = tint(ctx, c);
-        float big = "s".equals(c.optString("font", "m")) ? 14.5f : "l".equals(c.optString("font", "m")) ? 17f : 15.5f;
+        float big = "s".equals(c.optString("font", "m")) ? 17f : "l".equals(c.optString("font", "m")) ? 21f : 19f;
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
         bg(ctx, v, c);
+        if (!RoutineWidgetProvider.dark(ctx, c)) v.setInt(R.id.widgetBgImg, "setColorFilter", 0xFFF4F6F9);
         JSONObject d = RoutineWidgetProvider.data(ctx);
         boolean fresh = RoutineWidgetProvider.todayKey(ctx).equals(d.optString("date"));
         v.setInt(R.id.smallBar, "setColorFilter", col[4]);

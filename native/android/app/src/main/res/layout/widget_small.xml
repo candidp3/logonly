@@ -2,36 +2,36 @@
 <!-- 2×1 ROUTINE (2026-11-25): 캡슐 · 위 = 테마색 막대 + 시간대 + 2/5 · 아래 = 다음 루틴(크게) · 오른쪽 = 버튼 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
-  <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="center_vertical">
+  <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/widgetBgImg" android:layout_width="match_parent" android:layout_height="match_parent"
         android:scaleType="fitXY" android:src="@drawable/widget_capsule" />
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal" android:gravity="center_vertical"
-        android:paddingStart="20dp" android:paddingEnd="9dp" android:paddingTop="9dp" android:paddingBottom="9dp" android:minHeight="64dp">
+        android:paddingStart="24dp" android:paddingEnd="12dp" android:paddingTop="8dp" android:paddingBottom="8dp">
         <LinearLayout android:id="@+id/smallMain" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:orientation="vertical" android:gravity="center_vertical">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:gravity="center_vertical">
-                <ImageView android:id="@+id/smallBar" android:layout_width="4dp" android:layout_height="13dp" android:src="@drawable/widget_vbar" android:tint="#3F9C7C" />
+                <ImageView android:id="@+id/smallBar" android:layout_width="4dp" android:layout_height="15dp" android:src="@drawable/widget_vbar" android:tint="#3F9C7C" />
                 <TextView android:id="@+id/smallTitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:layout_marginStart="6dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
-                    android:textSize="12.5sp" android:maxLines="1" android:ellipsize="end" android:text="아침" android:textColor="#26302B" />
+                    android:textSize="14sp" android:maxLines="1" android:ellipsize="end" android:text="아침" android:textColor="#26302B" />
                 <TextView android:id="@+id/smallCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:layout_marginStart="6dp" android:fontFamily="@font/pretendard_regular" android:includeFontPadding="false"
-                    android:textSize="12sp" android:maxLines="1" android:text="2/5" android:textColor="#8A958F" />
+                    android:textSize="13.5sp" android:maxLines="1" android:text="2/5" android:textColor="#8A958F" />
             </LinearLayout>
             <TextView android:id="@+id/smallName" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="5dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
-                android:textSize="15.5sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="물 한 잔 마시기" android:textColor="#26302B" />
+                android:layout_marginTop="7dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
+                android:textSize="19sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="물 한 잔 마시기" android:textColor="#26302B" />
             <Chronometer android:id="@+id/smallChrono" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="5dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
-                android:textSize="16sp" android:textStyle="bold" android:visibility="gone" />
+                android:layout_marginTop="7dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
+                android:textSize="20sp" android:textStyle="bold" android:visibility="gone" />
         </LinearLayout>
-        <FrameLayout android:id="@+id/smallBtn" android:layout_width="46dp" android:layout_height="46dp" android:layout_marginStart="6dp">
-            <ImageView android:id="@+id/smallBtnBg" android:layout_width="42dp" android:layout_height="42dp" android:layout_gravity="center" android:src="@drawable/widget_ring_big" android:tint="#3F9C7C" />
+        <FrameLayout android:id="@+id/smallBtn" android:layout_width="54dp" android:layout_height="54dp" android:layout_marginStart="6dp">
+            <ImageView android:id="@+id/smallBtnBg" android:layout_width="50dp" android:layout_height="50dp" android:layout_gravity="center" android:src="@drawable/widget_ring_big" android:tint="#3F9C7C" />
             <TextView android:id="@+id/smallBtnText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"
-                android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false" android:textSize="12.5sp" />
-            <ImageView android:id="@+id/smallBtnIc" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="center" android:src="@drawable/ic_w_check" android:visibility="gone" />
+                android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false" android:textSize="14sp" />
+            <ImageView android:id="@+id/smallBtnIc" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:src="@drawable/ic_w_check" android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
   </FrameLayout>
