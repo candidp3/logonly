@@ -169,7 +169,7 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
         boolean done = it.optBoolean("done");
         v.setTextViewText(R.id.widgetItemName, it.optString("name"));
         String meta = it.optString("meta", "");
-        if (meta.isEmpty() && "open".equals(it.optString("kind")) && !done) meta = "기록 ›";
+        if (meta.isEmpty() && !"check".equals(it.optString("kind", "check")) && !done) meta = "기록 ›";
         v.setTextViewText(R.id.widgetItemMeta, meta);
         v.setViewVisibility(R.id.widgetItemMeta, meta.isEmpty() ? View.GONE : View.VISIBLE);
         v.setImageViewResource(R.id.widgetItemCheck, done ? R.drawable.widget_check_on : R.drawable.widget_check_off);
@@ -287,9 +287,10 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
         v.setRemoteAdapter(R.id.widgetList, svc);
         v.setEmptyView(R.id.widgetList, R.id.widgetEmpty);
 
-        Intent tap = new Intent(ctx, RoutineWidgetProvider.class).setAction(ACTION_TAP);
+        /* 목록 누르기: 체크는 바로, 그 밖은 홈 화면 위 기록창 (위젯에서 창을 여는 건 화면 쪽으로만 가능해서 창을 거쳐 감) */
+        Intent tap = new Intent(ctx, WidgetInputActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         int fl = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
-        v.setPendingIntentTemplate(R.id.widgetList, PendingIntent.getBroadcast(ctx, 7700, tap, fl));
+        v.setPendingIntentTemplate(R.id.widgetList, PendingIntent.getActivity(ctx, 7701, tap, fl));
 
         Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent po = PendingIntent.getActivity(ctx, 7701, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -327,32 +328,54 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
         String id = intent.getStringExtra("rid");
         String kind = intent.getStringExtra("kind");
         if (id == null) return;
+        if (kind == null) kind = "check";
         SharedPreferences wp = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        if (!"check".equals(kind)) {
-            /* 시간·횟수 기록은 앱에서: 앱을 열고 그 루틴으로 */
-            wp.edit().putString(KEY_OPEN, id).apply();
-            Intent open = new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra("widgetOpen", id);
-            try { ctx.startActivity(open); } catch (Exception ignored) {}
+        if (!"check".equals(kind) && !"count".equals(kind) && !"start".equals(kind) && !"stop".equals(kind)) {
+            /* 그 밖의 기록은 홈 화면 위 기록창에서 */
+            try { ctx.startActivity(WidgetInputActivity.intent(ctx, id)); } catch (Exception ignored) {}
             return;
         }
+        long now = System.currentTimeMillis();
         try {
             JSONObject data = data(ctx);
             String date = data.optString("date");
+            /* 앱이 다음에 열릴 때 반영하기 전까지 위젯에 먼저 보여 줄 모습 */
             JSONArray blocks = data.optJSONArray("blocks");
+            String name = "";
             if (blocks != null) for (int i = 0; i < blocks.length(); i++) {
                 JSONArray items = blocks.optJSONObject(i).optJSONArray("items");
                 if (items == null) continue;
                 for (int k = 0; k < items.length(); k++) {
                     JSONObject it = items.optJSONObject(k);
-                    if (id.equals(it.optString("id"))) it.put("done", !it.optBoolean("done"));
+                    if (!id.equals(it.optString("id"))) continue;
+                    name = it.optString("name");
+                    if ("check".equals(kind)) it.put("done", !it.optBoolean("done"));
+                    else if ("count".equals(kind)) {
+                        int c = it.optInt("cnt") + 1, t = it.optInt("target");
+                        it.put("cnt", c);
+                        if (t <= 0 || c >= t) it.put("done", true);
+                    } else if ("stop".equals(kind)) it.put("done", true);
                 }
             }
+            String a;
+            String slot = id;
+            if ("start".equals(kind)) {
+                JSONObject tm = data.optJSONObject("timer");
+                if (tm != null && tm.optLong("start") > 0) { WidgetKit.refreshAll(ctx); return; } /* 이미 재는 중 */
+                tm = new JSONObject(); tm.put("rid", id); tm.put("name", name); tm.put("start", now);
+                data.put("timer", tm);
+                a = "tstart";
+            } else if ("stop".equals(kind)) {
+                data.put("timer", JSONObject.NULL);
+                a = "stop"; slot = "routine";
+                try { androidx.core.app.NotificationManagerCompat.from(ctx).cancel(TimerActionReceiver.notiIdOf("routine")); } catch (Exception ignored) {}
+            } else a = "count".equals(kind) ? "rcount" : "rcheck";
             wp.edit().putString(KEY_DATA, data.toString()).apply();
             SharedPreferences p = ctx.getSharedPreferences(TimerActionReceiver.PREFS, Context.MODE_PRIVATE);
             JSONArray arr;
             try { arr = new JSONArray(p.getString(TimerActionReceiver.KEY_PENDING, "[]")); } catch (Exception e) { arr = new JSONArray(); }
             JSONObject o = new JSONObject();
-            o.put("a", "rcheck"); o.put("slot", id); o.put("date", date); o.put("at", System.currentTimeMillis());
+            o.put("a", a); o.put("slot", slot); o.put("date", date); o.put("at", now);
             arr.put(o);
             p.edit().putString(TimerActionReceiver.KEY_PENDING, arr.toString()).apply();
         } catch (Exception ignored) {}

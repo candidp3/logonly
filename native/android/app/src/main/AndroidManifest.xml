@@ -66,7 +66,16 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
-    </application>
+            <activity
+            android:name=".WidgetInputActivity"
+            android:exported="false"
+            android:theme="@style/WidgetInputTheme"
+            android:taskAffinity="com.odaylab.logonly.wq"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize" />
+</application>
 
     <!-- Permissions -->
 

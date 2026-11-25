@@ -43,7 +43,7 @@ public class RoutineWidgetService extends RemoteViewsService {
             if (!it.optBoolean("header")) {
                 Intent fill = new Intent()
                     .putExtra("rid", it.optString("id"))
-                    .putExtra("kind", it.optString("kind", "check"));
+                    .putExtra("kind", "check".equals(it.optString("kind", "check")) ? "check" : "input");
                 v.setOnClickFillInIntent(R.id.widgetItemRow, fill);
             }
             return v;

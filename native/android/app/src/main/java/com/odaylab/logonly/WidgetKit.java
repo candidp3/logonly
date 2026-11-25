@@ -122,53 +122,7 @@ public class WidgetKit {
     static RemoteViews buildSimple(Context ctx, int widgetId, JSONObject c, int kind) {
         int[] col = RoutineWidgetProvider.colors(ctx, c);
         float[] sz = RoutineWidgetProvider.sizes(c);
-        if (kind == KIND_SMALL) {
-            RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
-            bg(ctx, v, c);
-            Object[] n = now(ctx);
-            JSONObject d = RoutineWidgetProvider.data(ctx);
-            JSONObject blk = (Boolean) n[3] ? RoutineWidgetProvider.currentBlock(d) : null;
-            String mode = RoutineWidgetProvider.nowMode;
-            String hi = blk == null ? (String) n[0] : "now".equals(mode) && !blk.optString("hi").isEmpty() ? blk.optString("hi") : (String) n[0];
-            v.setTextViewText(R.id.smallTitle, hi);
-            v.setTextViewText(R.id.smallCount, (String) n[1]);
-            v.setTextColor(R.id.smallTitle, col[2]);
-            v.setTextColor(R.id.smallCount, col[2]);
-            ts(v, R.id.smallTitle, sz[1]); ts(v, R.id.smallCount, sz[1] - 1);
-            int tot = 0, dn = 0;
-            try { String[] p = ((String) n[1]).split("/"); dn = Integer.parseInt(p[0]); tot = Integer.parseInt(p[1]); } catch (Exception ignored) {}
-            v.setProgressBar(R.id.smallProgress, Math.max(1, tot), dn, false);
-            v.setViewVisibility(R.id.smallProgress, tot > 0 ? View.VISIBLE : View.GONE);
-            JSONObject next = (JSONObject) n[2];
-            if (next != null) {
-                v.setViewVisibility(R.id.smallRow, View.VISIBLE);
-                v.setViewVisibility(R.id.smallDone, View.GONE);
-                v.setTextViewText(R.id.smallName, next.optString("name"));
-                v.setTextColor(R.id.smallName, col[1]);
-                ts(v, R.id.smallName, sz[0] + 3);
-                v.setImageViewResource(R.id.smallIcBg, circleBg(ctx, c));
-                String ic = next.optString("ic");
-                if (!ic.isEmpty()) {
-                    try {
-                        byte[] bs = android.util.Base64.decode(ic, android.util.Base64.DEFAULT);
-                        v.setImageViewBitmap(R.id.smallIc, android.graphics.BitmapFactory.decodeByteArray(bs, 0, bs.length));
-                    } catch (Exception e) { v.setImageViewResource(R.id.smallIc, R.drawable.ic_w_routine); }
-                } else v.setImageViewResource(R.id.smallIc, R.drawable.ic_w_routine);
-                v.setInt(R.id.smallIc, "setColorFilter", col[4]);
-                v.setImageViewResource(R.id.smallCheck, R.drawable.widget_check_ring);
-                v.setInt(R.id.smallCheck, "setColorFilter", col[4]);
-                v.setOnClickPendingIntent(R.id.smallRow, tapItem(ctx, RoutineSmallWidget.class, next, 9000 + widgetId));
-            } else {
-                v.setViewVisibility(R.id.smallRow, View.GONE);
-                v.setViewVisibility(R.id.smallDone, View.VISIBLE);
-                v.setTextViewText(R.id.smallDone, !(Boolean) n[3] ? "앱을 한 번 열면 보여요" : ((String) n[1]).isEmpty() ? "이 시간대엔 할 일이 없어요" : "이 시간대는 다 했어요");
-                v.setTextColor(R.id.smallDone, col[1]);
-                ts(v, R.id.smallDone, sz[0] + 2);
-                v.setOnClickPendingIntent(R.id.smallDone, openScreen(ctx, "routine", 9100 + widgetId));
-            }
-            v.setOnClickPendingIntent(R.id.smallHead, openScreen(ctx, "routine", 9200 + widgetId));
-            return v;
-        }
+        if (kind == KIND_SMALL) return buildSmall(ctx, widgetId, c);
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_bar);
         bg(ctx, v, c);
         v.setTextColor(R.id.barTitle, col[2]);
@@ -210,6 +164,117 @@ public class WidgetKit {
         navButton(ctx, v, R.id.barB1, iconOf(nav[0]), nav[0], c, 9500 + widgetId * 4);
         navButton(ctx, v, R.id.barB2, iconOf(nav[1]), nav[1], c, 9501 + widgetId * 4);
         navButton(ctx, v, R.id.barB3, iconOf(nav[2]), nav[2], c, 9502 + widgetId * 4);
+        return v;
+    }
+
+    /* ---------- 2×1 ROUTINE (2026-11-25) ---------- */
+    static int hex(String h, int def) {
+        try { if (h != null && h.startsWith("#") && h.length() == 7) return 0xFF000000 | Integer.parseInt(h.substring(1), 16); } catch (Exception ignored) {}
+        return def;
+    }
+    /** {연한 테마색, 진한 테마색} */
+    static int[] tint(Context ctx, JSONObject c) {
+        boolean dk = RoutineWidgetProvider.dark(ctx, c);
+        JSONObject d = RoutineWidgetProvider.data(ctx);
+        return new int[]{
+            hex(d.optString(dk ? "tintD" : "tintL"), dk ? 0xFF223A31 : 0xFFE2F4EC),
+            hex(d.optString(dk ? "accentDarkD" : "accentDarkL"), dk ? 0xFFBFE6D4 : 0xFF2F6B55)
+        };
+    }
+    /** 위젯에서 바로: check(체크) · count(+1) · start(시작) · stop(종료) */
+    static PendingIntent act(Context ctx, Class<?> cls, String kind, String rid, int code) {
+        Intent i = new Intent(ctx, cls).setAction(RoutineWidgetProvider.ACTION_TAP)
+            .putExtra("rid", rid).putExtra("kind", kind);
+        i.setData(Uri.parse("logonly://act/" + kind + "/" + rid + "/" + code));
+        return PendingIntent.getBroadcast(ctx, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+    /** 홈 화면 위에 앱의 기록창 */
+    static PendingIntent input(Context ctx, String rid, int code) {
+        return PendingIntent.getActivity(ctx, code, WidgetInputActivity.intent(ctx, rid), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    static RemoteViews buildSmall(Context ctx, int widgetId, JSONObject c) {
+        int[] col = RoutineWidgetProvider.colors(ctx, c);
+        int[] tn = tint(ctx, c);
+        float big = "s".equals(c.optString("font", "m")) ? 14.5f : "l".equals(c.optString("font", "m")) ? 17f : 15.5f;
+        RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
+        bg(ctx, v, c);
+        JSONObject d = RoutineWidgetProvider.data(ctx);
+        boolean fresh = RoutineWidgetProvider.todayKey(ctx).equals(d.optString("date"));
+        v.setInt(R.id.smallBar, "setColorFilter", col[4]);
+        v.setTextColor(R.id.smallTitle, col[1]);
+        v.setTextColor(R.id.smallCount, col[2]);
+        v.setTextColor(R.id.smallName, col[1]);
+        v.setTextColor(R.id.smallChrono, col[1]);
+        ts(v, R.id.smallName, big);
+        v.setViewVisibility(R.id.smallChrono, View.GONE);
+        v.setViewVisibility(R.id.smallName, View.VISIBLE);
+        v.setViewVisibility(R.id.smallBtnIc, View.GONE);
+        v.setTextViewText(R.id.smallBtnText, "");
+        int code = 9000 + widgetId * 8;
+
+        /* 1) 타이머가 돌아가는 중: 연한 테마색 바탕 · 흐르는 시간 · 종료 */
+        JSONObject tm = d.optJSONObject("timer");
+        if (tm != null && tm.optLong("start") > 0) {
+            v.setInt(R.id.widgetBgImg, "setColorFilter", tn[0]);
+            v.setTextViewText(R.id.smallTitle, tm.optString("name", "타이머"));
+            v.setTextViewText(R.id.smallCount, "");
+            v.setViewVisibility(R.id.smallName, View.GONE);
+            v.setViewVisibility(R.id.smallChrono, View.VISIBLE);
+            ts(v, R.id.smallChrono, big + 1);
+            long base = android.os.SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - tm.optLong("start"));
+            v.setChronometer(R.id.smallChrono, base, null, true);
+            v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
+            v.setInt(R.id.smallBtnBg, "setColorFilter", col[4]);
+            v.setTextViewText(R.id.smallBtnText, "종료");
+            v.setTextColor(R.id.smallBtnText, RoutineWidgetProvider.dark(ctx, c) ? 0xFF14201B : 0xFFFFFFFF);
+            v.setOnClickPendingIntent(R.id.smallBtn, act(ctx, RoutineSmallWidget.class, "stop", tm.optString("rid"), code));
+            v.setOnClickPendingIntent(R.id.smallMain, input(ctx, tm.optString("rid"), code + 1));
+            return v;
+        }
+
+        JSONObject blk = fresh ? RoutineWidgetProvider.currentBlock(d) : null;
+        JSONArray its = blk == null ? null : blk.optJSONArray("items");
+        int n = its == null ? 0 : its.length(), done = 0;
+        JSONObject next = null;
+        for (int i = 0; i < n; i++) { JSONObject it = its.optJSONObject(i); if (it.optBoolean("done")) done++; else if (next == null) next = it; }
+        v.setTextViewText(R.id.smallTitle, !fresh ? "오늘" : blk == null ? "오늘" : blk.optString("label"));
+        v.setTextViewText(R.id.smallCount, n > 0 ? done + "/" + n : "");
+
+        /* 2) 다 했거나 할 게 없을 때: 잠깐 쉬어가요 */
+        if (next == null) {
+            v.setTextViewText(R.id.smallName, !fresh ? "앱을 한 번 열어 주세요" : "잠깐 쉬어가요");
+            v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
+            v.setInt(R.id.smallBtnBg, "setColorFilter", tn[0]);
+            v.setViewVisibility(R.id.smallBtnIc, View.VISIBLE);
+            v.setInt(R.id.smallBtnIc, "setColorFilter", tn[1]);
+            PendingIntent op = openScreen(ctx, "routine", code + 2);
+            v.setOnClickPendingIntent(R.id.smallBtn, op);
+            v.setOnClickPendingIntent(R.id.smallMain, op);
+            return v;
+        }
+
+        /* 3) 다음 할 루틴 */
+        String kind = next.optString("kind", "check"), rid = next.optString("id"), name = next.optString("name");
+        if ("count".equals(kind) && next.optInt("cnt") > 0) name = name + " · " + next.optInt("cnt") + next.optString("unit", "회");
+        v.setTextViewText(R.id.smallName, name);
+        if ("check".equals(kind)) {
+            v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_ring_big);
+            v.setInt(R.id.smallBtnBg, "setColorFilter", col[4]);
+            PendingIntent ck = act(ctx, RoutineSmallWidget.class, "check", rid, code + 3);
+            v.setOnClickPendingIntent(R.id.smallBtn, ck);
+            v.setOnClickPendingIntent(R.id.smallMain, ck);
+        } else {
+            v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
+            v.setInt(R.id.smallBtnBg, "setColorFilter", tn[0]);
+            v.setTextColor(R.id.smallBtnText, tn[1]);
+            v.setTextViewText(R.id.smallBtnText, "count".equals(kind) ? "+1" : "time".equals(kind) ? "시작" : "기록");
+            v.setOnClickPendingIntent(R.id.smallBtn,
+                "count".equals(kind) ? act(ctx, RoutineSmallWidget.class, "count", rid, code + 3)
+                : "time".equals(kind) ? act(ctx, RoutineSmallWidget.class, "start", rid, code + 3)
+                : input(ctx, rid, code + 3));
+            v.setOnClickPendingIntent(R.id.smallMain, input(ctx, rid, code + 4));
+        }
         return v;
     }
 }

@@ -13297,6 +13297,14 @@ html.kbOpen .routineActionOverlay{align-items:center!important}
 #viewAll_v2 .rr-tabs .on,#viewAll_v2 .bookPeriodTab.on{border-bottom-color:var(--rc-gs,var(--accent))!important;color:var(--rc-tx)!important}
 #viewAll_v2 .rr-card>h2::before{width:6px!important;height:6px!important;border-radius:1.5px!important;background:var(--rc-gs,var(--accent))!important}
 
+/* 위젯 입력 모드: 기록창만 보이게, 바탕은 투명 */
+html.lgWQ,html.lgWQ body{background:transparent!important}
+html.lgWQ body *{visibility:hidden}
+html.lgWQ :is(.routineActionOverlay:not(.hide),.lifeModal:not(.hide),.modal:not(.hide)),html.lgWQ :is(.routineActionOverlay:not(.hide),.lifeModal:not(.hide),.modal:not(.hide)) *{visibility:visible}
+html.lgWQ .tabBar,html.lgWQ #tabBar,html.lgWQ nav{display:none!important}
+
+html.lgWQ .tplMake,html.lgWQ .tplLinks button[onclick^="tplEdit"]{display:none!important}
+
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -15518,7 +15526,7 @@ function pjTapTask(e,pid,tid){
   try{renderBackupNudge();}catch(e){}
 
   /* --- 자동으로 올리기: 시작 후, 앱을 내릴 때, 30분마다 (바뀐 게 있고 6시간 지났을 때만) --- */
-  const auto=()=>{if(st().mode==='drive')backupNow({interactive:false});};
+  const auto=()=>{if(/[?&]wq=/.test(location.search))return;/* 위젯 기록창에서는 백업 안 함 */if(st().mode==='drive')backupNow({interactive:false});};
   setTimeout(auto,8000);setInterval(auto,30*60e3);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')auto();});
 })();
@@ -17352,6 +17360,8 @@ function lgAt(ts,fn){
         try{
           const slot=String(x.slot||'routine'),a=x.a,at=Number(x.at)||Date.now();
           if(a==='rcheck'){try{lgWidgetCheck(slot,x.date,at);}catch(e){}return;}
+          if(a==='rcount'){try{lgWidgetCount(slot,x.date,at);}catch(e){}return;}
+          if(a==='tstart'){try{lgWidgetStart(slot,at);}catch(e){}return;}
           if(slot.startsWith('care:')){
             if(a==='stop')lgAt(at,()=>window.lgCareAction&&lgCareAction('stop',slot.slice(5)));
             return;
@@ -18156,6 +18166,65 @@ function ftDotHex(c){
   return ftDotCache[v]='#'+[f(0),f(8),f(4)].map(x=>Math.round(Math.max(0,Math.min(1,x))*255).toString(16).padStart(2,'0')).join('');
 }
 try{renderLifeGuide();renderOneOffQuick();}catch(e){}
+
+/* ===== 위젯 2×1 새 버전 + 위젯에서 바로 기록 (2026-11-25)
+   - 루틴 종류: check(바로 체크) · count(+1) · time(시작/종료) · input(앱 기록창을 홈 화면 위에)
+   - 위젯 바탕 '연한 테마색'용 색도 같이 넘김 ===== */
+(function(){
+  const base=lgWidgetData;
+  lgWidgetData=function(){
+    const d=base.apply(this,arguments);
+    try{
+      const rs=loadLifeRoutines(),logs=loadLifeLogs()[d.date]||[];
+      (d.blocks||[]).forEach(b=>(b.items||[]).forEach(it=>{
+        const r=rs.find(x=>x.id===it.id)||{},lg=logs.find(x=>x&&x.routineId===it.id);
+        it.kind=r.legacyKey?'check':r.type==='count'?'count':r.type==='time'?'time':(!r.type||r.type==='check')?'check':'input';
+        if(r.type==='count'){it.cnt=Number(lg?.value)||0;it.unit=r.unit||'회';it.target=Number(r.target)||0;}
+      }));
+      const t=loadActivityTimer();
+      if(t&&t.startedAt){const r=rs.find(x=>x.id===t.routineId);d.timer={rid:t.routineId,name:r?r.name:'',start:Date.parse(t.startedAt)};}else d.timer=null;
+      const p=THEME_PALETTES[getThemeColor()];d.tintL=p.light.base.gl;d.tintD=p.dark.base.gl;
+    }catch(e){}
+    return d;
+  };
+})();
+/* 위젯에서 누른 +1 · 시작 (누른 시각으로) */
+function lgWidgetCount(id,date,at){
+  const r=loadLifeRoutines().find(x=>x.id===id);if(!r)return;
+  const k=date||lifeLogKey(),all=loadLifeLogs(),arr=Array.isArray(all[k])?all[k]:[],i=arr.findIndex(x=>x&&x.routineId===id);
+  const n=(i>=0?Number(arr[i].value)||0:0)+1,t=Number(r.target)||0,partial=t>0&&n<t;
+  const row={routineId:id,completed:!partial,value:n,duration:null,memo:'',loggedAt:new Date(at||Date.now()).toISOString()};if(partial)row.partial=true;
+  if(i>=0)arr[i]=row;else arr.push(row);all[k]=arr;saveLifeLogs(all);
+  try{renderLifeGuide();renderLifeCalendar();}catch(e){}
+}
+function lgWidgetStart(id,at){
+  const cur=loadActivityTimer();if(cur&&cur.startedAt)return; /* 이미 재는 중이면 건너뜀 */
+  lgAt(at,()=>{try{startActivityTimer(id);}catch(e){}});
+  try{window.lgTimerNotiSync&&lgTimerNotiSync(true);}catch(e){}
+}
+/* ===== 위젯 입력 모드: 홈 화면 위 작은 창에 앱의 기록창만 띄움 (B안) ===== */
+const LG_WQ=(()=>{try{const q=new URLSearchParams(location.search);return q.get('wq')?{id:q.get('wq')}:null;}catch(e){return null;}})();
+if(LG_WQ){
+  document.documentElement.classList.add('lgWQ');
+  /* 이 작은 창에서는 백업·자동 백업을 돌리지 않음 (앱 본체가 함) */
+  const openSel='.routineActionOverlay:not(.hide),.lifeModal:not(.hide),.modal:not(.hide)';
+  let opened=false,idle=0;
+  setTimeout(()=>{
+    try{document.getElementById('obRoot')?.remove();document.getElementById('coachRoot')?.remove();}catch(e){}
+    try{lifeNavigate('today');}catch(e){}
+    try{if(window.LogonlyWQ&&LogonlyWQ.takePending){const keep=window.LogonlyNotify;window.LogonlyNotify={takePending:()=>LogonlyWQ.takePending()};try{lgPendingRun();}finally{window.LogonlyNotify=keep;}}}catch(e){}
+    try{handleRoutineRowTap(null,LG_WQ.id);}catch(e){}
+    setTimeout(()=>{opened=!!document.querySelector(openSel);if(!opened){try{lgWidgetSync();}catch(e){}setTimeout(()=>window.LogonlyWQ&&LogonlyWQ.close(),400);}},350);
+  },450);
+  setInterval(()=>{
+    if(!opened)return;
+    if(document.querySelector(openSel)){idle=0;return;}
+    if(++idle>=2){opened=false;try{lgWidgetSync();}catch(e){}setTimeout(()=>window.LogonlyWQ&&LogonlyWQ.close(),450);}
+  },250);
+}
+
+/* 위젯 버튼 글자색용 진한 테마색도 넘김 */
+(function(){const base=lgWidgetData;lgWidgetData=function(){const d=base.apply(this,arguments);try{const p=THEME_PALETTES[getThemeColor()];d.accentDarkL=p.light.base.gd;d.accentDarkD=p.dark.base.gd;}catch(e){}return d;};})();
 
 </script>
 
