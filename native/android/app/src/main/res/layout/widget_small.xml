@@ -13,24 +13,16 @@
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:gravity="center_vertical">
                 <ImageView android:id="@+id/smallBar" android:layout_width="4dp" android:layout_height="15dp" android:src="@drawable/widget_vbar" android:tint="#3F9C7C" />
-                <TextView android:id="@+id/smallTitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
-                    android:textSize="14sp" android:maxLines="1" android:ellipsize="end" android:text="아침" android:textColor="#26302B" />
-                <TextView android:id="@+id/smallCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp" android:fontFamily="@font/pretendard_regular" android:includeFontPadding="false"
-                    android:textSize="13.5sp" android:maxLines="1" android:text="2/5" android:textColor="#8A958F" />
+                <ImageView android:id="@+id/smallTitleImg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:scaleType="fitStart" android:adjustViewBounds="true" />
             </LinearLayout>
-            <TextView android:id="@+id/smallName" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="5dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
-                android:textSize="19sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="물 한 잔 마시기" android:textColor="#26302B" />
+            <ImageView android:id="@+id/smallNameImg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:scaleType="fitStart" android:adjustViewBounds="true" />
             <Chronometer android:id="@+id/smallChrono" android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginTop="5dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
                 android:textSize="20sp" android:textStyle="bold" android:visibility="gone" />
         </LinearLayout>
         <FrameLayout android:id="@+id/smallBtn" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="6dp">
             <ImageView android:id="@+id/smallBtnBg" android:layout_width="44dp" android:layout_height="44dp" android:layout_gravity="center" android:src="@drawable/widget_ring_big" android:tint="#3F9C7C" />
-            <TextView android:id="@+id/smallBtnText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"
-                android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false" android:textSize="14sp" />
+            <ImageView android:id="@+id/smallBtnTextImg" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" />
             <ImageView android:id="@+id/smallBtnIc" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:src="@drawable/ic_w_check" android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>

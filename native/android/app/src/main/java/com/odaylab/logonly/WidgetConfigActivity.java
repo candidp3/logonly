@@ -99,6 +99,15 @@ public class WidgetConfigActivity extends Activity {
         stage.setPadding(dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28), dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28));
         preview = new FrameLayout(this);
         int pw = kind == WidgetKit.KIND_SMALL ? dp(240) : ViewGroup.LayoutParams.MATCH_PARENT;
+        if (kind == WidgetKit.KIND_SMALL) {
+            /* 미리보기를 실제 위젯 칸 크기와 같게 */
+            try {
+                android.os.Bundle op = android.appwidget.AppWidgetManager.getInstance(this).getAppWidgetOptions(widgetId);
+                int hh = op.getInt(android.appwidget.AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0), ww = op.getInt(android.appwidget.AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+                if (hh > 0) ph = hh;
+                if (ww > 0) pw = dp(ww);
+            } catch (Exception ignored) {}
+        }
         FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(pw, dp(ph));
         plp.gravity = Gravity.CENTER;
         stage.addView(preview, plp);
@@ -132,11 +141,12 @@ public class WidgetConfigActivity extends Activity {
         c2.addView(chips("theme", new String[]{"system", "light", "dark"}, new String[]{"폰 설정 따라", "밝게", "어둡게"}, "system"));
         c2.addView(small("글씨 크기"));
         c2.addView(chips("font", new String[]{"s", "m", "l"}, new String[]{"작게", "보통", "크게"}, "m"));
-        final TextView opLabel = small("배경 진하기 · " + cfg.optInt("opacity", 100) + "%");
+        final int opDef = kind == WidgetKit.KIND_SMALL ? 80 : 100;
+        final TextView opLabel = small("배경 진하기 · " + cfg.optInt("opacity", opDef) + "%");
         c2.addView(opLabel);
         SeekBar sb = new SeekBar(this);
         sb.setMax(100);
-        sb.setProgress(cfg.optInt("opacity", 100));
+        sb.setProgress(cfg.optInt("opacity", opDef));
         try { sb.setProgressTintList(ColorStateList.valueOf(cAcc)); sb.setThumbTintList(ColorStateList.valueOf(cAcc)); } catch (Exception ignored) {}
         sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar s, int p, boolean u) { put("opacity", p); opLabel.setText("배경 진하기 · " + p + "%"); render(); }
@@ -144,9 +154,15 @@ public class WidgetConfigActivity extends Activity {
             @Override public void onStopTrackingTouch(SeekBar s) {}
         });
         c2.addView(sb);
+        if (kind == WidgetKit.KIND_SMALL) {
+            c2.addView(small("모서리"));
+            c2.addView(chips("radius", new String[]{"0", "6", "12", "20", "full"}, new String[]{"각지게", "살짝", "보통", "많이", "캡슐"}, "full"));
+        }
 
         TextView hint = new TextView(this);
-        hint.setText(kind == WidgetKit.KIND_PROJECT_BAR
+        hint.setText(kind == WidgetKit.KIND_SMALL
+            ? "오른쪽 버튼으로 바로 기록해요(체크 · +1 · 타이머 시작/종료). 루틴 이름이나 위젯을 누르면 앱이 열려요."
+            : kind == WidgetKit.KIND_PROJECT_BAR
             ? "프로젝트를 누르면 PROJECTS가, 오른쪽 동그라미를 누르면 그 화면이 바로 열려요."
             : "체크만 하는 루틴은 위젯에서 바로 체크돼요. 시간·횟수를 남기는 루틴은 누르면 앱이 열려요.");
         hint.setTextColor(cMuted);

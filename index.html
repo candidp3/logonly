@@ -18226,6 +18226,9 @@ if(LG_WQ){
 /* 위젯 버튼 글자색용 진한 테마색도 넘김 */
 (function(){const base=lgWidgetData;lgWidgetData=function(){const d=base.apply(this,arguments);try{const p=THEME_PALETTES[getThemeColor()];d.accentDarkL=p.light.base.gd;d.accentDarkD=p.dark.base.gd;}catch(e){}return d;};})();
 
+/* 위젯 시간대 이름: 내가 정한 이름이 있으면 그 이름 (없으면 짧은 기본 이름) */
+(function(){const base=lgWidgetData;lgWidgetData=function(){const d=base.apply(this,arguments);try{const nm=lifeBlockPrefs().names||{};(d.blocks||[]).forEach(b=>{const n=String(nm[b.id]||'').trim();if(n)b.label=n;});}catch(e){}return d;};})();
+
 </script>
 
 </body>

@@ -1,5 +1,9 @@
 package com.odaylab.logonly;
 
+import android.graphics.Typeface;
+import android.graphics.Paint;
+import android.graphics.Canvas;
+import android.graphics.Bitmap;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
@@ -208,12 +212,85 @@ public class WidgetKit {
         return PendingIntent.getActivity(ctx, code, WidgetInputActivity.intent(ctx, rid), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
+
+    /* ---- 위젯 글씨를 그림으로: 폰 글꼴 설정과 상관없이 앱 글씨체(Pretendard) 그대로, 설정 미리보기와 똑같이 ---- */
+    private static Typeface TF_REG, TF_SEMI;
+    static Typeface tf(Context ctx, boolean semi) {
+        try {
+            if (TF_REG == null) TF_REG = androidx.core.content.res.ResourcesCompat.getFont(ctx, R.font.pretendard_regular);
+            if (TF_SEMI == null) TF_SEMI = androidx.core.content.res.ResourcesCompat.getFont(ctx, R.font.pretendard_semibold);
+        } catch (Exception ignored) {}
+        Typeface t = semi ? TF_SEMI : TF_REG;
+        return t != null ? t : (semi ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+    }
+    static android.text.TextPaint paint(Context ctx, float sp, boolean semi, int color) {
+        android.text.TextPaint p = new android.text.TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+        p.setTypeface(tf(ctx, semi));
+        p.setTextSize(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, sp, ctx.getResources().getDisplayMetrics()));
+        p.setColor(color);
+        return p;
+    }
+    /** 한 줄 글씨 그림 (넘치면 …) */
+    static Bitmap txt(Context ctx, float sp, boolean semi, int color, String s, int maxW) {
+        android.text.TextPaint p = paint(ctx, sp, semi, color);
+        if (s == null) s = "";
+        if (maxW > 0) s = android.text.TextUtils.ellipsize(s, p, maxW, android.text.TextUtils.TruncateAt.END).toString();
+        Paint.FontMetrics fm = p.getFontMetrics();
+        int w = Math.max(1, (int) Math.ceil(p.measureText(s)) + 2), h = Math.max(1, (int) Math.ceil(fm.descent - fm.ascent));
+        Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        b.setDensity(ctx.getResources().getDisplayMetrics().densityDpi);
+        new Canvas(b).drawText(s, 0, -fm.ascent, p);
+        return b;
+    }
+    /** 윗줄: 시간대(진하게) + 2/5(연하게) */
+    static void title(Context ctx, RemoteViews v, String label, String count, int[] col, int maxW) {
+        android.text.TextPaint a = paint(ctx, 14f, true, col[1]), c = paint(ctx, 13.5f, false, col[2]);
+        float gap = count.isEmpty() ? 0 : 6 * ctx.getResources().getDisplayMetrics().density;
+        float cw = count.isEmpty() ? 0 : c.measureText(count);
+        if (maxW > 0) label = android.text.TextUtils.ellipsize(label == null ? "" : label, a, Math.max(10, maxW - cw - gap), android.text.TextUtils.TruncateAt.END).toString();
+        float lw = a.measureText(label);
+        Paint.FontMetrics fa = a.getFontMetrics(), fc = c.getFontMetrics();
+        float asc = Math.max(-fa.ascent, -fc.ascent), desc = Math.max(fa.descent, fc.descent);
+        int w = Math.max(1, (int) Math.ceil(lw + gap + cw) + 2), h = Math.max(1, (int) Math.ceil(asc + desc));
+        Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        b.setDensity(ctx.getResources().getDisplayMetrics().densityDpi);
+        Canvas cv = new Canvas(b);
+        cv.drawText(label, 0, asc, a);
+        if (!count.isEmpty()) cv.drawText(count, lw + gap, asc, c);
+        v.setImageViewBitmap(R.id.smallTitleImg, b);
+    }
+    static void btnText(Context ctx, RemoteViews v, String s, int color) {
+        v.setViewVisibility(R.id.smallBtnTextImg, View.VISIBLE);
+        v.setImageViewBitmap(R.id.smallBtnTextImg, txt(ctx, 14f, true, color, s, 0));
+    }
+    /** 이름이 들어갈 수 있는 너비(px): 위젯 너비 − 왼쪽 여백 − 버튼 */
+    static int textW(Context ctx, int widgetId) {
+        int wDp = 0;
+        try {
+            android.os.Bundle op = android.appwidget.AppWidgetManager.getInstance(ctx).getAppWidgetOptions(widgetId);
+            if (op != null) wDp = op.getInt(android.appwidget.AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+        } catch (Exception ignored) {}
+        if (wDp <= 0) wDp = 240;
+        return Math.round((wDp - 24 - 12 - 48 - 6 - 4) * ctx.getResources().getDisplayMetrics().density);
+    }
+    /** 모서리 둥글기 */
+    static int cornerRes(JSONObject c) {
+        switch (c.optString("radius", "full")) {
+            case "0": return R.drawable.widget_r0;
+            case "6": return R.drawable.widget_r6;
+            case "12": return R.drawable.widget_r12;
+            case "20": return R.drawable.widget_r20;
+            default: return R.drawable.widget_capsule;
+        }
+    }
+
     static RemoteViews buildSmall(Context ctx, int widgetId, JSONObject c) {
         int[] col = RoutineWidgetProvider.colors(ctx, c);
         int[] tn = tint(ctx, c);
         float big = "s".equals(c.optString("font", "m")) ? 17f : "l".equals(c.optString("font", "m")) ? 21f : 19f;
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
         bg(ctx, v, c);
+        v.setImageViewResource(R.id.widgetBgImg, cornerRes(c));
         if (!RoutineWidgetProvider.dark(ctx, c)) v.setInt(R.id.widgetBgImg, "setColorFilter", 0xFFF4F6F9);
         /* 투명도: 따로 정하지 않았으면 80% 진하기(살짝 비침) */
         if (!c.has("opacity")) v.setInt(R.id.widgetBgImg, "setImageAlpha", Math.round(80 * 2.55f));
@@ -231,32 +308,27 @@ public class WidgetKit {
         JSONObject d = RoutineWidgetProvider.data(ctx);
         boolean fresh = RoutineWidgetProvider.todayKey(ctx).equals(d.optString("date"));
         v.setInt(R.id.smallBar, "setColorFilter", col[4]);
-        v.setTextColor(R.id.smallTitle, col[1]);
-        v.setTextColor(R.id.smallCount, col[2]);
-        v.setTextColor(R.id.smallName, col[1]);
         v.setTextColor(R.id.smallChrono, col[1]);
-        ts(v, R.id.smallName, big);
         v.setViewVisibility(R.id.smallChrono, View.GONE);
-        v.setViewVisibility(R.id.smallName, View.VISIBLE);
+        v.setViewVisibility(R.id.smallNameImg, View.VISIBLE);
         v.setViewVisibility(R.id.smallBtnIc, View.GONE);
-        v.setTextViewText(R.id.smallBtnText, "");
+        v.setViewVisibility(R.id.smallBtnTextImg, View.GONE);
+        int nameW = textW(ctx, widgetId);
         int code = 9000 + widgetId * 8;
 
         /* 1) 타이머가 돌아가는 중: 연한 테마색 바탕 · 흐르는 시간 · 종료 */
         JSONObject tm = d.optJSONObject("timer");
         if (tm != null && tm.optLong("start") > 0) {
             v.setInt(R.id.widgetBgImg, "setColorFilter", tn[0]);
-            v.setTextViewText(R.id.smallTitle, tm.optString("name", "타이머"));
-            v.setTextViewText(R.id.smallCount, "");
-            v.setViewVisibility(R.id.smallName, View.GONE);
+            title(ctx, v, tm.optString("name", "타이머"), "", col, nameW);
+            v.setViewVisibility(R.id.smallNameImg, View.GONE);
             v.setViewVisibility(R.id.smallChrono, View.VISIBLE);
             ts(v, R.id.smallChrono, big + 1);
             long base = android.os.SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - tm.optLong("start"));
             v.setChronometer(R.id.smallChrono, base, null, true);
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
             v.setInt(R.id.smallBtnBg, "setColorFilter", col[4]);
-            v.setTextViewText(R.id.smallBtnText, "종료");
-            v.setTextColor(R.id.smallBtnText, RoutineWidgetProvider.dark(ctx, c) ? 0xFF14201B : 0xFFFFFFFF);
+            btnText(ctx, v, "종료", RoutineWidgetProvider.dark(ctx, c) ? 0xFF14201B : 0xFFFFFFFF);
             v.setOnClickPendingIntent(R.id.smallBtn, act(ctx, RoutineSmallWidget.class, "stop", tm.optString("rid"), code));
             v.setOnClickPendingIntent(R.id.smallMain, openRoutine(ctx, tm.optString("rid"), code + 1));
             return v;
@@ -267,12 +339,11 @@ public class WidgetKit {
         int n = its == null ? 0 : its.length(), done = 0;
         JSONObject next = null;
         for (int i = 0; i < n; i++) { JSONObject it = its.optJSONObject(i); if (it.optBoolean("done")) done++; else if (next == null) next = it; }
-        v.setTextViewText(R.id.smallTitle, !fresh ? "오늘" : blk == null ? "오늘" : blk.optString("label"));
-        v.setTextViewText(R.id.smallCount, n > 0 ? done + "/" + n : "");
+        title(ctx, v, !fresh ? "오늘" : blk == null ? "오늘" : blk.optString("label"), n > 0 ? done + "/" + n : "", col, nameW);
 
         /* 2) 다 했거나 할 게 없을 때: 잠깐 쉬어가요 */
         if (next == null) {
-            v.setTextViewText(R.id.smallName, !fresh ? "앱을 한 번 열어 주세요" : "잠깐 쉬어가요");
+            v.setImageViewBitmap(R.id.smallNameImg, txt(ctx, big, true, col[1], !fresh ? "앱을 한 번 열어 주세요" : "잠깐 쉬어가요", nameW));
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
             v.setInt(R.id.smallBtnBg, "setColorFilter", tn[0]);
             v.setViewVisibility(R.id.smallBtnIc, View.VISIBLE);
@@ -286,7 +357,7 @@ public class WidgetKit {
         /* 3) 다음 할 루틴 */
         String kind = next.optString("kind", "check"), rid = next.optString("id"), name = next.optString("name");
         if ("count".equals(kind) && next.optInt("cnt") > 0) name = name + " · " + next.optInt("cnt") + next.optString("unit", "회");
-        v.setTextViewText(R.id.smallName, name);
+        v.setImageViewBitmap(R.id.smallNameImg, txt(ctx, big, true, col[1], name, nameW));
         if ("check".equals(kind)) {
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_ring_big);
             v.setInt(R.id.smallBtnBg, "setColorFilter", col[4]);
@@ -296,8 +367,7 @@ public class WidgetKit {
         } else {
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
             v.setInt(R.id.smallBtnBg, "setColorFilter", tn[0]);
-            v.setTextColor(R.id.smallBtnText, tn[1]);
-            v.setTextViewText(R.id.smallBtnText, "count".equals(kind) ? "+1" : "time".equals(kind) ? "시작" : "기록");
+            btnText(ctx, v, "count".equals(kind) ? "+1" : "time".equals(kind) ? "시작" : "기록", tn[1]);
             v.setOnClickPendingIntent(R.id.smallBtn,
                 "count".equals(kind) ? act(ctx, RoutineSmallWidget.class, "count", rid, code + 3)
                 : "time".equals(kind) ? act(ctx, RoutineSmallWidget.class, "start", rid, code + 3)
