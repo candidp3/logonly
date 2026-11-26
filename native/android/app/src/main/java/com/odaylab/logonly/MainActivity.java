@@ -71,6 +71,7 @@ public class MainActivity extends BridgeActivity {
             // 숨참기 끝 알림음(웹 오디오)이 터치 없이도 나도록
             getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
             // 숨참기 음성 안내: 폰의 음성 엔진으로 읽어 줌 (앱 화면에서는 브라우저 음성 기능이 없어서)
+            getBridge().getWebView().addJavascriptInterface(new CalendarBridge(this), "LogonlyCal");
             getBridge().getWebView().addJavascriptInterface(new Object() {
                 @JavascriptInterface
                 public String status() { return ttsStatus; }

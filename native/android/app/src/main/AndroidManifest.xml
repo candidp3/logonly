@@ -82,6 +82,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- 알림이 정해진 시간에 울리도록. 사용자가 폰 설정 '알람 및 리마인더'에서 허용해야 쓰임(안 하면 늦게 울릴 수 있음) -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
