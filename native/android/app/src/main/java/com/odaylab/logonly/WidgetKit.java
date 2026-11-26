@@ -199,8 +199,10 @@ public class WidgetKit {
         float big = "s".equals(c.optString("font", "m")) ? 17f : "l".equals(c.optString("font", "m")) ? 21f : 19f;
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
         bg(ctx, v, c);
+        if (!RoutineWidgetProvider.dark(ctx, c)) v.setInt(R.id.widgetBgImg, "setColorFilter", 0xFFF4F6F9);
         JSONObject d = RoutineWidgetProvider.data(ctx);
         boolean fresh = RoutineWidgetProvider.todayKey(ctx).equals(d.optString("date"));
+        v.setInt(R.id.smallBar, "setColorFilter", col[4]);
         v.setTextColor(R.id.smallTitle, col[1]);
         v.setTextColor(R.id.smallCount, col[2]);
         v.setTextColor(R.id.smallName, col[1]);
