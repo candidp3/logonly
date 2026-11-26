@@ -117,6 +117,7 @@ public class WidgetKit {
             int[] ids = m.getAppWidgetIds(new ComponentName(ctx, cls));
             if (ids == null) continue;
             for (int id : ids) m.updateAppWidget(id, buildSimple(ctx, id, RoutineWidgetProvider.cfg(ctx, id), kindOf(ctx, id)));
+            if (cls == RoutineBarWidget.class && ids.length > 0) m.notifyAppWidgetViewDataChanged(ids, R.id.barList);
         }
     }
 
@@ -127,6 +128,7 @@ public class WidgetKit {
         int[] col = RoutineWidgetProvider.colors(ctx, c);
         float[] sz = RoutineWidgetProvider.sizes(c);
         if (kind == KIND_SMALL) return buildSmall(ctx, widgetId, c);
+        if (kind == KIND_ROUTINE_BAR) return buildRoutine(ctx, widgetId, c, true);
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_bar);
         bg(ctx, v, c);
         v.setTextColor(R.id.barTitle, col[2]);
@@ -290,12 +292,51 @@ public class WidgetKit {
         }
     }
 
-    static RemoteViews buildSmall(Context ctx, int widgetId, JSONObject c) {
+
+    /** 4×1: 왼쪽(다음 루틴) 글씨 너비 */
+    static int leftW(Context ctx, int widgetId) {
+        int wDp = widthDp(ctx, widgetId, 330);
+        float left = (wDp - 24 - 16 - 25) * 11f / 20f;
+        return Math.round((left - 48 - 6 - 4) * ctx.getResources().getDisplayMetrics().density);
+    }
+    /** 4×1: 오른쪽 목록 글씨 너비 */
+    static int listW(Context ctx, int widgetId) {
+        int wDp = widthDp(ctx, widgetId, 330);
+        float right = (wDp - 24 - 16 - 25) * 9f / 20f;
+        return Math.round((right - 22 - 2) * ctx.getResources().getDisplayMetrics().density);
+    }
+    static int widthDp(Context ctx, int widgetId, int def) {
+        int wDp = 0;
+        try {
+            android.os.Bundle op = AppWidgetManager.getInstance(ctx).getAppWidgetOptions(widgetId);
+            if (op != null) wDp = op.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+        } catch (Exception ignored) {}
+        return wDp > 0 ? wDp : def;
+    }
+    /** 4×1: 오른쪽 목록 연결 (누르면 체크 · 그 밖은 홈 화면 위 기록창) */
+    static RemoteViews withList(Context ctx, RemoteViews v, int widgetId, JSONObject c, int[] col) {
+        Intent svc = new Intent(ctx, RoutineBarService.class).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+        svc.setData(Uri.parse("logonly://bar/" + widgetId));
+        v.setRemoteAdapter(R.id.barList, svc);
+        v.setEmptyView(R.id.barList, R.id.barEmpty);
+        v.setImageViewBitmap(R.id.barEmpty, txt(ctx, 13.5f, false, col[2], "남은 루틴이 없어요", listW(ctx, widgetId)));
+        v.setInt(R.id.barDivider, "setColorFilter", (col[2] & 0x00FFFFFF) | 0x33000000);
+        Intent tap = new Intent(ctx, WidgetInputActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        int fl = PendingIntent.FLAG_UPDATE_CURRENT | (android.os.Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
+        v.setPendingIntentTemplate(R.id.barList, PendingIntent.getActivity(ctx, 7800 + widgetId, tap, fl));
+        return v;
+    }
+
+    static RemoteViews buildSmall(Context ctx, int widgetId, JSONObject c) { return buildRoutine(ctx, widgetId, c, false); }
+
+    /** 2×1 ROUTINE · 4×1 ROUTINE (wide: 오른쪽에 남은 루틴 목록) */
+    static RemoteViews buildRoutine(Context ctx, int widgetId, JSONObject c, boolean wide) {
+        Class<?> rc = wide ? RoutineBarWidget.class : RoutineSmallWidget.class;
         int[] col = RoutineWidgetProvider.colors(ctx, c);
         int[] tn = tint(ctx, c);
         float big = "s".equals(c.optString("font", "m")) ? 17f : "l".equals(c.optString("font", "m")) ? 21f : 19f;
         SYS_FONT = "system".equals(c.optString("face", "app"));
-        RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
+        RemoteViews v = new RemoteViews(ctx.getPackageName(), wide ? R.layout.widget_routine4 : R.layout.widget_small);
         bg(ctx, v, c);
         v.setImageViewResource(R.id.widgetBgImg, cornerRes(c));
         if (!RoutineWidgetProvider.dark(ctx, c)) v.setInt(R.id.widgetBgImg, "setColorFilter", 0xFFF4F6F9);
@@ -320,8 +361,8 @@ public class WidgetKit {
         v.setViewVisibility(R.id.smallNameImg, View.VISIBLE);
         v.setViewVisibility(R.id.smallBtnIc, View.GONE);
         v.setViewVisibility(R.id.smallBtnTextImg, View.GONE);
-        int nameW = textW(ctx, widgetId);
-        int code = 9000 + widgetId * 8;
+        int nameW = wide ? leftW(ctx, widgetId) : textW(ctx, widgetId);
+        int code = (wide ? 9600 : 9000) + widgetId * 8;
 
         /* 1) 타이머가 돌아가는 중: 연한 테마색 바탕 · 흐르는 시간 · 종료 */
         JSONObject tm = d.optJSONObject("timer");
@@ -336,9 +377,9 @@ public class WidgetKit {
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
             v.setInt(R.id.smallBtnBg, "setColorFilter", col[4]);
             btnText(ctx, v, "종료", RoutineWidgetProvider.dark(ctx, c) ? 0xFF14201B : 0xFFFFFFFF);
-            v.setOnClickPendingIntent(R.id.smallBtn, act(ctx, RoutineSmallWidget.class, "stop", tm.optString("rid"), code));
-            v.setOnClickPendingIntent(R.id.smallMain, openRoutine(ctx, tm.optString("rid"), code + 1));
-            return v;
+            v.setOnClickPendingIntent(R.id.smallBtn, act(ctx, rc, "stop", tm.optString("rid"), code));
+            v.setOnClickPendingIntent(R.id.smallMain, openScreen(ctx, "today", code + 1));
+            return wide ? withList(ctx, v, widgetId, c, col) : v;
         }
 
         JSONObject blk = fresh ? RoutineWidgetProvider.currentBlock(d) : null;
@@ -355,10 +396,10 @@ public class WidgetKit {
             v.setInt(R.id.smallBtnBg, "setColorFilter", tn[0]);
             v.setViewVisibility(R.id.smallBtnIc, View.VISIBLE);
             v.setInt(R.id.smallBtnIc, "setColorFilter", tn[1]);
-            PendingIntent op = openScreen(ctx, "routine", code + 2);
+            PendingIntent op = openScreen(ctx, "today", code + 2);
             v.setOnClickPendingIntent(R.id.smallBtn, op);
             v.setOnClickPendingIntent(R.id.smallMain, op);
-            return v;
+            return wide ? withList(ctx, v, widgetId, c, col) : v;
         }
 
         /* 3) 다음 할 루틴 */
@@ -368,19 +409,19 @@ public class WidgetKit {
         if ("check".equals(kind)) {
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_ring_big);
             v.setInt(R.id.smallBtnBg, "setColorFilter", col[4]);
-            PendingIntent ck = act(ctx, RoutineSmallWidget.class, "check", rid, code + 3);
+            PendingIntent ck = act(ctx, rc, "check", rid, code + 3);
             v.setOnClickPendingIntent(R.id.smallBtn, ck);
-            v.setOnClickPendingIntent(R.id.smallMain, openRoutine(ctx, rid, code + 4));
+            v.setOnClickPendingIntent(R.id.smallMain, openScreen(ctx, "today", code + 4));
         } else {
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
             v.setInt(R.id.smallBtnBg, "setColorFilter", tn[0]);
             btnText(ctx, v, "count".equals(kind) ? "+1" : "time".equals(kind) ? "시작" : "기록", tn[1]);
             v.setOnClickPendingIntent(R.id.smallBtn,
-                "count".equals(kind) ? act(ctx, RoutineSmallWidget.class, "count", rid, code + 3)
-                : "time".equals(kind) ? act(ctx, RoutineSmallWidget.class, "start", rid, code + 3)
+                "count".equals(kind) ? act(ctx, rc, "count", rid, code + 3)
+                : "time".equals(kind) ? act(ctx, rc, "start", rid, code + 3)
                 : input(ctx, rid, code + 3));
-            v.setOnClickPendingIntent(R.id.smallMain, openRoutine(ctx, rid, code + 4));
+            v.setOnClickPendingIntent(R.id.smallMain, openScreen(ctx, "today", code + 4));
         }
-        return v;
+        return wide ? withList(ctx, v, widgetId, c, col) : v;
     }
 }

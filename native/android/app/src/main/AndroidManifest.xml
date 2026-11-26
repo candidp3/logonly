@@ -34,6 +34,8 @@
         </receiver>
         <service android:name=".RoutineWidgetService" android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <service android:name=".RoutineBarService" android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
         <activity android:name=".WidgetConfigActivity" android:exported="true"
             android:theme="@style/AppTheme.NoActionBar" android:label="위젯 설정"
             android:excludeFromRecents="true" android:taskAffinity="com.odaylab.logonly.widgetconfig">

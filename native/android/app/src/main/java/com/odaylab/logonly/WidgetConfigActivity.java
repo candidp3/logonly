@@ -99,7 +99,8 @@ public class WidgetConfigActivity extends Activity {
         stage.setPadding(dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28), dp(18), dp(kind == WidgetKit.KIND_TODAY ? 18 : 28));
         preview = new FrameLayout(this);
         int pw = kind == WidgetKit.KIND_SMALL ? dp(240) : ViewGroup.LayoutParams.MATCH_PARENT;
-        if (kind == WidgetKit.KIND_SMALL) {
+        if (kind == WidgetKit.KIND_SMALL || kind == WidgetKit.KIND_ROUTINE_BAR) {
+            if (kind == WidgetKit.KIND_ROUTINE_BAR) pw = ViewGroup.LayoutParams.MATCH_PARENT;
             /* 미리보기를 실제 위젯 칸 크기와 같게 */
             try {
                 android.os.Bundle op = android.appwidget.AppWidgetManager.getInstance(this).getAppWidgetOptions(widgetId);
@@ -141,7 +142,8 @@ public class WidgetConfigActivity extends Activity {
         c2.addView(chips("theme", new String[]{"system", "light", "dark"}, new String[]{"폰 설정 따라", "밝게", "어둡게"}, "system"));
         c2.addView(small("글씨 크기"));
         c2.addView(chips("font", new String[]{"s", "m", "l"}, new String[]{"작게", "보통", "크게"}, "m"));
-        final int opDef = kind == WidgetKit.KIND_SMALL ? 80 : 100;
+        final boolean capsule = kind == WidgetKit.KIND_SMALL || kind == WidgetKit.KIND_ROUTINE_BAR;
+        final int opDef = capsule ? 80 : 100;
         final TextView opLabel = small("배경 진하기 · " + cfg.optInt("opacity", opDef) + "%");
         c2.addView(opLabel);
         SeekBar sb = new SeekBar(this);
@@ -154,7 +156,7 @@ public class WidgetConfigActivity extends Activity {
             @Override public void onStopTrackingTouch(SeekBar s) {}
         });
         c2.addView(sb);
-        if (kind == WidgetKit.KIND_SMALL) {
+        if (capsule) {
             c2.addView(small("글씨체"));
             c2.addView(chips("face", new String[]{"app", "system"}, new String[]{"앱 글씨체", "폰 글꼴"}, "app"));
             c2.addView(small("모서리"));
@@ -162,8 +164,10 @@ public class WidgetConfigActivity extends Activity {
         }
 
         TextView hint = new TextView(this);
-        hint.setText(kind == WidgetKit.KIND_SMALL
-            ? "오른쪽 버튼으로 바로 기록해요(체크 · +1 · 타이머 시작/종료). 루틴 이름이나 위젯을 누르면 앱이 열려요."
+        hint.setText(kind == WidgetKit.KIND_ROUTINE_BAR
+            ? "왼쪽 버튼으로 바로 기록해요. 오른쪽 목록은 밀어서 볼 수 있고, 체크 루틴은 누르면 바로 체크, 그 밖은 기록창이 떠요. 위젯을 누르면 TODAY가 열려요."
+            : kind == WidgetKit.KIND_SMALL
+            ? "오른쪽 버튼으로 바로 기록해요(체크 · +1 · 타이머 시작/종료). 루틴 이름이나 위젯을 누르면 TODAY가 열려요."
             : kind == WidgetKit.KIND_PROJECT_BAR
             ? "프로젝트를 누르면 PROJECTS가, 오른쪽 동그라미를 누르면 그 화면이 바로 열려요."
             : "체크만 하는 루틴은 위젯에서 바로 체크돼요. 시간·횟수를 남기는 루틴은 누르면 앱이 열려요.");

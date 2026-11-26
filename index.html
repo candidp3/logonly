@@ -17810,7 +17810,7 @@ function lgWidgetData(){
       return {id,name:String(r.name||''),done,kind,meta};
     });
     let hr=null;try{hr=lbHours()[b.id]||null;}catch(e){}
-    return {id:b.id,label:LG_WG_LABEL[b.id]||b.name,name:b.name,hours:hr,items};
+    return {id:b.id,label:(typeof lifeBlockName==='function'&&lifeBlockName(b.id))||b.name,name:b.name,hours:hr,items};
   }).filter(b=>b.items.length);
   let ds=0;try{ds=dayStartHour();}catch(e){}
   return {date:k,dayStart:ds,blocks};
@@ -17846,7 +17846,7 @@ function lgWidgetCheck(id,date,at){
   const openFromWidget=()=>{
     try{
       const id=window.LogonlyWidget.takeOpen&&window.LogonlyWidget.takeOpen();if(!id)return;
-      if(id.startsWith('screen:')){const sc=id.slice(7);try{if(typeof closeAllLifeModals==='function')closeAllLifeModals();}catch(e){}try{lifeNavigate('today');}catch(e){}setTimeout(()=>{try{tdsOpen(sc);}catch(e){}},250);return;}
+      if(id.startsWith('screen:')){const sc=id.slice(7);try{if(typeof closeAllLifeModals==='function')closeAllLifeModals();}catch(e){}try{lifeNavigate('today');}catch(e){}if(sc!=='today')setTimeout(()=>{try{tdsOpen(sc);}catch(e){}},250);try{window.scrollTo(0,0);}catch(e){}return;}
       try{if(typeof closeAllLifeModals==='function')closeAllLifeModals();}catch(e){}
       try{lifeNavigate('today');}catch(e){}
       setTimeout(()=>{try{handleRoutineRowTap(null,id);}catch(e){}},250);
