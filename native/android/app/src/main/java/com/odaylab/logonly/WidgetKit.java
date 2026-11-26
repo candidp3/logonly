@@ -215,6 +215,19 @@ public class WidgetKit {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
         bg(ctx, v, c);
         if (!RoutineWidgetProvider.dark(ctx, c)) v.setInt(R.id.widgetBgImg, "setColorFilter", 0xFFF4F6F9);
+        /* 투명도: 따로 정하지 않았으면 80% 진하기(살짝 비침) */
+        if (!c.has("opacity")) v.setInt(R.id.widgetBgImg, "setImageAlpha", Math.round(80 * 2.55f));
+        /* 세로 크기: 삼성 기본 위젯처럼 칸 높이의 약 68%만 쓰고 위아래는 비움 */
+        try {
+            android.os.Bundle op = android.appwidget.AppWidgetManager.getInstance(ctx).getAppWidgetOptions(widgetId);
+            int hDp = op == null ? 0 : op.getInt(android.appwidget.AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
+            if (hDp > 0) {
+                int capDp = Math.max(56, Math.round(hDp * 0.68f));
+                int padDp = Math.max(0, (hDp - capDp) / 2);
+                int px = Math.round(padDp * ctx.getResources().getDisplayMetrics().density);
+                v.setViewPadding(R.id.smallRoot, 0, px, 0, px);
+            }
+        } catch (Exception ignored) {}
         JSONObject d = RoutineWidgetProvider.data(ctx);
         boolean fresh = RoutineWidgetProvider.todayKey(ctx).equals(d.optString("date"));
         v.setInt(R.id.smallBar, "setColorFilter", col[4]);

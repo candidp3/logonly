@@ -11,6 +11,10 @@ public class RoutineSmallWidget extends AppWidgetProvider {
         for (int id : ids) m.updateAppWidget(id, WidgetKit.buildSimple(ctx, id, RoutineWidgetProvider.cfg(ctx, id), WidgetKit.KIND_SMALL));
     }
     @Override
+    public void onAppWidgetOptionsChanged(Context ctx, AppWidgetManager m, int id, android.os.Bundle o) {
+        m.updateAppWidget(id, WidgetKit.buildSimple(ctx, id, RoutineWidgetProvider.cfg(ctx, id), WidgetKit.KIND_SMALL));
+    }
+    @Override
     public void onReceive(Context ctx, Intent intent) {
         super.onReceive(ctx, intent);
         if (RoutineWidgetProvider.ACTION_TAP.equals(intent.getAction())) RoutineWidgetProvider.handleTap(ctx, intent);

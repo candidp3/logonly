@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 2×1 ROUTINE (2026-11-25): 캡슐 · 위 = 테마색 막대 + 시간대 + 2/5 · 아래 = 다음 루틴(크게) · 오른쪽 = 버튼 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/smallRoot"
     android:layout_width="match_parent" android:layout_height="match_parent">
   <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/widgetBgImg" android:layout_width="match_parent" android:layout_height="match_parent"
         android:scaleType="fitXY" android:src="@drawable/widget_capsule" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="horizontal" android:gravity="center_vertical"
-        android:paddingStart="24dp" android:paddingEnd="12dp" android:paddingTop="8dp" android:paddingBottom="8dp">
+        android:paddingStart="24dp" android:paddingEnd="12dp" android:paddingTop="4dp" android:paddingBottom="4dp">
         <LinearLayout android:id="@+id/smallMain" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:orientation="vertical" android:gravity="center_vertical">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -21,14 +21,14 @@
                     android:textSize="13.5sp" android:maxLines="1" android:text="2/5" android:textColor="#8A958F" />
             </LinearLayout>
             <TextView android:id="@+id/smallName" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="7dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
+                android:layout_marginTop="5dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
                 android:textSize="19sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="물 한 잔 마시기" android:textColor="#26302B" />
             <Chronometer android:id="@+id/smallChrono" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="7dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
+                android:layout_marginTop="5dp" android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false"
                 android:textSize="20sp" android:textStyle="bold" android:visibility="gone" />
         </LinearLayout>
-        <FrameLayout android:id="@+id/smallBtn" android:layout_width="54dp" android:layout_height="54dp" android:layout_marginStart="6dp">
-            <ImageView android:id="@+id/smallBtnBg" android:layout_width="50dp" android:layout_height="50dp" android:layout_gravity="center" android:src="@drawable/widget_ring_big" android:tint="#3F9C7C" />
+        <FrameLayout android:id="@+id/smallBtn" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="6dp">
+            <ImageView android:id="@+id/smallBtnBg" android:layout_width="44dp" android:layout_height="44dp" android:layout_gravity="center" android:src="@drawable/widget_ring_big" android:tint="#3F9C7C" />
             <TextView android:id="@+id/smallBtnText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"
                 android:fontFamily="@font/pretendard_semibold" android:includeFontPadding="false" android:textSize="14sp" />
             <ImageView android:id="@+id/smallBtnIc" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:src="@drawable/ic_w_check" android:visibility="gone" />
