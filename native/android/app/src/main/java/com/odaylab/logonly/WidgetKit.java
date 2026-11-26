@@ -167,6 +167,21 @@ public class WidgetKit {
         return v;
     }
 
+
+    /** 앱이 꺼진 채 위젯·기록창에서 타이머를 시작/종료했을 때 알림바도 맞춤 (앱이 켜져 있으면 앱이 직접 함) */
+    static void syncTimerNoti(Context ctx, JSONObject before, JSONObject after) {
+        try {
+            JSONObject a = after == null ? null : after.optJSONObject("timer");
+            JSONObject b = before == null ? null : before.optJSONObject("timer");
+            boolean on = a != null && a.optLong("start") > 0, was = b != null && b.optLong("start") > 0;
+            if (on) {
+                if (was && b.optLong("start") == a.optLong("start")) return;
+                MainActivity.showTimerNotification(ctx, "routine", a.optString("name", "타이머"), a.optLong("start"), "기록하기", "취소");
+            } else if (was) {
+                androidx.core.app.NotificationManagerCompat.from(ctx).cancel(TimerActionReceiver.notiIdOf("routine"));
+            }
+        } catch (Exception ignored) {}
+    }
     /* ---------- 2×1 ROUTINE (2026-11-25) ---------- */
     static int hex(String h, int def) {
         try { if (h != null && h.startsWith("#") && h.length() == 7) return 0xFF000000 | Integer.parseInt(h.substring(1), 16); } catch (Exception ignored) {}
@@ -230,7 +245,7 @@ public class WidgetKit {
             v.setTextViewText(R.id.smallBtnText, "종료");
             v.setTextColor(R.id.smallBtnText, RoutineWidgetProvider.dark(ctx, c) ? 0xFF14201B : 0xFFFFFFFF);
             v.setOnClickPendingIntent(R.id.smallBtn, act(ctx, RoutineSmallWidget.class, "stop", tm.optString("rid"), code));
-            v.setOnClickPendingIntent(R.id.smallMain, input(ctx, tm.optString("rid"), code + 1));
+            v.setOnClickPendingIntent(R.id.smallMain, openRoutine(ctx, tm.optString("rid"), code + 1));
             return v;
         }
 
@@ -264,7 +279,7 @@ public class WidgetKit {
             v.setInt(R.id.smallBtnBg, "setColorFilter", col[4]);
             PendingIntent ck = act(ctx, RoutineSmallWidget.class, "check", rid, code + 3);
             v.setOnClickPendingIntent(R.id.smallBtn, ck);
-            v.setOnClickPendingIntent(R.id.smallMain, ck);
+            v.setOnClickPendingIntent(R.id.smallMain, openRoutine(ctx, rid, code + 4));
         } else {
             v.setImageViewResource(R.id.smallBtnBg, R.drawable.widget_dot_fill);
             v.setInt(R.id.smallBtnBg, "setColorFilter", tn[0]);
@@ -274,7 +289,7 @@ public class WidgetKit {
                 "count".equals(kind) ? act(ctx, RoutineSmallWidget.class, "count", rid, code + 3)
                 : "time".equals(kind) ? act(ctx, RoutineSmallWidget.class, "start", rid, code + 3)
                 : input(ctx, rid, code + 3));
-            v.setOnClickPendingIntent(R.id.smallMain, input(ctx, rid, code + 4));
+            v.setOnClickPendingIntent(R.id.smallMain, openRoutine(ctx, rid, code + 4));
         }
         return v;
     }

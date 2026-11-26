@@ -84,14 +84,25 @@ public class WidgetInputActivity extends Activity {
             @JavascriptInterface
             public void update(String json) {
                 SharedPreferences p = getSharedPreferences(RoutineWidgetProvider.PREFS, MODE_PRIVATE);
-                if (json != null && json.equals(p.getString(RoutineWidgetProvider.KEY_DATA, ""))) return;
+                String old = p.getString(RoutineWidgetProvider.KEY_DATA, "");
+                if (json != null && json.equals(old)) return;
+                try { WidgetKit.syncTimerNoti(WidgetInputActivity.this, old.isEmpty() ? null : new org.json.JSONObject(old), new org.json.JSONObject(json)); } catch (Exception ignored) {}
                 p.edit().putString(RoutineWidgetProvider.KEY_DATA, json == null ? "{}" : json).apply();
                 try { WidgetKit.refreshAll(WidgetInputActivity.this); } catch (Exception ignored) {}
             }
             @JavascriptInterface
             public String takeOpen() { return ""; }
         }, "LogonlyWidget");
-        setContentView(wv, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        android.widget.FrameLayout box = new android.widget.FrameLayout(this);
+        box.addView(wv, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        setContentView(box);
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(box, (vv, ins) -> {
+            androidx.core.graphics.Insets ime = ins.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime());
+            androidx.core.graphics.Insets sys = ins.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+            vv.setPadding(0, sys.top, 0, Math.max(ime.bottom, sys.bottom));
+            return androidx.core.view.WindowInsetsCompat.CONSUMED;
+        });
         wv.loadUrl("https://localhost/index.html?wq=" + Uri.encode(rid));
     }
 

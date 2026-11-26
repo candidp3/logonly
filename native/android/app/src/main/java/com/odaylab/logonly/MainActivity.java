@@ -11,6 +11,7 @@ import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -139,11 +140,11 @@ public class MainActivity extends BridgeActivity {
             getBridge().getWebView().addJavascriptInterface(new Object() {
                 @JavascriptInterface
                 public void showTimer(final String title, final String text, final double startMs) {
-                    runOnUiThread(() -> showTimerNotification("routine", title, (long) startMs, "기록하기", "취소"));
+                    runOnUiThread(() -> showTimerNotification(MainActivity.this, "routine", title, (long) startMs, "기록하기", "취소"));
                 }
                 @JavascriptInterface
                 public void showTimerEx(final String slot, final String title, final double startMs, final String primary, final String cancel) {
-                    runOnUiThread(() -> showTimerNotification(slot, title, (long) startMs, primary, cancel));
+                    runOnUiThread(() -> showTimerNotification(MainActivity.this, slot, title, (long) startMs, primary, cancel));
                 }
                 @JavascriptInterface
                 public void clearTimer() {
@@ -269,10 +270,12 @@ public class MainActivity extends BridgeActivity {
         return 4410 + (Math.abs(slot.hashCode()) % 80);
     }
 
-    private void showTimerNotification(String slot, String title, long startMs, String primary, String cancel) {
+    private String pendingTimerAction;
+
+    static void showTimerNotification(Context ctx, String slot, String title, long startMs, String primary, String cancel) {
         try {
-            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
-            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
+            NotificationManager nm = (NotificationManager) ctx.getSystemService(NOTIFICATION_SERVICE);
             if (Build.VERSION.SDK_INT >= 26 && nm.getNotificationChannel(TIMER_CHANNEL) == null) {
                 NotificationChannel ch = new NotificationChannel(TIMER_CHANNEL, "타이머", NotificationManager.IMPORTANCE_LOW);
                 ch.setDescription("타이머가 돌아가는 동안 알림바에 시간을 보여줘요");
@@ -281,24 +284,24 @@ public class MainActivity extends BridgeActivity {
             }
             int id = notiIdOf(slot);
             int rc = (id - 4400) * 10;
-            getSharedPreferences(TimerActionReceiver.PREFS, MODE_PRIVATE).edit()
+            ctx.getSharedPreferences(TimerActionReceiver.PREFS, MODE_PRIVATE).edit()
                 .putLong("start_" + (slot == null ? "routine" : slot), startMs)
                 .putString("name_" + (slot == null ? "routine" : slot), title == null ? "" : title.split(" · ")[0])
                 .apply();
-            RemoteViews rv = new RemoteViews(getPackageName(), R.layout.noti_timer);
+            RemoteViews rv = new RemoteViews(ctx.getPackageName(), R.layout.noti_timer);
             rv.setTextViewText(R.id.noti_name, title);
             long base = SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - startMs);
             rv.setChronometer(R.id.noti_chrono, base, null, true);
             rv.setTextViewText(R.id.noti_stop, primary == null || primary.isEmpty() ? "기록하기" : primary);
-            rv.setOnClickPendingIntent(R.id.noti_stop, actionIntent("stop", slot, rc + 1));
+            rv.setOnClickPendingIntent(R.id.noti_stop, actionIntent(ctx, "stop", slot, rc + 1));
             if (cancel == null || cancel.isEmpty()) {
                 rv.setViewVisibility(R.id.noti_cancel, android.view.View.GONE);
             } else {
                 rv.setViewVisibility(R.id.noti_cancel, android.view.View.VISIBLE);
                 rv.setTextViewText(R.id.noti_cancel, cancel);
-                rv.setOnClickPendingIntent(R.id.noti_cancel, actionIntent("cancel", slot, rc + 2));
+                rv.setOnClickPendingIntent(R.id.noti_cancel, actionIntent(ctx, "cancel", slot, rc + 2));
             }
-            NotificationCompat.Builder b = new NotificationCompat.Builder(this, TIMER_CHANNEL)
+            NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, TIMER_CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_logonly)
                 .setContentTitle(title)
                 .setContentText("진행 중")
@@ -313,26 +316,25 @@ public class MainActivity extends BridgeActivity {
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setColor(0xFF3F9C7C)
-                .setContentIntent(actionIntent("open", slot, rc));
-            NotificationManagerCompat.from(this).notify(id, b.build());
+                .setContentIntent(actionIntent(ctx, "open", slot, rc));
+            NotificationManagerCompat.from(ctx).notify(id, b.build());
         } catch (Exception ignored) {}
     }
 
-    private String pendingTimerAction;
-
-    private PendingIntent actionIntent(String action, String slot, int code) {
+    
+    static PendingIntent actionIntent(Context ctx, String action, String slot, int code) {
         if ("stop".equals(action) || "cancel".equals(action)) {
             /* 기록·취소는 앱을 열지 않고 처리 */
-            Intent b = new Intent(this, TimerActionReceiver.class)
+            Intent b = new Intent(ctx, TimerActionReceiver.class)
                 .putExtra("timerAction", action)
                 .putExtra("timerSlot", slot == null ? "routine" : slot);
-            return PendingIntent.getBroadcast(this, code, b, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            return PendingIntent.getBroadcast(ctx, code, b, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         }
-        Intent i = new Intent(this, MainActivity.class)
+        Intent i = new Intent(ctx, MainActivity.class)
             .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP)
             .putExtra("timerAction", action)
             .putExtra("timerSlot", slot == null ? "routine" : slot);
-        return PendingIntent.getActivity(this, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        return PendingIntent.getActivity(ctx, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     /** 알림의 '종료하고 기록'·'취소'를 눌러 앱이 열렸을 때: 화면(웹)에 전달 */

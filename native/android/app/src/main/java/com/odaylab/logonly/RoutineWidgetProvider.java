@@ -338,6 +338,7 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
         long now = System.currentTimeMillis();
         try {
             JSONObject data = data(ctx);
+            JSONObject before = new JSONObject(data.toString());
             String date = data.optString("date");
             /* 앱이 다음에 열릴 때 반영하기 전까지 위젯에 먼저 보여 줄 모습 */
             JSONArray blocks = data.optJSONArray("blocks");
@@ -371,6 +372,7 @@ public class RoutineWidgetProvider extends AppWidgetProvider {
                 try { androidx.core.app.NotificationManagerCompat.from(ctx).cancel(TimerActionReceiver.notiIdOf("routine")); } catch (Exception ignored) {}
             } else a = "count".equals(kind) ? "rcount" : "rcheck";
             wp.edit().putString(KEY_DATA, data.toString()).apply();
+            WidgetKit.syncTimerNoti(ctx, before, data);
             SharedPreferences p = ctx.getSharedPreferences(TimerActionReceiver.PREFS, Context.MODE_PRIVATE);
             JSONArray arr;
             try { arr = new JSONArray(p.getString(TimerActionReceiver.KEY_PENDING, "[]")); } catch (Exception e) { arr = new JSONArray(); }
