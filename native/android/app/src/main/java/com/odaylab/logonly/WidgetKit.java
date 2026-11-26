@@ -215,7 +215,13 @@ public class WidgetKit {
 
     /* ---- 위젯 글씨를 그림으로: 폰 글꼴 설정과 상관없이 앱 글씨체(Pretendard) 그대로, 설정 미리보기와 똑같이 ---- */
     private static Typeface TF_REG, TF_SEMI;
+    /** 글씨체: false = 앱 글씨체(Pretendard), true = 폰 글꼴(설정에서 고른 글꼴) */
+    static boolean SYS_FONT = false;
     static Typeface tf(Context ctx, boolean semi) {
+        if (SYS_FONT) {
+            if (android.os.Build.VERSION.SDK_INT >= 28) return Typeface.create(Typeface.DEFAULT, semi ? 600 : 400, false);
+            return semi ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT;
+        }
         try {
             if (TF_REG == null) TF_REG = androidx.core.content.res.ResourcesCompat.getFont(ctx, R.font.pretendard_regular);
             if (TF_SEMI == null) TF_SEMI = androidx.core.content.res.ResourcesCompat.getFont(ctx, R.font.pretendard_semibold);
@@ -288,6 +294,7 @@ public class WidgetKit {
         int[] col = RoutineWidgetProvider.colors(ctx, c);
         int[] tn = tint(ctx, c);
         float big = "s".equals(c.optString("font", "m")) ? 17f : "l".equals(c.optString("font", "m")) ? 21f : 19f;
+        SYS_FONT = "system".equals(c.optString("face", "app"));
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_small);
         bg(ctx, v, c);
         v.setImageViewResource(R.id.widgetBgImg, cornerRes(c));

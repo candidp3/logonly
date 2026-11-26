@@ -155,6 +155,8 @@ public class WidgetConfigActivity extends Activity {
         });
         c2.addView(sb);
         if (kind == WidgetKit.KIND_SMALL) {
+            c2.addView(small("글씨체"));
+            c2.addView(chips("face", new String[]{"app", "system"}, new String[]{"앱 글씨체", "폰 글꼴"}, "app"));
             c2.addView(small("모서리"));
             c2.addView(chips("radius", new String[]{"0", "6", "12", "20", "full"}, new String[]{"각지게", "살짝", "보통", "많이", "캡슐"}, "full"));
         }
