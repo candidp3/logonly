@@ -394,7 +394,7 @@ public class WidgetKit {
                 String rk = wide ? "capRefBar" : "capRefSmall";
                 int ref = sp.getInt(rk, 0);
                 if (hDp > ref) { ref = hDp; sp.edit().putInt(rk, ref).apply(); }
-                int capDp = Math.min(hDp, Math.max(52, Math.round(ref * (wide ? 0.73f : 0.70f))));
+                int capDp = Math.min(hDp, Math.max(52, Math.round(ref * (wide ? 0.77f : 0.70f))));
                 int padDp = Math.max(0, (hDp - capDp) / 2);
                 int px = Math.round(padDp * ctx.getResources().getDisplayMetrics().density);
                 v.setViewPadding(R.id.smallRoot, 0, px, 0, px);

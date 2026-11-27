@@ -13392,6 +13392,17 @@ html.lgWQ .tplMake,html.lgWQ .tplLinks button[onclick^="tplEdit"]{display:none!i
 
 .lgCalListBtns{display:grid!important}.lgCalListBtns button{width:100%;min-height:44px}
 
+/* 캘린더 목록 체크 표시 가운데로 */
+.lgCalItem .ck{display:flex;align-items:center;justify-content:center}
+.lgCalItem .ck i{position:relative}
+.lgCalItem .ck input:checked+i::after{left:50%!important;top:45%!important;width:5px!important;height:10px!important;transform:translate(-50%,-50%) rotate(45deg)!important}
+.lgCalAcc{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lgCalAcc button,.lgCalHid button{border:0;background:var(--rc-soft);color:var(--rc-tx2);border-radius:999px;height:28px;padding:0 11px;font:inherit;font-size:var(--fs-1);flex:none}
+.lgCalHid{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px;font-size:var(--fs-2);color:var(--rc-tx2)}
+.lgCalUse{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 2px;padding:10px 12px;border-radius:12px;background:var(--rc-soft);font-size:var(--fs-2)}
+.lgCalUse input{width:20px;height:20px;accent-color:var(--rc-gs)}
+.lgCalTabs.hide{display:none!important}
+
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -18320,7 +18331,7 @@ if(LG_WQ){
 (function(){
   if(!window.LogonlyCal)return;
   const C=window.LogonlyCal,KEY='lgCalMode_v1';
-  const mode=()=>{try{return localStorage.getItem(KEY)==='sched'?'sched':'routine';}catch(e){return 'routine';}};
+  const mode=()=>{try{if(localStorage.getItem('lgCalUse_v1')==='0')return 'routine';return localStorage.getItem(KEY)==='sched'?'sched':'routine';}catch(e){return 'routine';}};
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const pad=n=>String(n).padStart(2,'0');
   const keyOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -18330,9 +18341,12 @@ if(LG_WQ){
   function calList(){if(!cals){try{cals=JSON.parse(C.calendars()||'[]');}catch(e){cals=[];}}return cals;}
   /* 앱에서 보일 캘린더 · 앱 안 색 (폰 캘린더 설정은 그대로 둠) */
   const PK='lgCalPrefs_v1';
-  function prefs(){try{const p=JSON.parse(localStorage.getItem(PK)||'{}');p.sel=p.sel||{};p.color=p.color||{};return p;}catch(e){return {sel:{},color:{}};}}
+  function prefs(){try{const p=JSON.parse(localStorage.getItem(PK)||'{}');p.sel=p.sel||{};p.color=p.color||{};p.hideAcc=p.hideAcc||{};return p;}catch(e){return {sel:{},color:{},hideAcc:{}};}}
+  const accOf=c=>c.account||'이 폰';
+  /* 폰에서 받아 오는 캘린더만 (받아 오지 않는 캘린더는 일정이 없어서 뺌) */
+  function usable(){return calList().filter(c=>c.sync!==false);}
   function savePrefs(p){try{localStorage.setItem(PK,JSON.stringify(p));}catch(e){}}
-  function shown(calId){const p=prefs(),k=String(calId);if(k in p.sel)return !!p.sel[k];const c=calList().find(x=>x.id===calId);return c?c.visible!==false:true;}
+  function shown(calId){const p=prefs(),k=String(calId);const c=calList().find(x=>x.id===calId);if(c&&(c.sync===false||p.hideAcc[accOf(c)]))return false;if(k in p.sel)return !!p.sel[k];return c?c.visible!==false:true;}
   function colorOf(e){const p=prefs();return p.color[String(e.cal)]||e.color;}
   function calColor(c){const p=prefs();return p.color[String(c.id)]||c.color;}
   function load(force){
@@ -18361,6 +18375,7 @@ if(LG_WQ){
     if(!t){t=document.createElement('div');t.className='lgCalTabs';t.innerHTML='<button type="button" data-m="routine">루틴</button><button type="button" data-m="sched">일정</button>';wrap.insertBefore(t,wrap.firstChild);
       t.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;try{localStorage.setItem(KEY,b.dataset.m);}catch(e){}renderLifeCalendar();});}
     t.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===mode()));
+    t.classList.toggle('hide',!lgCalUseOn());
     let tl=wrap.querySelector('.lgCalTools');
     if(!tl){tl=document.createElement('div');tl.className='lgCalTools';tl.innerHTML='<button type="button" class="lgSync" onclick="lgCalSync()"><span class="ic">⟳</span><span class="tx">동기화</span></button><button type="button" onclick="lgCalListOpen()">캘린더 목록</button>';t.after(tl);}
     tl.classList.toggle('hide',!(mode()==='sched'&&C.hasPerm()));
@@ -18409,14 +18424,20 @@ if(LG_WQ){
   window.lgCalListOpen=function(){
     let s=document.getElementById('lgCalListSheet');
     if(!s){s=document.createElement('div');s.id='lgCalListSheet';s.className='routineActionOverlay hide';s.onclick=e=>{if(e.target===s)lgCalListClose();};document.body.appendChild(s);}
-    cals=null;const all=calList(),groups={};
-    all.forEach(c=>{(groups[c.account||'이 폰']=groups[c.account||'이 폰']||[]).push(c);});
-    s.innerHTML=`<div class="routineInputCard lgCalListCard" role="dialog" aria-modal="true"><div class="routineActionTitle">캘린더 목록</div><div class="lgCalListHint">체크한 캘린더만 앱에 보여요. 색 네모를 누르면 앱 안에서 쓸 색을 고를 수 있어요.</div>`+
-      Object.keys(groups).map(acc=>`<div class="lgCalAcc">${esc(acc)}</div>`+groups[acc].map(c=>`<div class="lgCalItem" data-id="${c.id}"><button type="button" class="sw" style="background:${calColor(c)}" onclick="lgCalPal(${c.id})" aria-label="색 고르기"></button><span class="nm">${esc(c.name)}</span><label class="ck"><input type="checkbox" ${shown(c.id)?'checked':''} onchange="lgCalPick(${c.id},this.checked)"><i></i></label></div><div class="lgCalPal hide" id="lgCalPal${c.id}">${PAL.map(h=>`<button type="button" style="background:${h}" onclick="lgCalSetColor(${c.id},'${h}')"></button>`).join('')}<button type="button" class="orig" onclick="lgCalSetColor(${c.id},'')">원래 색</button></div>`).join('')).join('')+
+    cals=null;const all=usable(),groups={},P=prefs();
+    all.forEach(c=>{(groups[accOf(c)]=groups[accOf(c)]||[]).push(c);});
+    const vis=Object.keys(groups).filter(a=>!P.hideAcc[a]),hid=Object.keys(groups).filter(a=>P.hideAcc[a]);
+    s.innerHTML=`<div class="routineInputCard lgCalListCard" role="dialog" aria-modal="true"><div class="routineActionTitle">캘린더 목록</div><div class="lgCalListHint">체크한 캘린더만 앱에 보여요. 색 네모를 누르면 앱 안에서 쓸 색을 고를 수 있어요. 쓰지 않는 계정은 '숨기기'로 목록에서 뺄 수 있어요.</div><label class="lgCalUse"><span>캘린더 화면에 일정 보기 쓰기</span><input type="checkbox" ${lgCalUseOn()?'checked':''} onchange="lgCalUse(this.checked)"></label>`+
+      vis.map(acc=>`<div class="lgCalAcc"><span>${esc(acc)}</span><button type="button" onclick="lgCalHideAcc('${esc(acc)}',true)">숨기기</button></div>`+groups[acc].map(c=>`<div class="lgCalItem" data-id="${c.id}"><button type="button" class="sw" style="background:${calColor(c)}" onclick="lgCalPal(${c.id})" aria-label="색 고르기"></button><span class="nm">${esc(c.name)}</span><label class="ck"><input type="checkbox" ${shown(c.id)?'checked':''} onchange="lgCalPick(${c.id},this.checked)"><i></i></label></div><div class="lgCalPal hide" id="lgCalPal${c.id}">${PAL.map(h=>`<button type="button" style="background:${h}" onclick="lgCalSetColor(${c.id},'${h}')"></button>`).join('')}<button type="button" class="orig" onclick="lgCalSetColor(${c.id},'')">원래 색</button></div>`).join('')).join('')+
+      (hid.length?`<div class="lgCalAcc lgHidHd"><span>숨긴 계정</span></div>`+hid.map(acc=>`<div class="lgCalHid"><span>${esc(acc)}</span><button type="button" onclick="lgCalHideAcc('${esc(acc)}',false)">다시 보이기</button></div>`).join(''):'')+
       `<div class="routineInputActions lgCalListBtns"><button type="button" class="primary" onclick="lgCalListClose()">확인</button></div></div>`;
     s.classList.remove('hide');
   };
   window.lgCalListClose=function(){document.getElementById('lgCalListSheet')?.classList.add('hide');cache.at=0;renderLifeCalendar();};
+  window.lgCalHideAcc=function(acc,on){const p=prefs();if(on)p.hideAcc[acc]=true;else delete p.hideAcc[acc];savePrefs(p);lgCalListOpen();};
+  /* 일정 보기 쓰기 (끄면 캘린더는 루틴만) */
+  window.lgCalUseOn=function(){try{return localStorage.getItem('lgCalUse_v1')!=='0';}catch(e){return true;}};
+  window.lgCalUse=function(on){try{localStorage.setItem('lgCalUse_v1',on?'1':'0');if(!on)localStorage.setItem(KEY,'routine');}catch(e){}if(!on){lgCalListClose();}};
   window.lgCalPick=function(id,on){const p=prefs();p.sel[String(id)]=!!on;savePrefs(p);};
   window.lgCalPal=function(id){document.querySelectorAll('.lgCalPal').forEach(x=>{if(x.id!=='lgCalPal'+id)x.classList.add('hide');});document.getElementById('lgCalPal'+id)?.classList.toggle('hide');};
   window.lgCalSetColor=function(id,h){const p=prefs();if(h)p.color[String(id)]=h;else delete p.color[String(id)];savePrefs(p);const c=calList().find(x=>x.id===id);const sw=document.querySelector(`.lgCalItem[data-id="${id}"] .sw`);if(sw&&c)sw.style.background=calColor(c);document.getElementById('lgCalPal'+id)?.classList.add('hide');};
@@ -18516,6 +18537,30 @@ if(LG_WQ){
     after(k);
   };
   try{renderLifeCalendar();}catch(e){}
+})();
+
+/* 설정 > FEATURES: 구글 캘린더 (연결 · 캘린더 목록 · 동기화) — 앱 전용 */
+(function(){
+  if(!window.LogonlyCal)return;
+  const C=window.LogonlyCal;
+  function row(){
+    let r=document.getElementById('lgCalSetRow');
+    if(!r){
+      const sec=[...document.querySelectorAll('#viewBackup .backupCard')].find(x=>(x.querySelector('.backupCardTitle')||{}).textContent==='FEATURES');if(!sec)return;
+      r=document.createElement('div');r.id='lgCalSetRow';r.className='backupPart settingLinkRow tapRow';r.setAttribute('role','button');r.tabIndex=0;
+      r.innerHTML='<div><div class="backupSubTitle">구글 캘린더</div><div class="backupHint" id="lgCalSetHint"></div></div>';
+      r.onclick=()=>{if(!C.hasPerm()){lgCalAsk();setTimeout(hint,1500);}else lgCalListOpen();};
+      sec.appendChild(r);
+    }
+    hint();
+  }
+  function hint(){
+    const h=document.getElementById('lgCalSetHint');if(!h)return;
+    if(!C.hasPerm()){h.textContent='연결 안 됨 · 눌러서 폰의 구글 캘린더와 연결';return;}
+    h.textContent=(window.lgCalUseOn&&!lgCalUseOn())?'연결됨 · 캘린더에서 일정 보기 꺼 둠':'연결됨 · 보일 캘린더 · 색 · 동기화';
+  }
+  const rb=renderBackupStatus;renderBackupStatus=function(){const r=rb.apply(this,arguments);try{row();}catch(e){}return r;};
+  try{row();}catch(e){}
 })();
 
 </script>

@@ -48,7 +48,7 @@ public class CalendarBridge {
         String[] p = {CalendarContract.Calendars._ID, CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             CalendarContract.Calendars.CALENDAR_COLOR, CalendarContract.Calendars.ACCOUNT_NAME,
             CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.VISIBLE,
-            CalendarContract.Calendars.IS_PRIMARY, CalendarContract.Calendars.ACCOUNT_TYPE};
+            CalendarContract.Calendars.IS_PRIMARY, CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.Calendars.SYNC_EVENTS};
         try (Cursor c = act.getContentResolver().query(CalendarContract.Calendars.CONTENT_URI, p, null, null, null)) {
             while (c != null && c.moveToNext()) {
                 JSONObject o = new JSONObject();
@@ -60,6 +60,7 @@ public class CalendarBridge {
                 o.put("visible", c.getInt(5) == 1);
                 o.put("primary", !c.isNull(6) && c.getInt(6) == 1);
                 o.put("type", c.getString(7));
+                o.put("sync", c.isNull(8) || c.getInt(8) == 1); /* 0이면 폰에서 이 캘린더를 받아 오지 않음 */
                 out.put(o);
             }
         } catch (Exception ignored) {}
