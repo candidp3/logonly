@@ -1,5 +1,6 @@
 package com.odaylab.logonly;
 
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.Paint;
 import android.graphics.Canvas;
@@ -387,7 +388,13 @@ public class WidgetKit {
             android.os.Bundle op = android.appwidget.AppWidgetManager.getInstance(ctx).getAppWidgetOptions(widgetId);
             int hDp = op == null ? 0 : op.getInt(android.appwidget.AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
             if (hDp > 0) {
-                int capDp = Math.max(56, Math.round(hDp * 0.68f));
+                /* 캡슐 높이 고정: 2×1은 칸의 70%, 4×1은 73% — 홈 화면 배열(4×5 → 4×6 등)을 바꿔도 같은 크기
+                   기준 칸 높이는 지금까지 본 가장 큰 칸 높이로 한 번 정해 두고 계속 씀 */
+                SharedPreferences sp = ctx.getSharedPreferences(RoutineWidgetProvider.PREFS, Context.MODE_PRIVATE);
+                String rk = wide ? "capRefBar" : "capRefSmall";
+                int ref = sp.getInt(rk, 0);
+                if (hDp > ref) { ref = hDp; sp.edit().putInt(rk, ref).apply(); }
+                int capDp = Math.min(hDp, Math.max(52, Math.round(ref * (wide ? 0.73f : 0.70f))));
                 int padDp = Math.max(0, (hDp - capDp) / 2);
                 int px = Math.round(padDp * ctx.getResources().getDisplayMetrics().density);
                 v.setViewPadding(R.id.smallRoot, 0, px, 0, px);
