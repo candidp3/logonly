@@ -106,7 +106,7 @@ public class WidgetConfigActivity extends Activity {
                 android.os.Bundle op = android.appwidget.AppWidgetManager.getInstance(this).getAppWidgetOptions(widgetId);
                 int hh = op.getInt(android.appwidget.AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0), ww = op.getInt(android.appwidget.AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
                 if (hh > 0) ph = hh;
-                if (ww > 0) pw = dp(ww);
+                if (ww > 0 && kind == WidgetKit.KIND_SMALL) pw = dp(ww); /* 4×1은 화면 너비에 맞춤 (넘치면 양쪽이 잘려서) */
             } catch (Exception ignored) {}
         }
         FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(pw, dp(ph));
@@ -270,11 +270,16 @@ public class WidgetConfigActivity extends Activity {
     private void render() {
         try {
             preview.removeAllViews();
+            WidgetKit.PREVIEW = true;
+            float dd = getResources().getDisplayMetrics().density;
+            int pwPx = preview.getWidth() > 0 ? preview.getWidth() : getResources().getDisplayMetrics().widthPixels - dp(76);
+            WidgetKit.PREVIEW_W_DP = Math.round(pwPx / dd);
             android.widget.RemoteViews rv = kind == WidgetKit.KIND_TODAY
                 ? RoutineWidgetProvider.build(this, widgetId, cfg, true)
                 : WidgetKit.buildSimple(this, widgetId, cfg, kind);
+            WidgetKit.PREVIEW = false;
             preview.addView(rv.apply(this, preview));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { WidgetKit.PREVIEW = false; }
     }
 
     private void done() {

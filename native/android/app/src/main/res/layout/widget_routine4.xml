@@ -32,7 +32,7 @@
           android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:src="@drawable/widget_vbar" android:scaleType="fitXY" android:tint="#1F000000" />
       <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="9">
         <ListView android:id="@+id/barList" android:layout_width="match_parent" android:layout_height="match_parent"
-            android:divider="@null" android:dividerHeight="0dp" android:scrollbars="none" android:paddingTop="6dp" android:paddingBottom="6dp" android:clipToPadding="false" />
+            android:divider="@null" android:dividerHeight="0dp" android:scrollbars="none" android:paddingTop="10dp" android:paddingBottom="10dp" android:clipToPadding="true" />
         <ImageView android:id="@+id/barEmpty" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_vertical" />
       </FrameLayout>
     </LinearLayout>

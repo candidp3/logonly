@@ -306,6 +306,7 @@ public class WidgetKit {
         return Math.round((right - 22 - 2) * ctx.getResources().getDisplayMetrics().density);
     }
     static int widthDp(Context ctx, int widgetId, int def) {
+        if (PREVIEW && PREVIEW_W_DP > 0) return PREVIEW_W_DP;
         int wDp = 0;
         try {
             android.os.Bundle op = AppWidgetManager.getInstance(ctx).getAppWidgetOptions(widgetId);
@@ -313,8 +314,47 @@ public class WidgetKit {
         } catch (Exception ignored) {}
         return wDp > 0 ? wDp : def;
     }
+
+    /** 미리보기용: 남은 루틴 최대 3줄을 그림 한 장으로 */
+    static Bitmap rowsBitmap(Context ctx, int widgetId, JSONObject c, int[] col) {
+        float d = ctx.getResources().getDisplayMetrics().density;
+        java.util.ArrayList<JSONObject> rows = RoutineBarService.rest(ctx);
+        int n = Math.min(3, rows.size());
+        int w = Math.max(1, listW(ctx, widgetId) + Math.round(22 * d));
+        if (n == 0) return txt(ctx, 13.5f, false, col[2], "남은 루틴이 없어요", listW(ctx, widgetId));
+        int rh = Math.round(28 * d);
+        Bitmap b = Bitmap.createBitmap(w, rh * n, Bitmap.Config.ARGB_8888);
+        b.setDensity(ctx.getResources().getDisplayMetrics().densityDpi);
+        Canvas cv = new Canvas(b);
+        int[] tn = tint(ctx, c);
+        Paint ring = new Paint(Paint.ANTI_ALIAS_FLAG);
+        for (int i = 0; i < n; i++) {
+            JSONObject it = rows.get(i);
+            boolean check = "check".equals(it.optString("kind", "check"));
+            float cy = rh * i + rh / 2f, cx = 7 * d, r = 6.2f * d;
+            if (check) { ring.setStyle(Paint.Style.STROKE); ring.setStrokeWidth(1.6f * d); ring.setColor(col[4]); }
+            else { ring.setStyle(Paint.Style.FILL); ring.setColor((tn[1] & 0x00FFFFFF) | 0x96000000); }
+            cv.drawCircle(cx, cy, r, ring);
+            String name = it.optString("name");
+            if ("count".equals(it.optString("kind")) && it.optInt("cnt") > 0) name = name + " · " + it.optInt("cnt") + it.optString("unit", "회");
+            Bitmap t = txt(ctx, 14f, false, col[1], name, listW(ctx, widgetId));
+            cv.drawBitmap(t, 22 * d, cy - t.getHeight() / 2f, null);
+        }
+        return b;
+    }
     /** 4×1: 오른쪽 목록 연결 (누르면 체크 · 그 밖은 홈 화면 위 기록창) */
+    /** 위젯 설정 미리보기에서 그릴 때 true (목록을 그림 한 장으로) */
+    static boolean PREVIEW = false;
+    static int PREVIEW_W_DP = 0;
     static RemoteViews withList(Context ctx, RemoteViews v, int widgetId, JSONObject c, int[] col) {
+        if (PREVIEW) {
+            /* 미리보기: 실제 목록 대신 같은 모양의 그림 (설정 화면에서 목록 연결이 깨지지 않게) */
+            v.setViewVisibility(R.id.barList, View.GONE);
+            v.setViewVisibility(R.id.barEmpty, View.VISIBLE);
+            v.setImageViewBitmap(R.id.barEmpty, rowsBitmap(ctx, widgetId, c, col));
+            v.setInt(R.id.barDivider, "setColorFilter", (col[2] & 0x00FFFFFF) | 0x33000000);
+            return v;
+        }
         Intent svc = new Intent(ctx, RoutineBarService.class).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
         svc.setData(Uri.parse("logonly://bar/" + widgetId));
         v.setRemoteAdapter(R.id.barList, svc);
