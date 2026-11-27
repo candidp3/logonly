@@ -48,7 +48,7 @@ public class CalendarBridge {
         String[] p = {CalendarContract.Calendars._ID, CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             CalendarContract.Calendars.CALENDAR_COLOR, CalendarContract.Calendars.ACCOUNT_NAME,
             CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.VISIBLE,
-            CalendarContract.Calendars.IS_PRIMARY};
+            CalendarContract.Calendars.IS_PRIMARY, CalendarContract.Calendars.ACCOUNT_TYPE};
         try (Cursor c = act.getContentResolver().query(CalendarContract.Calendars.CONTENT_URI, p, null, null, null)) {
             while (c != null && c.moveToNext()) {
                 JSONObject o = new JSONObject();
@@ -59,6 +59,7 @@ public class CalendarBridge {
                 o.put("write", c.getInt(4) >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR);
                 o.put("visible", c.getInt(5) == 1);
                 o.put("primary", !c.isNull(6) && c.getInt(6) == 1);
+                o.put("type", c.getString(7));
                 out.put(o);
             }
         } catch (Exception ignored) {}
@@ -80,7 +81,6 @@ public class CalendarBridge {
             CalendarContract.Instances.RRULE, CalendarContract.Instances.VISIBLE};
         try (Cursor c = act.getContentResolver().query(b.build(), p, null, null, CalendarContract.Instances.BEGIN + " ASC")) {
             while (c != null && c.moveToNext()) {
-                if (!c.isNull(10) && c.getInt(10) == 0) continue; /* 캘린더 앱에서 숨긴 캘린더 */
                 JSONObject o = new JSONObject();
                 o.put("id", c.getLong(0));
                 o.put("title", c.isNull(1) ? "" : c.getString(1));
@@ -96,6 +96,27 @@ public class CalendarBridge {
             }
         } catch (Exception ignored) {}
         return out.toString();
+    }
+
+    /** 지금 동기화: 폰의 계정마다 캘린더 동기화를 바로 요청 */
+    @JavascriptInterface
+    public boolean sync() {
+        if (!ok()) return false;
+        boolean any = false;
+        java.util.HashSet<String> seen = new java.util.HashSet<>();
+        String[] p = {CalendarContract.Calendars.ACCOUNT_NAME, CalendarContract.Calendars.ACCOUNT_TYPE};
+        try (Cursor c = act.getContentResolver().query(CalendarContract.Calendars.CONTENT_URI, p, null, null, null)) {
+            while (c != null && c.moveToNext()) {
+                String name = c.getString(0), type = c.getString(1);
+                if (name == null || type == null || CalendarContract.ACCOUNT_TYPE_LOCAL.equals(type) || !seen.add(name + "|" + type)) continue;
+                android.os.Bundle ex = new android.os.Bundle();
+                ex.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+                ex.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+                ContentResolver.requestSync(new android.accounts.Account(name, type), CalendarContract.AUTHORITY, ex);
+                any = true;
+            }
+        } catch (Exception ignored) {}
+        return any;
     }
 
     private ContentValues values(JSONObject o, boolean insert) {

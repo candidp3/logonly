@@ -13347,6 +13347,51 @@ html.lgWQ .tplMake,html.lgWQ .tplLinks button[onclick^="tplEdit"]{display:none!i
 
 #viewCalendar.lgSched :is(.calSearchLabelRow,#calendarRoutineChips,#calendarRoutineSummary,#calendarSearchResults){display:none!important}
 
+/* 일정 캘린더 1단계 */
+.lgCalTools{display:flex;gap:6px;justify-content:flex-end;margin:-2px 0 8px}
+.lgCalTools.hide{display:none}
+.lgCalTools button{height:30px;padding:0 12px;border:0;border-radius:999px;background:var(--rc-soft);color:var(--rc-tx2);font:inherit;font-size:var(--fs-1);display:inline-flex;align-items:center;gap:4px}
+.lgCalTools .lgSync .ic{display:inline-block;font-size:14px;line-height:1}
+.lgCalTools .lgSync.busy .ic{animation:lgSpin 1s linear infinite}
+@keyframes lgSpin{to{transform:rotate(360deg)}}
+#viewCalendar.lgSched #calendarGrid{touch-action:pan-x}
+#calendarGrid.lgSlideUp{animation:lgSlUp .28s ease}
+#calendarGrid.lgSlideDown{animation:lgSlDn .28s ease}
+@keyframes lgSlUp{from{transform:translateY(24px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes lgSlDn{from{transform:translateY(-24px);opacity:.3}to{transform:none;opacity:1}}
+.lgCalListCard{max-height:82vh}
+.lgCalListHint{font-size:var(--fs-1);color:var(--rc-tx2);line-height:1.5;margin:2px 0 8px}
+.lgCalAcc{margin:14px 2px 6px;font-size:var(--fs-1);color:var(--rc-tx2);letter-spacing:.02em}
+.lgCalItem{display:flex;align-items:center;gap:12px;padding:8px 2px}
+.lgCalItem .sw{flex:none;width:28px;height:28px;border-radius:8px;border:0;padding:0}
+.lgCalItem .nm{flex:1;min-width:0;font-size:var(--fs-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lgCalItem .ck{flex:none;position:relative;width:24px;height:24px}
+.lgCalItem .ck input{position:absolute;inset:0;opacity:0;margin:0}
+.lgCalItem .ck i{display:block;width:22px;height:22px;border-radius:6px;border:1.6px solid var(--rc-line2,#ccc);box-sizing:border-box}
+.lgCalItem .ck input:checked+i{background:var(--rc-gs);border-color:var(--rc-gs)}
+.lgCalItem .ck input:checked+i::after{content:'';position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(45deg)}
+.lgCalPal{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0 10px 40px}
+.lgCalPal.hide{display:none}
+.lgCalPal button{width:26px;height:26px;border-radius:50%;border:0;padding:0}
+.lgCalPal .orig{width:auto;height:26px;border-radius:999px;padding:0 10px;background:var(--rc-soft);color:var(--rc-tx2);font:inherit;font-size:var(--fs-1)}
+.lgCalListBtns{grid-template-columns:1fr!important}
+.lgDayPopWrap{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:24px}
+.lgDayPopWrap.hide{display:none}
+.lgDayPop{width:min(330px,100%);max-height:70vh;overflow:auto;background:var(--rc-card);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.lgDayPop .hd{display:flex;align-items:center;gap:8px;padding:14px 12px 10px 18px;border-bottom:1px solid var(--rc-line)}
+.lgDayPop .hd b{font-size:var(--fs-4,17px)}
+.lgDayPop .hd span{flex:1;font-size:var(--fs-1);color:var(--rc-tx2)}
+.lgDayPop .hd .add{width:34px;height:34px;border-radius:50%;border:0;background:var(--rc-soft);color:var(--rc-gs);font-size:22px;line-height:1}
+.lgDayPop .bd{padding:6px 8px 10px}
+.lgDayPop .bd.empty{padding:22px;text-align:center;color:var(--rc-tx2);font-size:var(--fs-2)}
+.lgDayPop .r{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:10px;border-radius:10px;text-align:left;font:inherit;color:var(--rc-tx)}
+.lgDayPop .r:active{background:var(--rc-soft)}
+.lgDayPop .r i{flex:none;width:4px;height:22px;border-radius:2px}
+.lgDayPop .r .t{flex:none;min-width:62px;font-size:var(--fs-2);color:var(--rc-tx2)}
+.lgDayPop .r .n{flex:1;min-width:0;font-weight:var(--fw-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.lgCalListBtns{display:grid!important}.lgCalListBtns button{width:100%;min-height:44px}
+
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -18283,11 +18328,19 @@ if(LG_WQ){
   const hm=ms=>{const d=new Date(ms),h=d.getHours(),m=d.getMinutes();return `${h<12?'오전':'오후'} ${h%12||12}:${pad(m)}`;};
   let cache={from:0,to:0,list:[],at:0},cals=null;
   function calList(){if(!cals){try{cals=JSON.parse(C.calendars()||'[]');}catch(e){cals=[];}}return cals;}
+  /* 앱에서 보일 캘린더 · 앱 안 색 (폰 캘린더 설정은 그대로 둠) */
+  const PK='lgCalPrefs_v1';
+  function prefs(){try{const p=JSON.parse(localStorage.getItem(PK)||'{}');p.sel=p.sel||{};p.color=p.color||{};return p;}catch(e){return {sel:{},color:{}};}}
+  function savePrefs(p){try{localStorage.setItem(PK,JSON.stringify(p));}catch(e){}}
+  function shown(calId){const p=prefs(),k=String(calId);if(k in p.sel)return !!p.sel[k];const c=calList().find(x=>x.id===calId);return c?c.visible!==false:true;}
+  function colorOf(e){const p=prefs();return p.color[String(e.cal)]||e.color;}
+  function calColor(c){const p=prefs();return p.color[String(c.id)]||c.color;}
   function load(force){
     const y=calendarCursor.getFullYear(),m=calendarCursor.getMonth();
     const from=new Date(y,m,1).getTime()-7*864e5,to=new Date(y,m+1,1).getTime()+7*864e5;
     if(!force&&cache.from===from&&cache.to===to&&Date.now()-cache.at<15000)return cache.list;
     let list=[];try{list=JSON.parse(C.events(from,to)||'[]');}catch(e){}
+    list=list.filter(e=>shown(e.cal)).map(e=>Object.assign(e,{color:colorOf(e)}));
     cache={from,to,list,at:Date.now()};return list;
   }
   /* 날짜별 일정 */
@@ -18308,6 +18361,9 @@ if(LG_WQ){
     if(!t){t=document.createElement('div');t.className='lgCalTabs';t.innerHTML='<button type="button" data-m="routine">루틴</button><button type="button" data-m="sched">일정</button>';wrap.insertBefore(t,wrap.firstChild);
       t.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;try{localStorage.setItem(KEY,b.dataset.m);}catch(e){}renderLifeCalendar();});}
     t.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===mode()));
+    let tl=wrap.querySelector('.lgCalTools');
+    if(!tl){tl=document.createElement('div');tl.className='lgCalTools';tl.innerHTML='<button type="button" class="lgSync" onclick="lgCalSync()"><span class="ic">⟳</span><span class="tx">동기화</span></button><button type="button" onclick="lgCalListOpen()">캘린더 목록</button>';t.after(tl);}
+    tl.classList.toggle('hide',!(mode()==='sched'&&C.hasPerm()));
   }
   function paint(){
     const v=document.getElementById('viewCalendar');if(!v)return;
@@ -18337,8 +18393,58 @@ if(LG_WQ){
     return r;
   };
   window.lgCalAsk=function(){
-    C.requestPerm();let n=0;const t=setInterval(()=>{if(C.hasPerm()||++n>120){clearInterval(t);cals=null;cache.at=0;renderLifeCalendar();}},500);
+    C.requestPerm();let n=0;const t=setInterval(()=>{if(C.hasPerm()||++n>120){clearInterval(t);cals=null;cache.at=0;if(C.hasPerm()){try{C.sync();}catch(e){}setTimeout(()=>{cache.at=0;renderLifeCalendar();},3000);}renderLifeCalendar();}},500);
   };
+  let syncing=false;
+  window.lgCalSync=function(){
+    if(syncing)return;syncing=true;
+    const b=document.querySelector('.lgCalTools .lgSync');b&&b.classList.add('busy');b&&(b.querySelector('.tx').textContent='동기화 중');
+    let ok=false;try{ok=C.sync();}catch(e){}
+    const re=()=>{cals=null;cache.at=0;try{renderLifeCalendar();}catch(e){}};
+    setTimeout(re,2500);
+    setTimeout(()=>{re();syncing=false;const b2=document.querySelector('.lgCalTools .lgSync');if(b2){b2.classList.remove('busy');b2.querySelector('.tx').textContent='동기화';}try{showToast&&showToast(ok?'구글 캘린더와 맞췄어요':'동기화할 계정이 없어요');}catch(e){}},6000);
+  };
+  /* ----- 캘린더 목록: 보일 캘린더 고르기 · 앱 안 색 ----- */
+  const PAL=['#D96A6A','#E8915B','#E6B84A','#7DB86A','#3E8A5A','#4FB3BF','#5E9BD6','#3F5AA8','#8E7CC3','#B57BB0','#E39BB5','#7D8796'];
+  window.lgCalListOpen=function(){
+    let s=document.getElementById('lgCalListSheet');
+    if(!s){s=document.createElement('div');s.id='lgCalListSheet';s.className='routineActionOverlay hide';s.onclick=e=>{if(e.target===s)lgCalListClose();};document.body.appendChild(s);}
+    cals=null;const all=calList(),groups={};
+    all.forEach(c=>{(groups[c.account||'이 폰']=groups[c.account||'이 폰']||[]).push(c);});
+    s.innerHTML=`<div class="routineInputCard lgCalListCard" role="dialog" aria-modal="true"><div class="routineActionTitle">캘린더 목록</div><div class="lgCalListHint">체크한 캘린더만 앱에 보여요. 색 네모를 누르면 앱 안에서 쓸 색을 고를 수 있어요.</div>`+
+      Object.keys(groups).map(acc=>`<div class="lgCalAcc">${esc(acc)}</div>`+groups[acc].map(c=>`<div class="lgCalItem" data-id="${c.id}"><button type="button" class="sw" style="background:${calColor(c)}" onclick="lgCalPal(${c.id})" aria-label="색 고르기"></button><span class="nm">${esc(c.name)}</span><label class="ck"><input type="checkbox" ${shown(c.id)?'checked':''} onchange="lgCalPick(${c.id},this.checked)"><i></i></label></div><div class="lgCalPal hide" id="lgCalPal${c.id}">${PAL.map(h=>`<button type="button" style="background:${h}" onclick="lgCalSetColor(${c.id},'${h}')"></button>`).join('')}<button type="button" class="orig" onclick="lgCalSetColor(${c.id},'')">원래 색</button></div>`).join('')).join('')+
+      `<div class="routineInputActions lgCalListBtns"><button type="button" class="primary" onclick="lgCalListClose()">확인</button></div></div>`;
+    s.classList.remove('hide');
+  };
+  window.lgCalListClose=function(){document.getElementById('lgCalListSheet')?.classList.add('hide');cache.at=0;renderLifeCalendar();};
+  window.lgCalPick=function(id,on){const p=prefs();p.sel[String(id)]=!!on;savePrefs(p);};
+  window.lgCalPal=function(id){document.querySelectorAll('.lgCalPal').forEach(x=>{if(x.id!=='lgCalPal'+id)x.classList.add('hide');});document.getElementById('lgCalPal'+id)?.classList.toggle('hide');};
+  window.lgCalSetColor=function(id,h){const p=prefs();if(h)p.color[String(id)]=h;else delete p.color[String(id)];savePrefs(p);const c=calList().find(x=>x.id===id);const sw=document.querySelector(`.lgCalItem[data-id="${id}"] .sw`);if(sw&&c)sw.style.background=calColor(c);document.getElementById('lgCalPal'+id)?.classList.add('hide');};
+
+  /* ----- 날짜를 누르면 작은 창: 그날 일정 ----- */
+  window.lgDayPop=function(k){
+    if(mode()!=='sched'||!C.hasPerm())return;
+    let s=document.getElementById('lgDayPop');
+    if(!s){s=document.createElement('div');s.id='lgDayPop';s.className='lgDayPopWrap hide';s.onclick=e=>{if(e.target===s)s.classList.add('hide');};document.body.appendChild(s);}
+    const dt=parseDateKeyLocal(k),w=['일','월','화','수','목','금','토'][dt.getDay()];
+    const a=byDay(load(false))[k]||[];
+    s.innerHTML=`<div class="lgDayPop" role="dialog"><div class="hd"><b>${dt.getMonth()+1}월 ${dt.getDate()}일 (${w})</b><span>${a.length?a.length+'개 일정':''}</span><button type="button" class="add" onclick="document.getElementById('lgDayPop').classList.add('hide');lgEvOpen(null,'${k}')" aria-label="일정 추가">+</button></div>`+
+      (a.length?`<div class="bd">${a.map(e=>`<button type="button" class="r" onclick="document.getElementById('lgDayPop').classList.add('hide');lgEvOpen(${e.id},'${k}',${e.begin})"><i style="background:${e.color}"></i><span class="t">${e.allDay?'하루 종일':hm(e.begin)}</span><span class="n">${esc(e.title||'(제목 없음)')}</span></button>`).join('')}</div>`:'<div class="bd empty">일정이 없어요</div>')+`</div>`;
+    s.classList.remove('hide');
+  };
+  document.addEventListener('click',ev=>{
+    if(mode()!=='sched')return;
+    const d=ev.target.closest&&ev.target.closest('#calendarGrid .calDay:not(.blank)');if(!d)return;
+    const m=(d.getAttribute('onclick')||'').match(/'(\d{4}-\d{2}-\d{2})'/);if(!m)return;
+    setTimeout(()=>lgDayPop(m[1]),30);
+  });
+  /* ----- 위아래로 밀어서 달 바꾸기 (일정 보기에서) ----- */
+  (function(){
+    let sx=0,sy=0,t0=0,on=false;
+    document.addEventListener('touchstart',e=>{const g=e.target.closest&&e.target.closest('#calendarGrid');on=!!(g&&mode()==='sched');if(!on)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;t0=Date.now();},{passive:true});
+    document.addEventListener('touchmove',e=>{if(!on)return;const dy=e.touches[0].clientY-sy,dx=e.touches[0].clientX-sx;if(Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx))e.preventDefault();},{passive:false});
+    document.addEventListener('touchend',e=>{if(!on)return;on=false;const t=e.changedTouches[0],dy=t.clientY-sy,dx=t.clientX-sx;if(Math.abs(dy)>50&&Math.abs(dy)>Math.abs(dx)*1.3&&Date.now()-t0<900){const g=document.getElementById('calendarGrid');const dir=dy<0?1:-1;moveCalendarMonth(dir);if(g){g.classList.remove('lgSlideUp','lgSlideDown');void g.offsetWidth;g.classList.add(dir>0?'lgSlideUp':'lgSlideDown');}}},{passive:true});
+  })();
   /* 앱으로 돌아오면 새로 불러오기 (구글 캘린더에서 바꾼 것 반영) */
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&mode()==='sched'){cache.at=0;cals=null;try{renderLifeCalendar();}catch(e){}}});
 
