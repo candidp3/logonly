@@ -394,7 +394,7 @@ public class WidgetKit {
                 String rk = wide ? "capRefBar" : "capRefSmall";
                 int ref = sp.getInt(rk, 0);
                 if (hDp > ref) { ref = hDp; sp.edit().putInt(rk, ref).apply(); }
-                int capDp = Math.min(hDp, Math.max(52, Math.round(ref * (wide ? 0.77f : 0.70f))));
+                int capDp = Math.min(hDp, Math.max(52, Math.round(ref * (wide ? 0.80f : 0.70f))));
                 int padDp = Math.max(0, (hDp - capDp) / 2);
                 int px = Math.round(padDp * ctx.getResources().getDisplayMetrics().density);
                 v.setViewPadding(R.id.smallRoot, 0, px, 0, px);
@@ -409,6 +409,8 @@ public class WidgetKit {
         v.setViewVisibility(R.id.smallBtnIc, View.GONE);
         v.setViewVisibility(R.id.smallBtnTextImg, View.GONE);
         int nameW = wide ? leftW(ctx, widgetId) : textW(ctx, widgetId);
+        /* 윗줄(시간대 이름)을 누르면 새로고침: 앱의 최신 기록으로 위젯을 다시 그림 */
+        v.setOnClickPendingIntent(R.id.smallTitleImg, input(ctx, "__sync", (wide ? 9700 : 9100) + widgetId));
         int code = (wide ? 9600 : 9000) + widgetId * 8;
 
         /* 1) 타이머가 돌아가는 중: 연한 테마색 바탕 · 흐르는 시간 · 종료 */

@@ -13403,6 +13403,12 @@ html.lgWQ .tplMake,html.lgWQ .tplLinks button[onclick^="tplEdit"]{display:none!i
 .lgCalUse input{width:20px;height:20px;accent-color:var(--rc-gs)}
 .lgCalTabs.hide{display:none!important}
 
+/* 다크 모드: 일정 글씨를 밝게 */
+@media (prefers-color-scheme:dark){
+  .lgEv{color:color-mix(in srgb,var(--c) 55%,#fff)}
+  .lgEv.all{background:color-mix(in srgb,var(--c) 75%,#000);color:#fff}
+}
+
 </style>
 <div id="obRoot" class="hide" role="dialog" aria-modal="true" aria-label="시작 안내">
   <div class="obTop">
@@ -18311,6 +18317,10 @@ if(LG_WQ){
     try{document.getElementById('obRoot')?.remove();document.getElementById('coachRoot')?.remove();}catch(e){}
     try{lifeNavigate('today');}catch(e){}
     try{if(window.LogonlyWQ&&LogonlyWQ.takePending){const keep=window.LogonlyNotify;window.LogonlyNotify={takePending:()=>LogonlyWQ.takePending()};try{lgPendingRun();}finally{window.LogonlyNotify=keep;}}}catch(e){}
+    if(LG_WQ.id==='__sync'){ /* 위젯 새로고침: 화면 없이 최신 기록으로 위젯만 다시 그리고 닫음 */
+      try{const w=window.LogonlyWidget;w&&w.update(JSON.stringify(lgWidgetData()));}catch(e){}
+      setTimeout(()=>window.LogonlyWQ&&LogonlyWQ.close(),150);return;
+    }
     try{handleRoutineRowTap(null,LG_WQ.id);}catch(e){}
     setTimeout(()=>{opened=!!document.querySelector(openSel);if(!opened){try{lgWidgetSync();}catch(e){}setTimeout(()=>window.LogonlyWQ&&LogonlyWQ.close(),400);}},350);
   },450);
@@ -18457,6 +18467,7 @@ if(LG_WQ){
     if(mode()!=='sched')return;
     const d=ev.target.closest&&ev.target.closest('#calendarGrid .calDay:not(.blank)');if(!d)return;
     const m=(d.getAttribute('onclick')||'').match(/'(\d{4}-\d{2}-\d{2})'/);if(!m)return;
+    if(m[1]!==calendarSelectedKey)return; /* 처음 누르면 날짜만 고르고, 고른 날을 다시 누르면 작은 창 */
     setTimeout(()=>lgDayPop(m[1]),30);
   },true); /* 먼저 잡아야 함: 날짜를 누르면 달력이 새로 그려져서 나중엔 못 찾음 */
   /* 달 넘기기는 원래대로 좌우 밀기만 */
@@ -18561,6 +18572,17 @@ if(LG_WQ){
   }
   const rb=renderBackupStatus;renderBackupStatus=function(){const r=rb.apply(this,arguments);try{row();}catch(e){}return r;};
   try{row();}catch(e){}
+})();
+
+/* 위젯이 앱과 다르게 보이지 않도록: 기록·타이머가 바뀔 때마다, 앱을 나갈 때 바로 위젯에 알림 */
+(function(){
+  const push=()=>{try{lgWidgetSync();}catch(e){}};
+  const a=saveLifeLogs;saveLifeLogs=function(){const r=a.apply(this,arguments);push();return r;};
+  const b=saveActivityTimer;saveActivityTimer=function(){const r=b.apply(this,arguments);push();return r;};
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='hidden')return;
+    try{const w=window.LogonlyWidget;if(w&&w.update&&!(typeof tdIsPast==='function'&&tdIsPast()))w.update(JSON.stringify(lgWidgetData()));}catch(e){}
+  });
 })();
 
 </script>
