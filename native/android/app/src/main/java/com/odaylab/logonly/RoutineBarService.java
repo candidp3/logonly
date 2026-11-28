@@ -35,6 +35,28 @@ public class RoutineBarService extends RemoteViewsService {
             if (!skipped) { skipped = true; continue; }
             out.add(it);
         }
+        /* 놓친 루틴: 오늘 이미 지나간 시간대에서 아직 안 한 것 — 목록 아래쪽에 '놓침'으로 */
+        try {
+            JSONArray blocks = d.optJSONArray("blocks");
+            int h = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY), ds = d.optInt("dayStart", 0);
+            boolean afterMidnight = h < ds;
+            if (blocks != null) for (int i = 0; i < blocks.length(); i++) {
+                JSONObject b = blocks.optJSONObject(i);
+                if (b == null || b == blk) continue;
+                JSONArray hr = b.optJSONArray("hours");
+                if (hr == null || hr.length() < 2) continue;
+                boolean past = afterMidnight ? hr.optInt(1) <= 24 + h && hr.optInt(0) >= ds : hr.optInt(1) <= h;
+                if (!past) continue;
+                JSONArray bi = b.optJSONArray("items");
+                if (bi == null) continue;
+                for (int k = 0; k < bi.length(); k++) {
+                    JSONObject it = bi.optJSONObject(k);
+                    if (it == null || it.optBoolean("done")) continue;
+                    it.put("missed", true);
+                    out.add(it);
+                }
+            }
+        } catch (Exception ignored) {}
         return out;
     }
 
@@ -69,7 +91,9 @@ public class RoutineBarService extends RemoteViewsService {
             if (!check) v.setInt(R.id.rowMark, "setImageAlpha", 150);
             String name = it.optString("name");
             if ("count".equals(kind) && it.optInt("cnt") > 0) name = name + " · " + it.optInt("cnt") + it.optString("unit", "회");
-            v.setImageViewBitmap(R.id.rowName, WidgetKit.txt(ctx, 14f, false, col[1], name, WidgetKit.listW(ctx, widgetId)));
+            v.setImageViewBitmap(R.id.rowName, it.optBoolean("missed")
+                ? WidgetKit.txtTag(ctx, 14f, col[1], name, "놓침", col[2], WidgetKit.listW(ctx, widgetId))
+                : WidgetKit.txt(ctx, 14f, false, col[1], name, WidgetKit.listW(ctx, widgetId)));
             Intent fill = new Intent();
             fill.putExtra("rid", it.optString("id"));
             fill.putExtra("kind", check ? "check" : "input");

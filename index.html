@@ -18585,6 +18585,16 @@ if(LG_WQ){
   });
 })();
 
+/* 저장을 한 번 눌러도 안 되던 문제: 글자 입력 중(키보드가 떠 있을 때) 버튼을 누르면
+   키보드가 먼저 내려가면서 화면이 움직여 누른 자리가 버튼에서 벗어남 → 버튼을 누를 땐 입력칸 초점을 유지해서 화면이 안 움직이게 */
+document.addEventListener('pointerdown',e=>{
+  const b=e.target.closest&&e.target.closest('button,[role="button"]');if(!b||b.disabled)return;
+  const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA)$/.test(a.tagName))return;
+  if(/^(checkbox|radio|range|color|file|date|time|datetime-local|month)$/i.test(a.type||''))return;
+  if(b.contains(a))return;
+  e.preventDefault();
+},true);
+
 </script>
 
 </body>

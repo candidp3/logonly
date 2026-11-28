@@ -251,6 +251,21 @@ public class WidgetKit {
         new Canvas(b).drawText(s, 0, -fm.ascent, p);
         return b;
     }
+    /** 이름 + 작은 표시(예: 놓침) */
+    static Bitmap txtTag(Context ctx, float sp, int color, String name, String tag, int tagColor, int maxW) {
+        android.text.TextPaint a = paint(ctx, sp, false, color), c = paint(ctx, sp - 2.5f, false, tagColor);
+        float gap = 6 * ctx.getResources().getDisplayMetrics().density, tw = c.measureText(tag);
+        if (maxW > 0) name = android.text.TextUtils.ellipsize(name == null ? "" : name, a, Math.max(10, maxW - tw - gap), android.text.TextUtils.TruncateAt.END).toString();
+        float nw = a.measureText(name);
+        Paint.FontMetrics fa = a.getFontMetrics();
+        int w = Math.max(1, (int) Math.ceil(nw + gap + tw) + 2), h = Math.max(1, (int) Math.ceil(fa.descent - fa.ascent));
+        Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        b.setDensity(ctx.getResources().getDisplayMetrics().densityDpi);
+        Canvas cv = new Canvas(b);
+        cv.drawText(name, 0, -fa.ascent, a);
+        cv.drawText(tag, nw + gap, -fa.ascent, c);
+        return b;
+    }
     /** 윗줄: 시간대(진하게) + 2/5(연하게) */
     static void title(Context ctx, RemoteViews v, String label, String count, int[] col, int maxW) {
         android.text.TextPaint a = paint(ctx, 14f, true, col[1]), c = paint(ctx, 13.5f, false, col[2]);
